@@ -1,5 +1,6 @@
 .idea/*
-target/*
 node_modules/*
 *.iml
 bower_components/*
+target
+examples/basic/target

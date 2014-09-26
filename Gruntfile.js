@@ -7,20 +7,15 @@ module.exports = function (grunt) {
             browserify: 'browserify -o lib/htmlparser2.js -r htmlparser2 -s htmlparser'
         },
         requirejs: {
-            main: {
+            dev: {
                 options: {
                     baseUrl: 'src',
                     optimize: 'none',
-                    out: "target/templating.js",
+                    dir: "target/dev",
                     paths: {
-                        'templating': 'main',
-                        'templating/Coder': './Coder',
-                        'templating/DOMParser': './DOMParser',
-                        'templating/Decoder': './Decoder',
-                        'templating/utils': './utils',
                         'htmlparser2': '../lib/htmlparser2'
                     },
-                    name: 'templating',
+                    name: 'templating/parser',
                     include: [
                         'templating/utils',
                         'templating/DOMParser',
@@ -38,9 +33,21 @@ module.exports = function (grunt) {
                         }}
                 }
             },
+            prod: {
+                options: {
+                    baseUrl: 'src',
+                    optimize: 'uglify2',
+                    removeCombined: true,
+                    out: "target/prod/templating/Decoder.js",
+                    paths: {
+                        'htmlparser2': '../lib/htmlparser2'
+                    },
+                    name: 'templating/Decoder'
+                   }
+            },
             examples: {
                 options: {
-                    baseUrl: 'examples',
+                    baseUrl: 'examples/basic',
                     removeCombined: true,
                     optimize: 'none',
                     templateCoders: [
@@ -49,12 +56,15 @@ module.exports = function (grunt) {
                     templateDecoders: [
                         'coders/component/componentDecoder'
                     ],
-                    stubModules: ['templating/main', 'text'],
-                    exclude:['templating','coders/component/ComponentCoder', 'templating/Decoder', 'coders/component/componentDecoder'],
-                    out: "target/test.js",
+                    stubModules: ['templating/parser'],
+                    exclude:[
+                        'coders/component/ComponentCoder',
+                        'coders/component/componentDecoder'],
+                    dir: "examples/basic/target",
                     paths: {
-                        coders: '../src/coders',
-                        templating:'../target/templating'
+                        coders: '../../src/coders',
+                        templating:'../../target/dev/templating',
+                        htmlparser2:'../../target/dev/htmlparser2'
                     },
                     name: 'test'
 
