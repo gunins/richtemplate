@@ -1,12 +1,12 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['../lib/htmlparser2', './utils'], factory);
+        define(['htmlparser2', 'templating/utils'], factory);
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory(require('htmlparser2'), require('utils'));
+        module.exports = factory(require('htmlparser2'), require('./utils'));
     } else {
         // Browser globals (root is window)
         root.Templating = root.Templating || {};
@@ -40,15 +40,15 @@
         getAttributeValue: DomUtils.getAttributeValue,
 
         setAttributeValue: function (el, name, value) {
-            el.attributes = el.attributes || [];
-            el.attributes[name] = value;
+            el.attribs = el.attribs || {};
+            el.attribs[name] = value;
         },
 
         createElement: function (tagName) {
             return {
                 type: 'tag',
                 name: tagName,
-                attributes: [],
+                attribs: {},
                 children: []
             };
         },

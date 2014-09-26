@@ -1,6 +1,6 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['../../Coder'], factory);
+        define(['templating/Coder'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory();
     } else {
@@ -23,13 +23,13 @@
                 });
             }
             var dataset = {};
-            var attributes = nodeContext.element.attributes;
+            var attribs = nodeContext.element.attribs;
 
-            for (var name in attributes) {
+            for (var name in attribs) {
                 //noinspection JSUnfilteredForInLoop
                 if (name.indexOf('data-') == 0 && name.length > 5) {
                     //noinspection JSUnfilteredForInLoop
-                    dataset[name.substr(5)] = attributes[name];
+                    dataset[name.substr(5)] = attribs[name];
                 }
             }
 

@@ -3,7 +3,7 @@
         // AMD. Register as an anonymous module.
         // AMD. Register as an anonymous module.
         define([
-            './utils'
+            'templating/utils'
         ], factory);
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but

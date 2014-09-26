@@ -100,15 +100,15 @@ define(['module'], function (module) {
             }
 
             var paths = {
-                DOMParser: 'DOMParser',
-                Coder: 'Coder'
+                DOMParser: 'templating/DOMParser',
+                Coder: 'templating/Coder'
             };
 
             if (masterConfig.isBuild) {
                 var DOMParser = require.nodeRequire(require.toUrl(paths.DOMParser));
                 var Coder = require.nodeRequire(require.toUrl(paths.Coder));
                 masterConfig.templateCoders.forEach(function (coder) {
-                    DOMParser.addCoder(require.nodeRequire(require.toUrl(coder)));
+                    Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
                 });
                 handler(DOMParser, Coder);
             } else {

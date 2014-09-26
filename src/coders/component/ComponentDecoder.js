@@ -3,9 +3,9 @@
         // AMD. Register as an anonymous module.
         // AMD. Register as an anonymous module.
         define([
-            '../../Decoder',
+            'templating/Decoder',
             '../bindings/DataBinding',
-            '../../utils'
+            'templating/utils'
         ], factory)
         ;
     } else if (typeof exports === 'object') {

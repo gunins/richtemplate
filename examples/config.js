@@ -1,22 +1,22 @@
 require.config({
-    baseUrl:'./',
+    baseUrl: './',
     templateCoders: [
         'coders/component/ComponentCoder'
     ],
     templateDecoders: [
         'coders/component/componentDecoder'
     ],
-    paths:{
-        coders:'../src/coders',
-        Coder:'../src/Coder',
-        Decoder:'../src/Decoder',
-        DOMParser:'../src/DomParser',
-        utils:'../src/utils'
+    paths: {
+        coders: '../src/coders',
+//        htmlparser2: '../lib/htmlparser2'
+        templating: '../target/templating',
+        'templating/Decoder': '../target/templating',
+        'test':'../target/test'
     },
-    packages:[
+    /*packages: [
         {
-            name:'templating',
-            location:'../src'
+            name: 'templating',
+            location: '../src'
         }
-    ]
+    ]*/
 });
