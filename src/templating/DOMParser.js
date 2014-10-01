@@ -58,6 +58,11 @@
                 return el.name == tagName;
             }, elements);
         },
+        getElementByPrefix: function (prefix, elements) {
+            return DomUtils.findOne(function (el) {
+                return el.name.split('-')[0] == prefix;
+            }, elements);
+        },
 
         getChildrenElements: function (element) {
             return DomUtils.filter(function (el) {

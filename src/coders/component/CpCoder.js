@@ -9,18 +9,19 @@
     root.Templating.ComponentCoder = factory(root.Templating.Coder);
 }
 }(this, function (Coder) {
-
     var ComponentCoder = {
-        tagName: 'component',
+        tagName: 'cp',
         code: function (nodeContext) {
-            var children = nodeContext.getChildrenByTagName('component');
+            var src = nodeContext.element.name.split('-')[1];
+            var children = nodeContext.getChildrenByPrefix('cp-');
             var placeholders = [];
             for (var i = 0; i < children.length; i++) {
                 var child = children[i];
                 placeholders.push({
                     placeholder: child.name,
                     element: nodeContext.compile(nodeContext.findChild(child))
-                });
+                })
+                ;
             }
             var dataset = {};
             var attribs = nodeContext.element.attribs;
@@ -34,7 +35,7 @@
             }
 
             return {
-                src: nodeContext.get('src'),
+                src: src||nodeContext.get('src'),
                 name: nodeContext.get('name'),
                 bind: nodeContext.get('bind'),
                 dataset: dataset,

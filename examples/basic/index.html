@@ -14,7 +14,6 @@
        var decoder = new Decoder(template);
        var context = decoder.render();
        var el = document.getElementById('el');
-
        el.appendChild(context.fragment.firstChild);
        setTimeout(function(){
            context.components.testA.el.innerText = "BAR"

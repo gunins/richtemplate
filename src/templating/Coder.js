@@ -18,15 +18,14 @@
 
     function applyCoder(el, root, coder) {
         var element;
-
-        if (el.name == coder.tagName) {
+        if (el.name.split('-')[0] == coder.tagName) {
             element = el;
             el = this._parser.createElement('div');
             this._parser.replaceElement(element, el);
             this._parser.appendChild(el, element);
         }
 
-        while (element = this._parser.getElementByTagName(coder.tagName, this._parser.getChildren(el))) {
+        while (element = this._parser.getElementByPrefix(coder.tagName, this._parser.getChildren(el))) {
             var placeholder = this._parser.createElement('div');
             var id = 'e' + c++;
             this._parser.setAttributeValue(placeholder, 'id', id);

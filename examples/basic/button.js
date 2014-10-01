@@ -1,5 +1,5 @@
 define([
-    'templating/parser!./_button.html',
+    'templating/parser!./button/_button.html',
     'templating/Decoder'], function (template, Decoder) {
     return function(){
         var decoder = new Decoder(template);

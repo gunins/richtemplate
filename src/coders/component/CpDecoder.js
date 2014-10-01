@@ -21,7 +21,7 @@
 }(this, function (Decoder, DataBinding, utils) {
 
     var componentDecoder = {
-        tagName: 'component',
+        tagName: 'cp',
         decode: function (node, context, render) {
             context.bind = context.bind || function (model) {
                 var binding = new DataBinding(model);
