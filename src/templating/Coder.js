@@ -57,7 +57,9 @@
 
     utils.merge(Coder, {
         addCoder: function (coder) {
-            _coders.push(coder);
+            if(_coders.indexOf(coder)===-1){
+                _coders.push(coder);
+            }
         }
     });
     function parseChildren(el, root) {

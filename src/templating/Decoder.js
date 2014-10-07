@@ -32,7 +32,9 @@
 
     utils.merge(Decoder, {
         addDecoder: function (decoder) {
-            _decoders[decoder.tagName] = decoder;
+            if (_decoders.indexOf(decoder) === -1) {
+                _decoders[decoder.tagName] = decoder;
+            }
         }
     });
     utils.merge(Decoder.prototype, {
