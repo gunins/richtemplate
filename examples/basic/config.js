@@ -1,10 +1,13 @@
 require.config({
     baseUrl: './',
     templateCoders: [
-        'coders/component/CpCoder'
+        'coders/component/CpCoder',
+        'coders/placeholders/plCoder'
+
     ],
     templateDecoders: [
-        'coders/component/CpDecoder'
+        'coders/component/CpDecoder',
+        'coders/placeholders/plDecoder'
     ],
     paths: {
         'coders': '../../src/coders',

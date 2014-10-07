@@ -16,21 +16,23 @@
     }
 }(this, function (utils) {
 
-    function applyCoder(el, root, coder) {
-        var element;
-        if (el.name.split('-')[0] == coder.tagName) {
-            element = el;
-            el = this._parser.createElement('div');
-            this._parser.replaceElement(element, el);
-            this._parser.appendChild(el, element);
-        }
 
-        while (element = this._parser.getElementByPrefix(coder.tagName, this._parser.getChildren(el))) {
-            var placeholder = this._parser.createElement('div');
+    function applyCoder(element, root, coder) {
+        if (element.name.split('-')[0] == coder.tagName) {
+         console.log(element.name, coder.tagName)
+            var children = this._parser.getChildren(element),
+                placeholder = this._parser.createElement('div');
+
+            if (children && children.length > 0) {
+                children.forEach(function (child) {
+                    this._parser.appendChild(placeholder, child);
+                }.bind(this));
+            }
+
             var id = 'e' + c++;
+
             this._parser.setAttributeValue(placeholder, 'id', id);
             this._parser.replaceElement(element, placeholder);
-
             root.elements = root.elements || [];
             root.elements.push({
                 id: id,
@@ -38,7 +40,8 @@
                 data: this._prepare(element, coder)
             });
         }
-    };
+
+    }
 
     /**
      *
@@ -57,15 +60,26 @@
             _coders.push(coder);
         }
     });
+    function parseChildren(el, root) {
+        var children = this._parser.getChildren(el);
+        if (children && children.length > 0) {
+            children.forEach(function (child) {
+                parseChildren.call(this, child, root)
+                if (!this._parser.isText(child)) {
+                    _coders.forEach(applyCoder.bind(this, child, root));
+                }
+            }.bind(this))
+        }
+    }
 
     utils.merge(Coder.prototype, {
         addCoder: Coder.addCoder,
         _compile: function (el) {
             var root = {};
+            parseChildren.call(this, el, root);
+
             _coders.forEach(applyCoder.bind(this, el, root));
-
             root.template = this._parser.getOuterHTML(el);
-
             return root;
         },
 
@@ -95,6 +109,9 @@
                     return children.filter(function (el) {
                         return el.name == name;
                     });
+                },
+                getChildren: function () {
+                    return this.compiler._parser.getChildrenElements(this.element);
                 },
                 findChild: function (el) {
                     var children = this.compiler._parser.getChildren(el);

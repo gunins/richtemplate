@@ -42,12 +42,15 @@
             el.innerHTML = root.template;
             var fragment = document.createDocumentFragment();
             fragment.appendChild(el.firstChild);
-
-
             if (root.elements) {
                 root.elements.forEach(function (node) {
                     var htmlElement = _decoders[node.tagName].decode(node, context, this._renderFragment.bind(this, context));
+
                     var placeholder = fragment.querySelector('#' + node.id);
+
+                    while (placeholder.childNodes.length > 0) {
+                        htmlElement.appendChild(placeholder.childNodes[0]);
+                    }
                     placeholder.parentNode.replaceChild(htmlElement, placeholder);
                 }.bind(this));
             }
@@ -57,7 +60,6 @@
 
         render: function () {
             var context = {};
-
             context.fragment = this._renderFragment(context, this._root);
 
 //        console.log('Rendering context: ', context);

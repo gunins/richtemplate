@@ -37,21 +37,8 @@
             if (data.name) {
                 context.components = context.components || {};
                 context.components[data.name] = data.instance;
+                context.components[data.name].children = data.children;
             }
-
-            if (data.bind) {
-                context.bindings = context.bindings || {};
-                context.bindings[data.bind] = data.instance;
-            }
-
-            if (data.placeholders) {
-                for (var i = 0; i < data.placeholders.length; i++) {
-                    var name = data.placeholders[i].placeholder;
-                    var el = render(data.placeholders[i].element);
-                    data.instance[name](el);
-                }
-            }
-
             return data.instance['el'];
         }
     };

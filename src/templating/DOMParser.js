@@ -34,6 +34,7 @@
     utils.merge(DOMParser.prototype, {
         DomUtils: DomUtils,
         getOuterHTML: DomUtils.getOuterHTML,
+        getInnerHTML: DomUtils.getInnerHTML,
         getChildren: DomUtils.getChildren,
         replaceElement: DomUtils.replaceElement,
         appendChild: DomUtils.appendChild,

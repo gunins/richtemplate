@@ -51,18 +51,21 @@ module.exports = function (grunt) {
                     removeCombined: true,
                     optimize: 'none',
                     templateCoders: [
-                        'coders/component/ComponentCoder'
+                        'coders/component/CpCoder',
+                        'coders/placeholders/plCoder'
                     ],
                     templateDecoders: [
-                        'coders/component/componentDecoder'
+                        'coders/component/CpDecoder',
+                        'coders/placeholders/plDecoder'
                     ],
                     stubModules: ['templating/parser'],
                     exclude:[
-                        'coders/component/ComponentCoder',
-                        'coders/component/componentDecoder'],
+                        'coders/component/CpCoder',
+                        'coders/component/CpDecoder'],
                     dir: "examples/basic/target",
                     paths: {
                         coders: '../../src/coders',
+                        buttona:'buttonA/buttonA',
                         templating:'../../target/dev/templating',
                         htmlparser2:'../../target/dev/htmlparser2'
                     },
