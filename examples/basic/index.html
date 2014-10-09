@@ -10,16 +10,17 @@
 <div id="el"></div>
 
 <script>
-   require(['templating/Decoder', 'test'],function(Decoder, template){
-       var decoder = new Decoder(template);
-       var context = decoder.render();
-//console.log(context)
-       var el = document.getElementById('el');
-       el.appendChild(context.fragment.firstChild);
-       setTimeout(function(){
-           context.components.testA.el.innerHTML = "BAR"
-       }.bind(this), 1000)
-   })
+    require(['templating/Decoder', 'test'], function (Decoder, template) {
+//        console.log(template);
+        var decoder = new Decoder(template);
+        var context = decoder.render();
+//        console.log(context)
+        var el = document.getElementById('el');
+        el.appendChild(context.fragment.firstChild);
+        setTimeout(function () {
+//            context.children.testA.el.innerHTML = "BAR"
+        }.bind(this), 1000)
+    })
 </script>
 </body>
 </html>

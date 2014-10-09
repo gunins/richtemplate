@@ -14,14 +14,6 @@
         code: function (nodeContext) {
             var src = nodeContext.element.name.split('-')[1];
             var dataset = {};
-//            var children = nodeContext.getChildren();
-//            var nodes = [];
-//            if (children.length > 0) {
-//                children.forEach(function (child) {
-////                    console.log(nodeContext.compile(child))
-//                    nodes.push(nodeContext.compile(child));
-//                });
-//            }
             var attribs = nodeContext.element.attribs;
 
             for (var name in attribs) {
@@ -34,8 +26,7 @@
             return {
                 src: src || nodeContext.get('src'),
                 name: nodeContext.get('name'),
-                dataset: dataset,
-//                children: nodes
+                dataset: dataset
             };
         }
     };

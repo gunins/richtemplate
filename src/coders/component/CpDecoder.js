@@ -4,7 +4,6 @@
         // AMD. Register as an anonymous module.
         define([
             'templating/Decoder',
-            '../bindings/DataBinding',
             'templating/utils'
         ], factory)
         ;
@@ -18,28 +17,19 @@
         root.Templating = root.Templating || {};
         root.Templating.componentDecoder = factory(root.Templating.Decoder, root.Templating.DataBinding, root.Templating.utils);
     }
-}(this, function (Decoder, DataBinding, utils) {
+}(this, function (Decoder) {
 
     var componentDecoder = {
         tagName: 'cp',
-        decode: function (node, context, render) {
-            context.bind = context.bind || function (model) {
-                var binding = new DataBinding(model);
-                for (var name in this.bindings) {
-                    //noinspection JSUnfilteredForInLoop
-                    binding.bind(name, this.bindings[name]);
-                }
-            };
+        decode: function (node, fragment, children) {
 
             var data = node.data;
-            data.instance = new data.src(data.dataset);
-
-            if (data.name) {
-                context.components = context.components || {};
-                context.components[data.name] = data.instance;
-                context.components[data.name].children = data.children;
-            }
-            return data.instance['el'];
+            data.instance = new data.src(data.dataset, children);
+            return {
+                name:data.name,
+                el: data.instance['el'],
+                data: data || {}
+            };
         }
     };
 

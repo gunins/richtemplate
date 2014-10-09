@@ -1,14 +1,17 @@
 define([
     'templating/parser!./button/_button.html',
-    'templating/Decoder'], function (template, Decoder) {
-    return function(){
+    'templating/Decoder'
+], function (template, Decoder) {
+    return function(data, children){
+        console.log(children)
         var decoder = new Decoder(template);
         var context = decoder.render();
-        var el = document.createElement('div');
-        el.innerText = 'Test Button';
-        el.appendChild(context.fragment.firstChild);
+        var els = context.children;
+        els.header.el.appendChild(children.header.el);
+        els.footer.el.appendChild(children.footer.el);
+
         return{
-            el: el
+            el: context.fragment.firstChild
         }
     };
 

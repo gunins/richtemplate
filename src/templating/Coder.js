@@ -17,30 +17,32 @@
 }(this, function (utils) {
 
 
-    function applyCoder(element, root, coder) {
-        if (element.name.split('-')[0] == coder.tagName) {
-         console.log(element.name, coder.tagName)
-            var children = this._parser.getChildren(element),
-                placeholder = this._parser.createElement('div');
+    function applyCoder(element) {
+        var parsed = false;
+        _coders.forEach(function (coder) {
+            if (element.name.split('-')[0] == coder.tagName && !parsed) {
+                var children = this._parser.getChildren(element),
+                    placeholder = this._parser.createElement('div');
 
-            if (children && children.length > 0) {
-                children.forEach(function (child) {
-                    this._parser.appendChild(placeholder, child);
-                }.bind(this));
+                if (children && children.length > 0) {
+                    children.forEach(function (child) {
+                        this._parser.appendChild(placeholder, child);
+                    }.bind(this));
+                }
+
+                var id = 'e' + c++;
+
+                this._parser.setAttributeValue(placeholder, 'id', id);
+                this._parser.replaceElement(element, placeholder);
+
+                parsed = {
+                    id: id,
+                    tagName: coder.tagName,
+                    data: this._prepare(element, coder)
+                };
             }
-
-            var id = 'e' + c++;
-
-            this._parser.setAttributeValue(placeholder, 'id', id);
-            this._parser.replaceElement(element, placeholder);
-            root.elements = root.elements || [];
-            root.elements.push({
-                id: id,
-                tagName: coder.tagName,
-                data: this._prepare(element, coder)
-            });
-        }
-
+        }.bind(this));
+        return parsed;
     }
 
     /**
@@ -57,32 +59,49 @@
 
     utils.merge(Coder, {
         addCoder: function (coder) {
-            if(_coders.indexOf(coder)===-1){
+            if (_coders.indexOf(coder) === -1) {
                 _coders.push(coder);
             }
         }
     });
-    function parseChildren(el, root) {
-        var children = this._parser.getChildren(el);
-        if (children && children.length > 0) {
-            children.forEach(function (child) {
-                parseChildren.call(this, child, root)
+    function parseChildren(el) {
+        var context = {},
+            parsed = false,
+            children,
+            childEl = this._parser.getChildren(el);
+        if (childEl && childEl.length > 0) {
+            childEl.forEach(function (child) {
                 if (!this._parser.isText(child)) {
-                    _coders.forEach(applyCoder.bind(this, child, root));
+                    children = parseChildren.call(this, child);
+                    parsed = applyCoder.call(this, child);
+                    if (parsed || children) {
+                        context.elements = context.elements || [];
+                    }
+                    if (parsed) {
+                        context.elements.push(parsed);
+                        if (children !== undefined) {
+                            parsed.children = children;
+                        }
+                    }
+                    else if (children && children.elements) {
+                        context.elements = context.elements.concat(children.elements)
+                    }
+
+
                 }
             }.bind(this))
         }
+
+        return context;
     }
 
     utils.merge(Coder.prototype, {
         addCoder: Coder.addCoder,
         _compile: function (el) {
-            var root = {};
-            parseChildren.call(this, el, root);
-
-            _coders.forEach(applyCoder.bind(this, el, root));
-            root.template = this._parser.getOuterHTML(el);
-            return root;
+            return{
+                children: parseChildren.call(this, el),
+                template: this._parser.getOuterHTML(el)
+            };
         },
 
         _prepare: function (element, coder) {
@@ -137,7 +156,6 @@
 
         getText: function () {
             var result = JSON.stringify(this.run());
-//        console.log('Compiler: Template serialization: ', result);
             return  result;
         }
     });

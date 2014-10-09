@@ -28,25 +28,26 @@
         this._root = (typeof root === 'string') ? JSON.parse(root) : root;
     }
 
-    var _decoders = {};
-
-    utils.merge(Decoder, {
-        addDecoder: function (decoder) {
-            if (_decoders.indexOf(decoder) === -1) {
-                _decoders[decoder.tagName] = decoder;
+    function parseElements(root, fragment) {
+        var context = false,
+            children = false;
+        root.children.elements.forEach(function (node) {
+            if (node.children &&
+                node.children.elements &&
+                node.children.elements.length > 0) {
+                children = parseElements.call(this, node, fragment);
             }
-        }
-    });
-    utils.merge(Decoder.prototype, {
-        addDecoder: Decoder.addDecoder,
-        _renderFragment: function (context, root) {
-            var el = document.createElement('div');
-            el.innerHTML = root.template;
-            var fragment = document.createDocumentFragment();
-            fragment.appendChild(el.firstChild);
-            if (root.elements) {
-                root.elements.forEach(function (node) {
-                    var htmlElement = _decoders[node.tagName].decode(node, context, this._renderFragment.bind(this, context));
+            if (node.tagName) {
+                var data = _decoders[node.tagName].decode(node, this._renderFragment.bind(this), children);
+                if (data) {
+                    context = context || {};
+                    context[data.name] = data;
+
+                    if (children) {
+                        context[data.name].children = children;
+                    }
+
+                    var htmlElement = data.el;
 
                     var placeholder = fragment.querySelector('#' + node.id);
 
@@ -54,19 +55,45 @@
                         htmlElement.appendChild(placeholder.childNodes[0]);
                     }
                     placeholder.parentNode.replaceChild(htmlElement, placeholder);
-                }.bind(this));
+                }
             }
 
-            return fragment;
+        }.bind(this));
+
+        return context;
+    };
+
+    var _decoders = {};
+
+    utils.merge(Decoder, {
+        addDecoder: function (decoder) {
+            if (_decoders[decoder.tagName] === undefined) {
+                _decoders[decoder.tagName] = decoder;
+            }
+        }
+    });
+    utils.merge(Decoder.prototype, {
+        addDecoder: Decoder.addDecoder,
+        _renderFragment: function (root) {
+            var children = {},
+                el = document.createElement('div'),
+                fragment = document.createDocumentFragment();
+
+            el.innerHTML = root.template;
+            fragment.appendChild(el.firstChild);
+
+            if (root.children.elements.length > 0) {
+                children = parseElements.call(this, root, fragment);
+            }
+
+            return {
+                fragment: fragment,
+                children: children
+            };
         },
 
         render: function () {
-            var context = {};
-            context.fragment = this._renderFragment(context, this._root);
-
-//        console.log('Rendering context: ', context);
-
-            return context;
+            return this._renderFragment(this._root);
         }
     });
 
