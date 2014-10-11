@@ -16,13 +16,12 @@
     }
 }(this, function (utils) {
 
-
     function applyCoder(element) {
         var parsed = false;
         _coders.forEach(function (coder) {
             if (element.name.split('-')[0] == coder.tagName && !parsed) {
                 var children = this._parser.getChildren(element),
-                    placeholder = this._parser.createElement('div');
+                    placeholder = this._parser.createElement(this._parser.getAttributeValue(element,'tp-type') || 'div');
 
                 if (children && children.length > 0) {
                     children.forEach(function (child) {
@@ -87,7 +86,6 @@
                         context.elements = context.elements.concat(children.elements)
                     }
 
-
                 }
             }.bind(this))
         }
@@ -103,7 +101,29 @@
                 template: this._parser.getOuterHTML(el)
             };
         },
+        _setData: function (nodeContext) {
+            var dataset = {},
+                tplSet = {},
+                attributes = {},
+                attribs = nodeContext.element.attribs;
 
+            Object.keys(attribs).forEach(function (key) {
+                if (key.indexOf('data-') == 0 && key.length > 5) {
+                    dataset[key.substr(5)] = attribs[key];
+                } else if (key.indexOf('tp-') == 0 && key.length > 3) {
+                    tplSet[key.substr(3)] = attribs[key];
+                }
+                else {
+                    attributes[key] = attribs[key];
+                }
+            });
+
+            return {
+                tplSet: tplSet,
+                dataset: dataset,
+                attribs: attributes
+            };
+        },
         _prepare: function (element, coder) {
             var nodeContext = {
                 compiler: this,
@@ -146,8 +166,10 @@
                     return this.compiler._parser.getAttributeValue(this.element, name);
                 }
             };
+            var data = this._setData(nodeContext);
+            coder.code(nodeContext, data);
 
-            return coder.code(nodeContext);
+            return data;
         },
 
         run: function () {

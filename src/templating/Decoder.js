@@ -38,23 +38,34 @@
                 children = parseElements.call(this, node, fragment);
             }
             if (node.tagName) {
-                var data = _decoders[node.tagName].decode(node, this._renderFragment.bind(this), children);
+                var data = _decoders[node.tagName].decode(node, children);
                 if (data) {
                     context = context || {};
                     context[data.name] = data;
+
+                    var el = data.el,
+                        attributes = node.data.attribs;
+
+                    Object.keys(attributes).forEach(function (key) {
+                        el.setAttribute(key, attributes[key]);
+                    });
+
+                    el.classList.add(data.name);
+                    var placeholder = fragment.querySelector('#' + node.id);
 
                     if (children) {
                         context[data.name].children = children;
                     }
 
-                    var htmlElement = data.el;
-
-                    var placeholder = fragment.querySelector('#' + node.id);
-
                     while (placeholder.childNodes.length > 0) {
-                        htmlElement.appendChild(placeholder.childNodes[0]);
+                        el.appendChild(placeholder.childNodes[0]);
                     }
-                    placeholder.parentNode.replaceChild(htmlElement, placeholder);
+                    if (_decoders[node.tagName].noAttach !== undefined) {
+                        context[data.name].placeholder = placeholder;
+                    } else {
+                        placeholder.parentNode.replaceChild(el, placeholder);
+                    }
+
                 }
             }
 
@@ -96,7 +107,6 @@
             return this._renderFragment(this._root);
         }
     });
-
 
     return Decoder;
 

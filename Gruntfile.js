@@ -1,5 +1,27 @@
 module.exports = function (grunt) {
+    var coders = {
+        templateCoders: [
+            'coders/component/CpCoder',
+            'coders/placeholders/plCoder',
+            'coders/template/tplCoder'
 
+        ],
+        templateDecoders: [
+            'coders/component/CpDecoder',
+            'coders/placeholders/plDecoder',
+            'coders/template/tplDecoder'
+        ],
+        exclude: [
+            'coders/component/CpCoder',
+            'coders/component/CpDecoder',
+            'coders/placeholders/plCoder',
+            'coders/placeholders/plDecoder',
+            'coders/template/tplCoder',
+            'coders/template/tplDecoder',
+            'widget/Constructor'
+
+        ]
+    }
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         clean: ['target'],
@@ -43,33 +65,47 @@ module.exports = function (grunt) {
                         'htmlparser2': '../lib/htmlparser2'
                     },
                     name: 'templating/Decoder'
-                   }
+                }
             },
-            examples: {
+            basic: {
                 options: {
                     baseUrl: 'examples/basic',
                     removeCombined: true,
                     optimize: 'none',
-                    templateCoders: [
-                        'coders/component/CpCoder',
-                        'coders/placeholders/plCoder'
-                    ],
-                    templateDecoders: [
-                        'coders/component/CpDecoder',
-                        'coders/placeholders/plDecoder'
-                    ],
+                    templateCoders: coders.templateCoders,
+                    templateDecoders: coders.templateDecoders,
                     stubModules: ['templating/parser'],
-                    exclude:[
-                        'coders/component/CpCoder',
-                        'coders/component/CpDecoder'],
+                    exclude: coders.exclude,
                     dir: "examples/basic/target",
                     paths: {
                         coders: '../../src/coders',
-                        buttona:'buttonA/buttonA',
-                        templating:'../../target/dev/templating',
-                        htmlparser2:'../../target/dev/htmlparser2'
+                        buttona: 'buttonA/buttonA',
+                        templating: '../../target/dev/templating',
+                        htmlparser2: '../../target/dev/htmlparser2',
+                        'widget': '../../src/widget'
+
                     },
                     name: 'test'
+
+                }
+            },
+            application: {
+                options: {
+                    baseUrl: 'examples/application/src',
+                    removeCombined: true,
+                    optimize: 'none',
+                    templateCoders: coders.templateCoders,
+                    templateDecoders: coders.templateDecoders,
+                    stubModules: ['templating/parser'],
+                    exclude: coders.exclude,
+                    dir: "examples/application/target",
+                    paths: {
+                        coders: '../../../src/coders',
+                        templating: '../../../target/dev/templating',
+                        htmlparser2: '../../../target/dev/htmlparser2',
+                        'widget': '../../../src/widget'
+                    },
+                    name: 'app'
 
                 }
             }
@@ -79,7 +115,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-exec');
-
 
     grunt.registerTask('default', ['clean', 'exec', 'requirejs']);
 

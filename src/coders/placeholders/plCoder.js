@@ -11,24 +11,13 @@
 }(this, function (Coder) {
     var PlaceholderCoder = {
         tagName: 'pl',
-        code: function (nodeContext) {
-            var name = nodeContext.element.name.split('-')[1];
+        code: function (nodeContext, data) {
+            var name = nodeContext.element.name.substr(3);
 
-            var dataset = {};
-            var attribs = nodeContext.element.attribs;
+            data.name = name || nodeContext.get('tp-name');
+            data.type = nodeContext.get('tp-type') || 'div';
 
-            for (var name in attribs) {
-                //noinspection JSUnfilteredForInLoop
-                if (name.indexOf('data-') == 0 && name.length > 5) {
-                    //noinspection JSUnfilteredForInLoop
-                    dataset[name.substr(5)] = attribs[name];
-                }
-            }
-
-            return {
-                name: name || nodeContext.get('name'),
-                dataset: dataset
-            };
+            return data;
         }
     };
 

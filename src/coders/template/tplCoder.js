@@ -6,22 +6,23 @@
     } else {
         // Browser globals (root is window)
         root.Templating = root.Templating || {};
-        root.Templating.ComponentCoder = factory(root.Templating.Coder);
+        root.Templating.PlaceholderCoder = factory(root.Templating.Coder);
     }
 }(this, function (Coder) {
-    var ComponentCoder = {
-        tagName: 'cp',
+    var PlaceholderCoder = {
+        tagName: 'tpl',
         code: function (nodeContext, data) {
-            var src = nodeContext.element.name.substr(3);
-                data.src = src || nodeContext.get('src');
-                data.name = nodeContext.get('tp-name');
+            var name = nodeContext.element.name.substr(4);
+            data.name = name || nodeContext.get('tp-name');
+            data.type = nodeContext.get('tp-type') || 'div';
+            return data;
         }
     };
 
     if (Coder) {
-        Coder.addCoder(ComponentCoder);
+        Coder.addCoder(PlaceholderCoder);
     }
 
-    return ComponentCoder;
+    return PlaceholderCoder;
 
 }));

@@ -4,13 +4,12 @@
         // AMD. Register as an anonymous module.
         define([
             'templating/Decoder'
-        ], factory)
-        ;
+        ], factory);
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory(require('./Decoder'), require('./DataBinding'), require('./utils'));
+        module.exports = factory(require('./Decoder'));
     } else {
         // Browser globals (root is window)
         root.Templating = root.Templating || {};
@@ -19,15 +18,16 @@
 }(this, function (Decoder) {
 
     var componentDecoder = {
-        tagName: 'cp',
-        decode: function (node, children) {
+        tagName: 'tpl',
+        noAttach: true,
+        decode: function (node) {
+            var data = node.data,
+                el = document.createElement(data.type);
 
-            var data = node.data;
-            data.instance = new data.src(data.dataset, children);
             return {
-                name:data.name,
-                el: data.instance['el'],
-                data: data || {}
+                name: data.name,
+                el: el,
+                data: data
             };
         }
     };
