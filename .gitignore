@@ -4,4 +4,3 @@ node_modules/*
 bower_components/*
 target
 examples/basic/target
-examples/application/css/dashboard.css

@@ -2,14 +2,17 @@
  * Created by guntars on 09/10/2014.
  */
 define([
-    'widget/Constructor',
-    'templating/parser!./app/_app.html',
-    'tableData'
-], function (Constructor, template, dataset) {
+    'widget/App',
+    'container',
+    'data'
+], function (App, Container, data) {
 
-    return Constructor.extend({
+    return App.extend({
         init:function(){
         },
-        template: template
+        AppContainer: Container,
+        setContext: function () {
+            return {data: data}
+        }
     });
 });

@@ -41,21 +41,24 @@
                 var data = _decoders[node.tagName].decode(node, children);
                 if (data) {
                     context = context || {};
-                    context[data.name] = data;
 
                     var el = data.el,
                         attributes = node.data.attribs;
+
+                    if (data.name !== undefined) {
+                        context[data.name] = data;
+                        el.classList.add(data.name);
+
+                        if (children) {
+                            context[data.name].children = children;
+                        }
+                    }
 
                     Object.keys(attributes).forEach(function (key) {
                         el.setAttribute(key, attributes[key]);
                     });
 
-                    el.classList.add(data.name);
                     var placeholder = fragment.querySelector('#' + node.id);
-
-                    if (children) {
-                        context[data.name].children = children;
-                    }
 
                     while (placeholder.childNodes.length > 0) {
                         el.appendChild(placeholder.childNodes[0]);

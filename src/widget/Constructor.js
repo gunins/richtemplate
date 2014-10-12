@@ -6,9 +6,10 @@ define([
     './dom',
     'templating/Decoder'
 ], function (utils, dom, Decoder) {
+    var context = {};
 
     function applyChildren(children) {
-        var nodes = this.context.children;
+        var nodes = this.children;
         var keys = Object.keys(nodes);
         if (nodes && keys.length > 0) {
             keys.forEach(function (key) {
@@ -16,7 +17,7 @@ define([
                     if (this.nodes[key] !== undefined) {
                         this.nodes[key].call(this, children[key]);
                     } else if (nodes[key] !== undefined) {
-                        dom.append(nodes[key], children[key]);
+                        nodes[key].replace(children[key]);
 
                     }
                 }
@@ -38,13 +39,17 @@ define([
     }
 
     function Constructor(data, children) {
+        this.context = context;
+        if (data.appContext !== undefined) {
+            utils.extend(this.context, data.appContext);
+        }
         if (this.template) {
-            var decoder = new Decoder(this.template);
-            this.context = decoder.render();
+            var decoder = new Decoder(this.template),
+                template = decoder.render();
 
-            this.children = setChildrens.call(this, this.context.children);
+            this.children = setChildrens.call(this, template.children);
 
-            this.el = this.context.fragment.firstChild;
+            this.el = template.fragment.firstChild;
 
             if (children) {
                 applyChildren.call(this, children);
@@ -59,9 +64,6 @@ define([
     utils.extend(Constructor.prototype, {
         nodes: {},
         init: function () {
-        },
-        start: function (container) {
-            container.appendChild(this.el);
         }
     });
 

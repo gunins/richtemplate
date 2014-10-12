@@ -11,6 +11,10 @@ define([
             }
             child.el.parentNode.removeChild(child.el);
         },
+        replace: function (parent, child) {
+            parent.el.innerHTML = '';
+            dom.append.apply(this, arguments);
+        },
         add: function (prev, next) {
             prev.el.parentNode.appendChild(next.el);
         },
@@ -44,6 +48,9 @@ define([
     utils.extend(Element.prototype, {
         append: function (child) {
             dom.append(this, child)
+        },
+        replace: function (child) {
+            dom.replace(this, child);
         },
         insert: function () {
             dom.insert(this);

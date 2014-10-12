@@ -1,14 +1,33 @@
 <div class="container-fluid">
     <div class="row">
-        <cp-sidebar name="sideBar"></cp-sidebar>
+        <cp-sidebar tp-name="sideBar"></cp-sidebar>
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-            <pl-page-header tp-type="h1" ></pl-page-header>
+            <pl-page-header tp-tag="h1" ></pl-page-header>
 
-            <cp-charts name="charts"></cp-charts>
+            <cp-charts name="charts">
+                <pl-content>
+                    <cp-piechart tp-name="pie1">
+                        <pl-header>Custom Header 1</pl-header>
+                        <pl-content>Custom Content 1</pl-content>
+                    </cp-piechart>
+                    <cp-piechart tp-name="pie2">
+                        <pl-header>Custom Header 2</pl-header>
+                        <pl-content data-bind="test">Custom Content 2</pl-content>
+                    </cp-piechart>
+                    <cp-piechart tp-name="pie3">
+                        <pl-header>Custom Header 3</pl-header>
+                        <pl-content>Custom Content 3</pl-content>
+                    </cp-piechart>
+                    <cp-piechart tp-name="pie4">
+                        <pl-header>Custom Header 4</pl-header>
+                        <pl-content>Custom Content 4</pl-content>
+                    </cp-piechart>
+                </pl-content>
+            </cp-charts>
 
-            <pl-sub-header >Section title</pl-sub-header>
+            <pl-sub-header tp-tag="h3" >Section title</pl-sub-header>
 
-            <cp-table name="table" data-bind="table"></cp-table>
+            <cp-table tp-name="table" data-bind="table"></cp-table>
         </div>
     </div>
 </div>

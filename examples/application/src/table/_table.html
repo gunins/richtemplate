@@ -10,12 +10,12 @@
         </tr>
         </thead>
         <tbody>
-        <tpl-tr tp-name="row" tp-type="tr">
-            <pl-value tp-type="td" data-bind="value"></pl-value>
-            <pl-set tp-type="td" data-bind="set"></pl-set>
-            <pl-element tp-type="td" data-bind="element"></pl-element>
-            <pl-test tp-type="td" data-bind="test"></pl-test>
-            <pl-other tp-type="td" data-bind="other"></pl-other>
+        <tpl-tr tp-name="row" data-repeat="true" data-bind="table" tp-tag="tr">
+            <td tp-type="pl" tp-name="value" data-bind="value"></td>
+            <td tp-type="pl" tp-name="set" data-bind="set"></td>
+            <td tp-type="pl" tp-name="element" data-bind="element"></td>
+            <td tp-type="pl" tp-name="test" data-bind="test"></td>
+            <td tp-type="pl" tp-name="other" data-bind="other"></td>
         </tpl-tr>
         </tbody>
     </table>

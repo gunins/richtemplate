@@ -19,9 +19,13 @@
     function applyCoder(element) {
         var parsed = false;
         _coders.forEach(function (coder) {
-            if (element.name.split('-')[0] == coder.tagName && !parsed) {
+            if (this._parser.getAttributeValue(element, 'tp-type') !== undefined) {
+            }
+            var tmpType = this._parser.getAttributeValue(element, 'tp-type') || element.name.split('-')[0];
+            if (tmpType === coder.tagName && !parsed) {
                 var children = this._parser.getChildren(element),
-                    placeholder = this._parser.createElement(this._parser.getAttributeValue(element,'tp-type') || 'div');
+                    placeholder = this._parser.createElement(this._parser.getAttributeValue(element, 'tp-tag') ||
+                                                             element.name);
 
                 if (children && children.length > 0) {
                     children.forEach(function (child) {
@@ -101,7 +105,7 @@
                 template: this._parser.getOuterHTML(el)
             };
         },
-        _setData: function (nodeContext) {
+        _setData: function (nodeContext, coder) {
             var dataset = {},
                 tplSet = {},
                 attributes = {},
@@ -117,11 +121,13 @@
                     attributes[key] = attribs[key];
                 }
             });
+            var tag = (nodeContext.element.name.split('-')[0] !== coder.tagName) ? nodeContext.element.name : (tplSet.tag) ?tplSet.tag:'div';
 
             return {
                 tplSet: tplSet,
                 dataset: dataset,
-                attribs: attributes
+                attribs: attributes,
+                tag: tag
             };
         },
         _prepare: function (element, coder) {
@@ -166,7 +172,7 @@
                     return this.compiler._parser.getAttributeValue(this.element, name);
                 }
             };
-            var data = this._setData(nodeContext);
+            var data = this._setData(nodeContext, coder);
             coder.code(nodeContext, data);
 
             return data;

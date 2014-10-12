@@ -21,7 +21,7 @@
         tagName: 'pl',
         decode: function (node) {
             var data = node.data,
-                el = document.createElement(data.type);
+                el = document.createElement(data.tag);
 
             return {
                 name: data.name,

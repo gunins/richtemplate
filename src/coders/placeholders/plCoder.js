@@ -15,7 +15,6 @@
             var name = nodeContext.element.name.substr(3);
 
             data.name = name || nodeContext.get('tp-name');
-            data.type = nodeContext.get('tp-type') || 'div';
 
             return data;
         }

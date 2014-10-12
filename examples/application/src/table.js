@@ -1,9 +1,8 @@
 define([
     'templating/parser!./table/_table.html',
     'widget/Constructor',
-    'widget/dom',
-    'tableData'
-], function (template, Constructor, dom, obj) {
+    'widget/dom'
+], function (template, Constructor, dom) {
 
     function parser(data, nodes) {
         Object.keys(data).forEach(function (key) {
@@ -16,10 +15,9 @@ define([
     return Constructor.extend({
         template: template,
         init: function (data, children) {
-            console.log(children)
+
             var tmp = this.children.tr;
-            console.log(this.children)
-            var tabledata = obj.table;
+            var tabledata = this.context.data[data.bind];
             var first;
 
             tabledata.forEach(function (item, index) {
