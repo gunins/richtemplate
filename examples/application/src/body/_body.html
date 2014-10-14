@@ -2,7 +2,7 @@
     <div class="row">
         <cp-sidebar tp-name="sideBar"></cp-sidebar>
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-            <pl-page-header tp-tag="h1" ></pl-page-header>
+            <pl-page-header tp-tag="h1"></pl-page-header>
 
             <cp-charts name="charts">
                 <pl-content>
@@ -22,12 +22,28 @@
                         <pl-header>Custom Header 4</pl-header>
                         <pl-content>Custom Content 4</pl-content>
                     </cp-piechart>
+
                 </pl-content>
             </cp-charts>
 
-            <pl-sub-header tp-tag="h3" >Section title</pl-sub-header>
-
-            <cp-table tp-name="table" data-bind="table"></cp-table>
+            <pl-sub-header tp-tag="h3">Section title</pl-sub-header>
+            <cp-table tp-name="table" data-bind="table">
+                <pl-header>
+                    <bd-hbind>
+                        <ul>
+                            <li>
+                                <bd-someTest1></bd-someTest1>
+                            </li>
+                            <li>
+                                <bd-someTest2></bd-someTest2>
+                            </li>
+                            <li>
+                                <bd-someTest3></bd-someTest3>
+                            </li>
+                        </ul>
+                    </bd-hbind>
+                </pl-header>
+            </cp-table>
         </div>
     </div>
 </div>

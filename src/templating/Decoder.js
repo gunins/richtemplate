@@ -31,10 +31,9 @@
     function parseElements(root, fragment) {
         var context = false,
             children = false;
-        root.children.elements.forEach(function (node) {
+        root.children.forEach(function (node) {
             if (node.children &&
-                node.children.elements &&
-                node.children.elements.length > 0) {
+                node.children.length > 0) {
                 children = parseElements.call(this, node, fragment);
             }
             if (node.tagName) {
@@ -59,6 +58,7 @@
                     });
 
                     var placeholder = fragment.querySelector('#' + node.id);
+                    placeholder.removeAttribute('id');
 
                     while (placeholder.childNodes.length > 0) {
                         el.appendChild(placeholder.childNodes[0]);
@@ -95,8 +95,7 @@
 
             el.innerHTML = root.template;
             fragment.appendChild(el.firstChild);
-
-            if (root.children.elements.length > 0) {
+            if (root.children && root.children.length > 0) {
                 children = parseElements.call(this, root, fragment);
             }
 

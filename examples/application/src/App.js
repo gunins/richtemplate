@@ -8,7 +8,7 @@ define([
 ], function (App, Container, data) {
 
     return App.extend({
-        init:function(){
+        init:function(data,children){
         },
         AppContainer: Container,
         setContext: function () {

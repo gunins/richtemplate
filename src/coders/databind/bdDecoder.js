@@ -18,16 +18,19 @@
 }(this, function (Decoder) {
 
     var componentDecoder = {
-        tagName: 'tpl',
+        tagName: 'bd',
         noAttach: true,
         decode: function (node) {
-            var data = node.data,
+            var data = this.data = node.data,
                 el = document.createElement(data.tag);
-            return {
+            var response = {
                 name: data.name,
                 el: el,
-                data: data
+                data: data,
+                bind: data.dataset.bind || data.name
             };
+
+            return  response;
         }
     };
 

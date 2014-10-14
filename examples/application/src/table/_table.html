@@ -1,4 +1,17 @@
 <div class="table-responsive">
+    <pl-header></pl-header>
+    <bd-firstname></bd-firstname>
+    <bd-firstvalue>
+        <ul>
+            <li>
+                <bd-placetext></bd-placetext>              
+            </li>
+            <li>
+                <bd-placetext2></bd-placetext2>
+            </li>
+        </ul>
+    </bd-firstvalue>
+
     <table class="table table-striped">
         <thead>
         <tr>
@@ -10,13 +23,23 @@
         </tr>
         </thead>
         <tbody>
-        <tpl-tr tp-name="row" data-repeat="true" tp-tag="tr">
-            <td tp-type="pl" tp-name="value" data-bind="value"></td>
-            <td tp-type="pl" tp-name="set" data-bind="set"></td>
-            <td tp-type="pl" tp-name="element" data-bind="element"></td>
-            <td tp-type="pl" tp-name="test" data-bind="test"></td>
-            <td tp-type="pl" tp-name="other" data-bind="other"></td>
-        </tpl-tr>
+        <bd-tbody tp-tag="tr">
+            <bd-value tp-tag="td">
+                <ul>
+                    <li>
+                        <bd-sometest></bd-sometest>
+                    </li>
+                </ul>
+                <bd-testvalue></bd-testvalue>
+            </bd-value>
+            <bd-set tp-tag="td"></bd-set>
+            <bd-element tp-tag="td"></bd-element>
+            <bd-test tp-tag="td"></bd-test>
+            <bd-other tp-tag="td"></bd-other>
+        </bd-tbody>
         </tbody>
+
     </table>
+
+
 </div>

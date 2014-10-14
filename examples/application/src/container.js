@@ -4,9 +4,9 @@
 define([
     'templating/parser!./container/_container.html',
     'widget/Constructor'
-], function (template, Constructor, data) {
+], function (template, Constructor) {
     return Constructor.extend({
-        template: template,
+        template: template
 
     });
 });

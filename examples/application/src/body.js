@@ -8,9 +8,11 @@ define([
         template: template,
         nodes: {
             'page-header': function (fragment) {
-                var header =  this.children['page-header'];
+                var header = this.children['page-header'];
                 header.append(fragment);
             }
+        },
+        init: function (data, children) {
         }
     });
 

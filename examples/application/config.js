@@ -3,13 +3,13 @@ require.config({
     templateCoders: [
         'coders/component/CpCoder',
         'coders/placeholders/plCoder',
-        'coders/template/tplCoder'
+        'coders/databind/bdCoder'
 
     ],
     templateDecoders: [
         'coders/component/CpDecoder',
         'coders/placeholders/plDecoder',
-        'coders/template/tplDecoder'
+        'coders/databind/bdDecoder'
     ],
     paths: {
         'coders': '../../../src/coders',

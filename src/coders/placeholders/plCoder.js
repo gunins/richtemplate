@@ -12,9 +12,8 @@
     var PlaceholderCoder = {
         tagName: 'pl',
         code: function (nodeContext, data) {
-            var name = nodeContext.element.name.substr(3);
-
-            data.name = name || nodeContext.get('tp-name');
+            var tagName = nodeContext.element.name;
+            data.name = (tagName.split('-')[0] === this.tagName) ? tagName.substr(3) : nodeContext.get('tp-name');
 
             return data;
         }

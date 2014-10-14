@@ -23,9 +23,12 @@
             }
             var tmpType = this._parser.getAttributeValue(element, 'tp-type') || element.name.split('-')[0];
             if (tmpType === coder.tagName && !parsed) {
-                var children = this._parser.getChildren(element),
-                    placeholder = this._parser.createElement(this._parser.getAttributeValue(element, 'tp-tag') ||
-                                                             element.name);
+                var attributeTagValue = this._parser.getAttributeValue(element, 'tp-tag');
+                var tag = (element.name.split('-')[0] !==
+                           coder.tagName) ? element.name : attributeTagValue ? attributeTagValue : 'div',
+
+                    children = this._parser.getChildren(element),
+                    placeholder = this._parser.createElement(tag);
 
                 if (children && children.length > 0) {
                     children.forEach(function (child) {
@@ -68,7 +71,7 @@
         }
     });
     function parseChildren(el) {
-        var context = {},
+        var context,
             parsed = false,
             children,
             childEl = this._parser.getChildren(el);
@@ -78,16 +81,16 @@
                     children = parseChildren.call(this, child);
                     parsed = applyCoder.call(this, child);
                     if (parsed || children) {
-                        context.elements = context.elements || [];
+                        context = context || [];
                     }
                     if (parsed) {
-                        context.elements.push(parsed);
+                        context.push(parsed);
                         if (children !== undefined) {
                             parsed.children = children;
                         }
                     }
-                    else if (children && children.elements) {
-                        context.elements = context.elements.concat(children.elements)
+                    else if (children && children.length > 0) {
+                        context = context.concat(children)
                     }
 
                 }
@@ -121,7 +124,8 @@
                     attributes[key] = attribs[key];
                 }
             });
-            var tag = (nodeContext.element.name.split('-')[0] !== coder.tagName) ? nodeContext.element.name : (tplSet.tag) ?tplSet.tag:'div';
+            var tag = (nodeContext.element.name.split('-')[0] !==
+                       coder.tagName) ? nodeContext.element.name : (tplSet.tag) ? tplSet.tag : 'div';
 
             return {
                 tplSet: tplSet,

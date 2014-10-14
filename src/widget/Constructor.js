@@ -25,17 +25,30 @@ define([
         }
     }
 
-    function setChildrens(children) {
-        Object.keys(children).forEach(function (key) {
-
-            if (children[key] instanceof  dom.Element !== true) {
-                children[key] = new dom.Element(children[key]);
+    function setChildren(elements) {
+        Object.keys(elements).forEach(function (key) {
+            if (elements[key] instanceof  dom.Element !== true) {
+                elements[key] = new dom.Element(elements[key]);
             }
-            if (children[key].children !== undefined) {
-                children[key].children = setChildrens.call(this, children[key].children);
+
+            var children = elements[key].children;
+            if (children !== undefined) {
+                children = setChildren.call(this, children);
+                    var keys = Object.keys(children),
+                        bindings = false;
+                    keys.forEach(function (key) {
+                        var child = children[key];
+                        if (child.bind !== undefined) {
+                            bindings = bindings || {};
+                            bindings[child.bind] = child;
+                        }
+                    }.bind(this));
+                    if (bindings) {
+                        elements[key].bindings = bindings;
+                    }
             }
         }.bind(this));
-        return children
+        return elements
     }
 
     function Constructor(data, children) {
@@ -46,8 +59,7 @@ define([
         if (this.template) {
             var decoder = new Decoder(this.template),
                 template = decoder.render();
-
-            this.children = setChildrens.call(this, template.children);
+            this.children = setChildren.call(this, template.children);
 
             this.el = template.fragment.firstChild;
 
