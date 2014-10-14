@@ -114,6 +114,9 @@ define([
         init: function (data, children) {
             this.data = this.context.data[data.bind];
             setBinders.call(this, this.children);
+            console.log(this.bindings.firstname===this.children.firstname)
+            this.children.firstname = 'vasja';
+            console.log(this.bindings.firstname)
             parseBinders.call(this, this.data, this.bindings);
 
         }

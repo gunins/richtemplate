@@ -39,8 +39,9 @@ define([
             var oldEl = node.el,
                 newEl = oldEl.cloneNode(false);
 
-            var item = utils.extend({}, node, {el: newEl});
-                console.log(item)
+            var item = utils.extend({}, node);
+            item.el = newEl;
+//                console.log(item)
             return new Element(item);
         },
         text: function (node, text) {
