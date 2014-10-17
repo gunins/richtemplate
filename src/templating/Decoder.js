@@ -16,6 +16,109 @@
         root.Templating.Decoder = factory(root.Templating.utils);
     }
 }(this, function (utils) {
+    var _decoders = {};
+
+    function applyFragment(template) {
+
+        var el = document.createElement('body'),
+            fragment = document.createDocumentFragment();
+        el.innerHTML = template;
+
+        fragment.appendChild(el.firstChild);
+        return fragment.firstChild;
+    }
+
+    function setElement(placeholder, keep) {
+
+        var el = this.tmpEl((keep) ? placeholder : false),
+            name = this.name,
+            attributes = this.data.attribs,
+            plFragment = applyFragment(this.template);
+        Object.keys(attributes).forEach(function (key) {
+            el.setAttribute(key, attributes[key]);
+        });
+
+        if (plFragment !== undefined) {
+            while (plFragment.childNodes.length > 0) {
+                el.appendChild(plFragment.childNodes[0]);
+            }
+        }
+
+        if (name !== undefined) {
+            el.classList.add(name);
+        }
+
+        if (!this.parent) {
+            var parentNode = placeholder.parentNode;
+            if (parentNode !== null && !keep) {
+                parentNode.replaceChild(el, placeholder);
+            }
+
+            this.parent = parentNode;
+        } else {
+            this.parent.appendChild(el);
+        }
+        this.el = el;
+
+        if (this.parse !== undefined) {
+            this.parse(el);
+        }
+
+    }
+
+    function parseElements(root) {
+        var context = false,
+            children = false;
+        root.children.forEach(function (node) {
+            if (node.children &&
+                node.children.length > 0) {
+                children = parseElements.call(this, node);
+            }
+            var tagName = node.tagName;
+            if (tagName) {
+                var data = _decoders[tagName].decode(node, children, runEls);
+                if (data) {
+                    var name = data.name;
+
+                    if (name !== undefined) {
+                        context = context || {};
+                        context[name] = data;
+                        context[name].id = node.id;
+                        context[name].template = node.template;
+
+                        if (children) {
+                            context[name].children = children;
+                        }
+
+                        context[name].noAttach = _decoders[tagName].noAttach;
+                        context[name].instance = setElement.bind(context[name]);
+
+                        context[name].applyAttach = function () {
+                            delete this.noAttach;
+                        }.bind(context[name]);
+
+                        context[name].run = function (fragment, keep) {
+                            if (this.noAttach === undefined) {
+                                var placeholder = fragment.querySelector('#' + this.id) || fragment;
+                                if (placeholder) {
+                                    this.instance(placeholder, keep);
+
+                                }
+                            }
+                        }.bind(context[name])
+                    }
+                }
+            }
+            children = false;
+        }.bind(this));
+
+        return context;
+    };
+    function runEls(children, fragment) {
+        Object.keys(children).forEach(function (key) {
+            children[key].run(fragment);
+        });
+    }
 
     /**
      *
@@ -23,61 +126,8 @@
      * @param root
      */
     function Decoder(root) {
-//        var root = JSON.parse(template);
-//        console.log('Decoder: Template deserialization: ', root);
         this._root = (typeof root === 'string') ? JSON.parse(root) : root;
     }
-
-    function parseElements(root, fragment) {
-        var context = false,
-            children = false;
-        root.children.forEach(function (node) {
-            if (node.children &&
-                node.children.length > 0) {
-                children = parseElements.call(this, node, fragment);
-            }
-            if (node.tagName) {
-                var data = _decoders[node.tagName].decode(node, children);
-                if (data) {
-                    context = context || {};
-
-                    var el = data.el,
-                        attributes = node.data.attribs;
-
-                    if (data.name !== undefined) {
-                        context[data.name] = data;
-                        el.classList.add(data.name);
-
-                        if (children) {
-                            context[data.name].children = children;
-                        }
-                    }
-
-                    Object.keys(attributes).forEach(function (key) {
-                        el.setAttribute(key, attributes[key]);
-                    });
-
-                    var placeholder = fragment.querySelector('#' + node.id);
-                    placeholder.removeAttribute('id');
-
-                    while (placeholder.childNodes.length > 0) {
-                        el.appendChild(placeholder.childNodes[0]);
-                    }
-                    if (_decoders[node.tagName].noAttach !== undefined) {
-                        context[data.name].placeholder = placeholder;
-                    } else {
-                        placeholder.parentNode.replaceChild(el, placeholder);
-                    }
-
-                }
-            }
-
-        }.bind(this));
-
-        return context;
-    };
-
-    var _decoders = {};
 
     utils.merge(Decoder, {
         addDecoder: function (decoder) {
@@ -86,18 +136,18 @@
             }
         }
     });
+
     utils.merge(Decoder.prototype, {
         addDecoder: Decoder.addDecoder,
         _renderFragment: function (root) {
             var children = {},
-                el = document.createElement('div'),
-                fragment = document.createDocumentFragment();
+                fragment = applyFragment(root.template);
 
-            el.innerHTML = root.template;
-            fragment.appendChild(el.firstChild);
             if (root.children && root.children.length > 0) {
-                children = parseElements.call(this, root, fragment);
+                children = parseElements.call(this, root);
+
             }
+            runEls(children, fragment);
 
             return {
                 fragment: fragment,
@@ -106,7 +156,9 @@
         },
 
         render: function () {
-            return this._renderFragment(this._root);
+            var fragment = this._renderFragment(this._root);
+
+            return fragment;
         }
     });
 

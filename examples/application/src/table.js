@@ -84,17 +84,16 @@ define([
                     var data = obj[key];
 
                     if (!isArray(data) && !isObject(data)) {
-                        binder.text(data);
                         binder.insert();
+                        binder.text(data);
                     } else if (isArray(data)) {
 
                         data.forEach(function(item){
-                            console.log(item);
+//                            console.log(item);
 //                            console.log(data, binder, 'object');
-                            var cont = binder.clone();
+//                            var cont = binder.clone();
 
-                            parseBinders.call(this, data, cont.bindings);
-                            cont.insert();
+//                            parseBinders.call(this, data, cont.bindings);
 
                         });
 
@@ -112,12 +111,10 @@ define([
     return Constructor.extend({
         template: template,
         init: function (data, children) {
+//            console.log(children)
             this.data = this.context.data[data.bind];
-            setBinders.call(this, this.children);
-            console.log(this.bindings.firstname===this.children.firstname)
-            this.children.firstname = 'vasja';
-            console.log(this.bindings.firstname)
-            parseBinders.call(this, this.data, this.bindings);
+//            setBinders.call(this, this.children);
+//            parseBinders.call(this, this.data, this.bindings);
 
         }
     });

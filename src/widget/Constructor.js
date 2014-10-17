@@ -52,6 +52,7 @@ define([
     }
 
     function Constructor(data, children) {
+//        console.log(children)
         this.context = context;
         if (data.appContext !== undefined) {
             utils.extend(this.context, data.appContext);
@@ -61,7 +62,7 @@ define([
                 template = decoder.render();
             this.children = setChildren.call(this, template.children);
 
-            this.el = template.fragment.firstChild;
+            this.el = template.fragment;
 
             if (children) {
                 applyChildren.call(this, children);

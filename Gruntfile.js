@@ -3,21 +3,20 @@ module.exports = function (grunt) {
         templateCoders: [
             'coders/component/CpCoder',
             'coders/placeholders/plCoder',
-            'coders/template/tplCoder'
-
+            'coders/databind/bdCoder'
         ],
         templateDecoders: [
             'coders/component/CpDecoder',
             'coders/placeholders/plDecoder',
-            'coders/template/tplDecoder'
+            'coders/databind/bdDecoder'
         ],
         exclude: [
             'coders/component/CpCoder',
             'coders/component/CpDecoder',
             'coders/placeholders/plCoder',
             'coders/placeholders/plDecoder',
-            'coders/template/tplCoder',
-            'coders/template/tplDecoder',
+            'coders/databind/bdCoder',
+            'coders/databind/bdDecoder',
             'widget/Constructor'
 
         ]

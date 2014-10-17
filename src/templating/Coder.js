@@ -28,11 +28,11 @@
                            coder.tagName) ? element.name : attributeTagValue ? attributeTagValue : 'div',
 
                     children = this._parser.getChildren(element),
-                    placeholder = this._parser.createElement(tag);
-
+                    placeholder = this._parser.createElement(tag),
+                    holder = this._parser.createElement(tag);
                 if (children && children.length > 0) {
                     children.forEach(function (child) {
-                        this._parser.appendChild(placeholder, child);
+                        this._parser.appendChild(holder, child);
                     }.bind(this));
                 }
 
@@ -40,11 +40,11 @@
 
                 this._parser.setAttributeValue(placeholder, 'id', id);
                 this._parser.replaceElement(element, placeholder);
-
                 parsed = {
                     id: id,
                     tagName: coder.tagName,
-                    data: this._prepare(element, coder)
+                    data: this._prepare(element, coder),
+                    template: this._parser.getOuterHTML(holder)
                 };
             }
         }.bind(this));

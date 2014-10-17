@@ -21,11 +21,12 @@
         tagName: 'bd',
         noAttach: true,
         decode: function (node) {
-            var data = this.data = node.data,
-                el = document.createElement(data.tag);
+            var data = this.data = node.data;
             var response = {
                 name: data.name,
-                el: el,
+                tmpEl: function(){
+                    return document.createElement(data.tag);
+                },
                 data: data,
                 bind: data.dataset.bind || data.name
             };
