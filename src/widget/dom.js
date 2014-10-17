@@ -12,22 +12,6 @@ define([
             parent.el.innerHTML = '';
             dom.append.apply(this, arguments);
         },
-        add: function (parent, child) {
-            parent.el.appendChild(child.el);
-        },
-
-        insert: function (el) {
-            if (el.placeholder !== undefined) {
-                el.el = el.instance();
-            } else {
-//                el.parent.appendChild(el.el);
-            }
-
-        },
-        clone: function (node) {
-            node.run();
-            return new Element(node);
-        },
         text: function (node, text) {
             node.el.innerText = text;
         },
@@ -37,10 +21,7 @@ define([
 
     function Element(node) {
         utils.extend(this, node);
-
-
     }
-
     utils.extend(Element.prototype, {
         append: function (child) {
             dom.append(this, child)
@@ -48,20 +29,6 @@ define([
         replace: function (child) {
             dom.replace(this, child);
         },
-        insert: function () {
-            dom.insert(this);
-        },
-        clone: function () {
-            this.applyAttach();
-            this.run();
-            return this;
-        },
-        add: function (parent) {
-            dom.add(parent, this);
-        },
-   /*     clone: function (deep) {
-            return dom.clone(this, deep);
-        },*/
         text: function (text) {
             dom.text(this, text);
         }

@@ -19,7 +19,7 @@
 
     var componentDecoder = {
         tagName: 'pl',
-        decode: function (node, children, runEls) {
+        decode: function (node, children) {
 
             var data = node.data;
             return {
@@ -28,7 +28,6 @@
                     return el || document.createElement(data.tag);
                 },
                 parse: function (fragment) {
-                    console.log(data.name, children);
                     if (children) {
                         Object.keys(children).forEach(function (key) {
                             children[key].run(fragment);
