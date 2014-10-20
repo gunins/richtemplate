@@ -172,6 +172,14 @@
                         return this.compiler._parser.findOneChild(children);
                     }
                 },
+                removeChildren: function () {
+                    var children = this.element.children;
+                    if (children.length > 0) {
+                        children.forEach(function (child) {
+                            this.compiler._parser.removeElement(child);
+                        }.bind(this));
+                    }
+                },
                 get: function (name) {
                     return this.compiler._parser.getAttributeValue(this.element, name);
                 }

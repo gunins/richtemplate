@@ -15,7 +15,6 @@
 }(this, function (htmlparser, utils) {
     var DomUtils = htmlparser.DomUtils;
 
-
     /**
      *
      * @param html
@@ -34,11 +33,12 @@
     utils.merge(DOMParser.prototype, {
         DomUtils: DomUtils,
         getOuterHTML: DomUtils.getOuterHTML,
-        getInnerHTML: DomUtils.getInnerHTML,
+        getInnerHTML: DomUtils.x,
         getChildren: DomUtils.getChildren,
         replaceElement: DomUtils.replaceElement,
         appendChild: DomUtils.appendChild,
         getAttributeValue: DomUtils.getAttributeValue,
+        removeElement: DomUtils.removeElement,
 
         setAttributeValue: function (el, name, value) {
             el.attribs = el.attribs || {};

@@ -12,9 +12,10 @@
     var ComponentCoder = {
         tagName: 'cp',
         code: function (nodeContext, data) {
+            nodeContext.removeChildren();
             var src = nodeContext.element.name.substr(3);
-                data.src = src || nodeContext.get('src');
-                data.name = nodeContext.get('tp-name');
+            data.src = src || nodeContext.get('src');
+            data.name = nodeContext.get('tp-name');
         }
     };
 

@@ -22,21 +22,13 @@
         tagName: 'cp',
         decode: function (node, children) {
             var data = node.data;
-//            console.log(node,children)
             var response =  {
                 name:data.name,
                 tmpEl: function(){
                     response.data.instance = new data.src(data.dataset, children);
                     return data.instance['el'];
                 },
-                data: data || {},
-                parse:function(fragment){
-                    if (children) {
-                        Object.keys(children).forEach(function (key) {
-                            fragment.querySelector('#'+children[key].id).remove();
-                        });
-                    }
-                }
+                data: data || {}
             };
             return response;
         }

@@ -37,69 +37,35 @@ define([
 
     }
 
-    function applyBinders(obj, binders) {
+    function applyBinders(obj, binders, parent) {
         if (obj) {
             Object.keys(obj).forEach(function (key) {
                 var binder = binders[key];
                 if (binder !== undefined) {
                     var data = obj[key];
+                    binder.applyAttach();
+
                     if (!isArray(data) && !isObject(data)) {
+
+                        binder.add(parent);
                         binder.text(data);
-//                        binder.insert();
                     } else if (isArray(data)) {
-                        if (binder.children !== undefined) {
-                            var inserted = false;
-                            data.forEach(function (item) {
-                                var children = binder.children;
-                                Object.keys(children).forEach(function (key) {
-                                    var child = children[key],
-                                        childData = child.data.dataset;
-                                    if (childData.repeat === 'true') {
-                                        inserted = true;
-                                        var node = child.clone();
-                                        applyBinders.call(this, item, node.children);
-                                        node.insert();
-                                        if (!child.parent) {
-                                            delete child.placeholder;
-                                        }
-                                    }
-                                }.bind(this));
-                            }.bind(this));
-                            if (inserted === true) {
-                                binder.insert();
+                        binder.applyAttach();
+                        var hasParent = false
+                        data.forEach(function (item) {
+                            if (!hasParent) {
+                                binder.add(parent);
+                                hasParent = binder.getParent();
+                            }else{
+                                binder.add(parent, hasParent);
                             }
-                        }
-                    }
-                }
-            });
-        }
-
-    }
-
-    function parseBinders(obj, binders) {
-        if (obj) {
-            Object.keys(obj).forEach(function (key) {
-                var binder = binders[key];
-                if (binder !== undefined) {
-                    var data = obj[key];
-
-                    if (!isArray(data) && !isObject(data)) {
-                        binder.insert();
-                        binder.text(data);
-                    } else if (isArray(data)) {
-
-                        data.forEach(function(item){
-//                            console.log(item);
-//                            console.log(data, binder, 'object');
-//                            var cont = binder.clone();
-
-//                            parseBinders.call(this, data, cont.bindings);
-
-                        });
+                            applyBinders.call(this, item, binder.bindings, binder.el);
+                        }.bind(this));
+                        hasParent = false;
 
                     } else if (isObject(data)) {
-                        parseBinders.call(this, data, binder.bindings);
-                        binder.insert();
+                        binder.add(parent);
+                        applyBinders.call(this, data, binder.bindings, binder.el);
 
                     }
                 }
@@ -113,8 +79,8 @@ define([
         init: function (data, children) {
 //            console.log(children)
             this.data = this.context.data[data.bind];
-//            setBinders.call(this, this.children);
-//            parseBinders.call(this, this.data, this.bindings);
+            setBinders.call(this, this.children);
+            applyBinders.call(this, this.data, this.bindings, this.el);
 
         }
     });

@@ -18,7 +18,6 @@ define([
                         this.nodes[key].call(this, children[key]);
                     } else if (nodes[key] !== undefined) {
                         nodes[key].replace(children[key]);
-
                     }
                 }
             }.bind(this));
@@ -29,6 +28,7 @@ define([
         Object.keys(elements).forEach(function (key) {
             if (elements[key] instanceof  dom.Element !== true) {
                 elements[key] = new dom.Element(elements[key]);
+//                elements[key].setParent(this.el);
             }
 
             var children = elements[key].children;
@@ -52,7 +52,6 @@ define([
     }
 
     function Constructor(data, children) {
-//        console.log(children)
         this.context = context;
         if (data.appContext !== undefined) {
             utils.extend(this.context, data.appContext);
@@ -60,9 +59,10 @@ define([
         if (this.template) {
             var decoder = new Decoder(this.template),
                 template = decoder.render();
-            this.children = setChildren.call(this, template.children);
-
             this.el = template.fragment;
+
+
+            this.children = setChildren.call(this, template.children);
 
             if (children) {
                 applyChildren.call(this, children);

@@ -18,22 +18,32 @@
 }(this, function (utils) {
     var _decoders = {};
 
-    function applyFragment(template) {
+    function applyFragment(template, tag) {
+        var elTag;
+        if (tag === 'li') {
+            elTag = 'ul'
 
-        var el = document.createElement('body'),
+        } else if (tag === 'td' || tag === 'th') {
+            elTag = 'tr'
+
+        } else if (tag === 'tr') {
+            elTag = 'tbody'
+
+        } else {
+            elTag = 'div'
+        }
+        var el = document.createElement(elTag),
             fragment = document.createDocumentFragment();
         el.innerHTML = template;
-
         fragment.appendChild(el.firstChild);
         return fragment.firstChild;
     }
 
-    function setElement(placeholder, keep) {
-
+    function setElement(placeholder, keep, parent) {
         var el = this.tmpEl((keep) ? placeholder : false),
             name = this.name,
             attributes = this.data.attribs,
-            plFragment = applyFragment(this.template);
+            plFragment = applyFragment(this.template, this.data.tag);
         Object.keys(attributes).forEach(function (key) {
             el.setAttribute(key, attributes[key]);
         });
@@ -48,22 +58,61 @@
             el.classList.add(name);
         }
 
-        if (!this.parent) {
+        if (!parent) {
             var parentNode = placeholder.parentNode;
-            if (parentNode !== null && !keep) {
-                parentNode.replaceChild(el, placeholder);
+            this.setParent(parentNode);
+            if (this.parent !== null) {
+                this.parent.replaceChild(el, placeholder);
             }
-
-            this.parent = parentNode;
-        } else {
-            this.parent.appendChild(el);
+        }else{
+            this.setParent(parent);
+            if (this.parent !== null) {
+                this.parent.appendChild(el);
+            }
         }
-        this.el = el;
 
+
+
+        this.el = el;
         if (this.parse !== undefined) {
             this.parse(el);
         }
+        return el;
 
+    }
+
+    function setParams(node, children) {
+        var tagName = node.tagName;
+        utils.merge(this, {
+            id: node.id,
+            template: node.template,
+            noAttach: _decoders[tagName].noAttach,
+            instance: setElement.bind(this),
+
+            applyAttach: function () {
+                delete this.noAttach;
+            },
+
+            setParent: function (parent) {
+                this.parent = parent;
+            }.bind(this),
+            getParent:function(){
+                return this.parent;
+            }.bind(this),
+            run: function (fragment, keep, parent) {
+                if (this.noAttach === undefined) {
+                    var placeholder = fragment.querySelector('#' + this.id) || fragment;
+                    if (placeholder) {
+                        return this.instance(placeholder, keep, parent);
+
+                    }
+                }
+            }
+        });
+
+        if (children) {
+            this.children = children;
+        }
     }
 
     function parseElements(root) {
@@ -83,29 +132,7 @@
                     if (name !== undefined) {
                         context = context || {};
                         context[name] = data;
-                        context[name].id = node.id;
-                        context[name].template = node.template;
-
-                        if (children) {
-                            context[name].children = children;
-                        }
-
-                        context[name].noAttach = _decoders[tagName].noAttach;
-                        context[name].instance = setElement.bind(context[name]);
-
-                        context[name].applyAttach = function () {
-                            delete this.noAttach;
-                        }.bind(context[name]);
-
-                        context[name].run = function (fragment, keep) {
-                            if (this.noAttach === undefined) {
-                                var placeholder = fragment.querySelector('#' + this.id) || fragment;
-                                if (placeholder) {
-                                    this.instance(placeholder, keep);
-
-                                }
-                            }
-                        }.bind(context[name])
+                        setParams.call(context[name], node, children);
                     }
                 }
             }

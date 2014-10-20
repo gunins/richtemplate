@@ -46,6 +46,6 @@ define(function () {
 
     return {
         fnExtend: fnExtend,
-        extend:extend
+        extend: extend
     };
 });
