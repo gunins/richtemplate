@@ -8,6 +8,13 @@ define({
             placetext: 'place Text',
             placetext2: 'place Text 2'
         },
+        thead: {
+            value: '#',
+            set: 'Set',
+            element: 'Element',
+            test: 'test',
+            other: 'Other'
+        },
         tbody: [
             {
                 value: {

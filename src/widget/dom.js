@@ -16,7 +16,7 @@ define([
             el.el =  el.run(fragment,false, parent);
         },
         text: function (node, text) {
-            node.el.innerText = text;
+            node.el.innerHTML = text;
         },
 
         Element: Element

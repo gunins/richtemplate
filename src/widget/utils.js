@@ -24,14 +24,14 @@ define(function () {
             hasOwnProperty.call(protoProps, 'constructor')) {
             child = protoProps.constructor;
         } else {
-            child = function(){
+            child = function () {
                 return parent.apply(this, arguments);
             };
         }
 
         extend(child, parent, staticProps);
 
-        var Surrogate = function(){
+        var Surrogate = function () {
             this.constructor = child;
         };
         Surrogate.prototype = parent.prototype;
@@ -43,9 +43,25 @@ define(function () {
         child.__super__ = parent.prototype;
         return child;
     };
+    function isString(obj) {
+        return toString.call(obj) === '[object String]';
+
+    }
+
+    function isObject(obj) {
+        var type = typeof obj;
+        return type === 'function' || type === 'object' && !!obj;
+    }
+
+    function isArray(obj) {
+        return toString.call(obj) === '[object Array]';
+    }
 
     return {
         fnExtend: fnExtend,
-        extend: extend
+        extend: extend,
+        isString:isString,
+        isObject:isObject,
+        isArray:isArray
     };
 });
