@@ -57,18 +57,30 @@ define({
         }
     },
     sidebar: {
-        links: [
-            {link: {text: 'Reports', href: '#link1'}, class: 'active'},
-            {link: {text: 'Analytics', href: '#link2'}},
-            {link: {text: 'Export', href: '#link3'}},
-            {link: {text: 'Nav item', href: '#link4'}},
-            {link: {text: 'Nav item again', href: '#link4'}},
-            {link: {text: 'One more nav', href: '#link5'}},
-            {link: {text: 'Another nav item', href: '#link6'}},
-            {link: {text: 'More navigation', href: '#link7'}},
-            {link: {text: 'Nav item again', href: '#link8'}},
-            {link: {text: 'One more nav', href: '#link9'}},
-            {link: {text: 'Another nav item', href: '#link10'}}
+        group: [
+            {
+                links: [
+                    {link: {text: 'Reports', href: '#link1'}, class: 'active'},
+                    {link: {text: 'Analytics', href: '#link2'}},
+                    {link: {text: 'Export', href: '#link3'}},
+                    {link: {text: 'Nav item', href: '#link4'}}
+                ]
+            },
+            {
+                links: [
+                    {link: {text: 'Nav item again', href: '#link4'}},
+                    {link: {text: 'One more nav', href: '#link5'}},
+                    {link: {text: 'Another nav item', href: '#link6'}},
+                    {link: {text: 'More navigation', href: '#link7'}}
+                ]
+            },
+            {
+                links: [
+                    {link: {text: 'Nav item again', href: '#link8'}},
+                    {link: {text: 'One more nav', href: '#link9'}},
+                    {link: {text: 'Another nav item', href: '#link10'}}
+                ]
+            },
         ]
     }
 

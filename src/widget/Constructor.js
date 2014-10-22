@@ -4,8 +4,9 @@
 define([
     './utils',
     './dom',
+    './mediator',
     'templating/Decoder'
-], function (utils, dom, Decoder) {
+], function (utils, dom, Mediator, Decoder) {
     var context = {};
 
     function applyElement(elements) {
@@ -54,6 +55,7 @@ define([
                         child.children = parentChild.children
                     }
                 }
+
             }
             var events = this.events[key];
             applyEvents.call(this, child, events)
@@ -142,6 +144,7 @@ define([
     }
 
     function Constructor(data, children) {
+        this.eventBus = new Mediator();
         this.context = context;
         if (data.appContext !== undefined) {
             utils.extend(this.context, data.appContext);
@@ -170,7 +173,7 @@ define([
     utils.extend(Constructor.prototype, {
         nodes: {},
         events: {},
-        bind:{},
+        bind: {},
         init: function () {
         },
         applyBinders: applyBinders
