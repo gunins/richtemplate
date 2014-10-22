@@ -7,9 +7,8 @@ define([
     return Constructor.extend({
         template: template,
         nodes: {
-            'page-header': function (fragment) {
-                var header = this.children['page-header'];
-                header.append(fragment);
+            'page-header': function (element, fragment) {
+                element.append(fragment);
             }
         },
         init: function (data, children) {

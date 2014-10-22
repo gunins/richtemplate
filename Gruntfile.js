@@ -17,7 +17,8 @@ module.exports = function (grunt) {
             'coders/placeholders/plDecoder',
             'coders/databind/bdCoder',
             'coders/databind/bdDecoder',
-            'widget/Constructor'
+            'widget/Constructor',
+            'widget/App'
 
         ]
     }

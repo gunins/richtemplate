@@ -155,7 +155,8 @@ define(['module'], function (module) {
                 var ids = Object.keys(map);
                 var sources = [];
                 ids.forEach(function (id, i) {
-                    content = content.replace(id, 'arguments[' + i + ']');
+                    var re = new RegExp(id, 'g');
+                    content = content.replace(re, 'arguments[' + i + ']');
                     sources.push(map[id]);
                 });
                 var dependencies = sources.concat(masterConfig.templateDecoders);

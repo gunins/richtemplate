@@ -9,43 +9,52 @@ define({
             placetext2: 'place Text 2'
         },
         thead: {
-            value: '#',
-            set: 'Set',
-            element: 'Element',
-            test: 'test',
-            other: 'Other'
+            headvalue: '#',
+            headset: 'Set',
+            headelement: 'Element',
+            headtest: 'test',
+            headother: 'Other'
         },
         tbody: [
             {
                 value: {
-                    sometest: '1,001',
-                    testvalue: 'value1'
+                    text: '1,001',
+                    color: 'red'
                 },
                 set: 'Lorem',
                 element: 'ipsum',
                 test: 'dolor',
-                other: 'sit'
+                other: 'sit',
+                class:'warning'
             },
             {
                 value: {
-                    sometest: '1,002',
-                    testvalue: 'value2'
+                    text: '1,002',
+                    color: 'blue'
                 },
                 set: 'amet',
                 element: 'consectetur',
                 test: 'adipiscing',
-                other: 'elit'
+                other: 'elit',
+                class:'danger'
+
             },
             {
                 value: {
-                    sometest: '1,003',
-                    testvalue: 'value3'
+                    text: '1,003',
+                    color: 'yellow'
                 },
                 set: 'Integer',
                 element: 'nec',
                 test: 'odio',
-                other: 'Praesent'
+                other: 'Praesent',
+                class:'info'
             }
-        ]
+        ],
+        hbind: {
+            sometest1: 'bd-someTest1',
+            sometest2: 'bd-someTest2',
+            sometest3: 'bd-someTest3'
+        }
     }
 });

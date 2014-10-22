@@ -15,6 +15,6 @@ require.config({
         'coders': '../../../src/coders',
         'templating': '../../../src/templating',
         'htmlparser2': '../../../lib/htmlparser2',
-        'widget': '../../../src/widget'
+        'widget': '../../../src/widget',
     }
 });

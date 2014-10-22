@@ -2,13 +2,13 @@
  * Created by guntars on 11/10/2014.
  */
 define([
-    './EventBus',
+    './mediator',
     './utils'
-], function (EventBus, utils) {
+], function (Mediator, utils) {
 
     function App() {
         this.context = utils.extend(this.setContext(), {
-            eventBus: new EventBus()
+            eventBus: new Mediator()
         });
         if (this.AppContainer !== undefined) {
             this.appContainer = new this.AppContainer({
