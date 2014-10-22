@@ -25,7 +25,7 @@ define({
                 element: 'ipsum',
                 test: 'dolor',
                 other: 'sit',
-                class:'warning'
+                class: 'warning'
             },
             {
                 value: {
@@ -36,7 +36,7 @@ define({
                 element: 'consectetur',
                 test: 'adipiscing',
                 other: 'elit',
-                class:'danger'
+                class: 'danger'
 
             },
             {
@@ -48,13 +48,28 @@ define({
                 element: 'nec',
                 test: 'odio',
                 other: 'Praesent',
-                class:'info'
+                class: 'info'
             }
         ],
-        hbind: {
-            sometest1: 'bd-someTest1',
-            sometest2: 'bd-someTest2',
-            sometest3: 'bd-someTest3'
+        link: {
+            text: 'bd-someTest1',
+            href: 'bd-someTest2'
         }
+    },
+    sidebar: {
+        links: [
+            {link: {text: 'Reports', href: '#link1'}, class: 'active'},
+            {link: {text: 'Analytics', href: '#link2'}},
+            {link: {text: 'Export', href: '#link3'}},
+            {link: {text: 'Nav item', href: '#link4'}},
+            {link: {text: 'Nav item again', href: '#link4'}},
+            {link: {text: 'One more nav', href: '#link5'}},
+            {link: {text: 'Another nav item', href: '#link6'}},
+            {link: {text: 'More navigation', href: '#link7'}},
+            {link: {text: 'Nav item again', href: '#link8'}},
+            {link: {text: 'One more nav', href: '#link9'}},
+            {link: {text: 'Another nav item', href: '#link10'}}
+        ]
     }
+
 });

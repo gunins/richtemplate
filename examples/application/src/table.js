@@ -32,9 +32,14 @@ define([
         },
         nodes: {
             header: function (el, parent) {
-                console.log(parent)
                 el.replace(parent);
                 this.applyBinders(this.data, parent);
+            },
+            link:function(el, parent, data){
+                el.add(parent);
+                el.text(data.text);
+                el.setAttribute('href', data.href);
+
             },
             value: function (el, parent, data) {
                 el.add(parent);
