@@ -10,6 +10,7 @@ define([
                 alert('click');
                 evt.remove();
             });
+
         },
         events: {
             tbody: [

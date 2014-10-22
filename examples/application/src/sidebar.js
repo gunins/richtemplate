@@ -4,6 +4,9 @@ define([
 ], function (template, Constructor) {
     return Constructor.extend({
         template: template,
+        init: function () {
+            console.log('data', this.data)
+        },
         nodes: {
             link: function (el, parent, data) {
                 el.add(parent);
