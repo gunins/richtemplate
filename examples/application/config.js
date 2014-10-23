@@ -16,6 +16,7 @@ require.config({
         'templating': '../../../src/templating',
         'htmlparser2': '../../../lib/htmlparser2',
         'widget': '../../../src/widget',
-        'watch':'../../../bower_components/watch/src/watch'
+        'watch':'../../../bower_components/watch/src/watch',
+        'd3':'../../../bower_components/d3/d3'
     }
 });

@@ -99,6 +99,9 @@ define([
                 }
 
             }
+            if(this.elReady[key]!==undefined){
+                this.elReady[key].call(this, child);
+            }
             var events = this.events[key];
             applyEvents.call(this, child, events)
 
@@ -229,6 +232,7 @@ define([
         nodes: {},
         events: {},
         bind: {},
+        elReady:{},
         init: function () {
         },
         applyBinders: applyBinders

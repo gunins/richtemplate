@@ -15,7 +15,6 @@ define([
 
             var active = false;
             this.context.eventBus.subscribe('setActive', function (data) {
-                console.log(data)
                 active = data;
             }.bind(this));
 

@@ -82,8 +82,9 @@ module.exports = function (grunt) {
                         buttona: 'buttonA/buttonA',
                         templating: '../../target/dev/templating',
                         htmlparser2: '../../target/dev/htmlparser2',
-                        'widget': '../../src/widget'
-
+                        'widget': '../../src/widget',
+                        'watch':'../../bower_components/watch/src/watch',
+                        'd3':'../../bower_components/d3/d3'
                     },
                     name: 'test'
 
@@ -103,7 +104,9 @@ module.exports = function (grunt) {
                         coders: '../../../src/coders',
                         templating: '../../../target/dev/templating',
                         htmlparser2: '../../../target/dev/htmlparser2',
-                        'widget': '../../../src/widget'
+                        'widget': '../../../src/widget',
+                        'watch':'../../../bower_components/watch/src/watch',
+                        'd3':'../../../bower_components/d3/d3'
                     },
                     name: 'app'
 
