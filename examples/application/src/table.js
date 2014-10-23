@@ -1,15 +1,17 @@
 define([
     'templating/parser!./table/_table.html',
-    'widget/Constructor'
-], function (template, Constructor) {
+    'widget/Constructor',
+    'watch'
+], function (template, Constructor, WatchJS) {
+    var watch = WatchJS.watch;
 
     return Constructor.extend({
         template: template,
         init: function () {
+
             var evt = this.children.testevent.on('click', function (e) {
-                alert('click');
                 evt.remove();
-            });
+            }, this);
 
         },
         events: {
@@ -36,7 +38,7 @@ define([
                 el.replace(parent);
                 this.applyBinders(this.data, parent);
             },
-            link:function(el, parent, data){
+            link: function (el, parent, data) {
                 el.add(parent);
                 el.text(data.text);
                 el.setAttribute('href', data.href);
@@ -46,10 +48,13 @@ define([
                 el.add(parent);
                 el.text(data.text);
                 el.setStyle('color', data.color);
+                watch(data, "text", function () {
+                    el.text(data.text);
+                });
             }
         },
-        bind:{
-            tbody:function(el, data){
+        bind: {
+            tbody: function (el, data) {
                 el.addClass(data.class);
             }
         }

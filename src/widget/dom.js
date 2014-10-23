@@ -49,11 +49,20 @@ define([
         removeClass: function (node, className) {
             node.el.classList.remove(className);
         },
+        val: function (node, val) {
+            var el = node.el;
+            if (val !== undefined) {
+                el.value = val;
+            } else {
+                return el.value;
+            }
+        },
         on: function (element, ev, cb, context) {
-            var el = element.el,
+            var args = Array.prototype.slice.call(arguments, 4, arguments.length),
+                el = element.el,
                 events = ev.split(' '),
                 fn = function (e) {
-                    cb.call(context || this, e, element);
+                    cb.apply(context || this, [e, element].concat(args));
                 };
 
             events.forEach(function (event) {
@@ -107,10 +116,13 @@ define([
         removeClass: function (className) {
             dom.removeClass(this, className);
         },
+        val: function (val) {
+           return dom.val(this, val);
+        },
         on: function (event, cb, context) {
-            return  dom.on(this, event, cb, context)
+            var args = Array.prototype.slice.call(arguments, 0);
+            return dom.on.apply(false, [this].concat(args));
         }
-
 
     });
     Element.extend = utils.fnExtend;

@@ -5,9 +5,13 @@ define([
     './utils',
     './dom',
     './mediator',
+    'watch',
     'templating/Decoder'
-], function (utils, dom, Mediator, Decoder) {
-    var context = {};
+], function (utils, dom, Mediator, WatchJS, Decoder) {
+    var context = {},
+        watch = WatchJS.watch,
+        unwatch = WatchJS.unwatch,
+        callWatchers = WatchJS.callWatchers;
 
     function applyElement(elements) {
         Object.keys(elements).forEach(function (key) {
@@ -21,12 +25,50 @@ define([
         return elements;
     }
 
-    function applyEvents(element, events) {
+    function applyEvents(element, events, data) {
         if (events !== undefined && element.el !== undefined) {
             events.forEach(function (event) {
-                element.on(event.name, event.action, this);
+                element.on(event.name, event.action, this, data);
             }.bind(this));
         }
+    }
+
+    function applyAttribute(childBinder, data) {
+        var bind = childBinder.data.tplSet.bind,
+            update = childBinder.data.tplSet.update;
+        if (bind) {
+            Object.keys(bind).forEach(function (key) {
+                if (data[key]) {
+                    if (key === 'class') {
+                        childBinder.addClass(data[key]);
+                        var currClass = data[key];
+                        if (update === 'true') {
+                            watch(data, key, function () {
+                                childBinder.removeClass(currClass);
+                                childBinder.addClass(data[key]);
+                                currClass= data[key];
+                            }.bind(this));
+                        }
+                    } else {
+                        childBinder.setAttribute(key, data[key]);
+                        if (update === 'true') {
+                            watch(data, key, function () {
+                                childBinder.setAttribute(key, data[key]);
+                            }.bind(this));
+                        }
+                    }
+                }
+                if (data.text !== undefined) {
+                    childBinder.text(data.text);
+                    if (update === 'true') {
+                        watch(data, 'text', function () {
+                            childBinder.text(data.text);
+                        }.bind(this));
+                    }
+                }
+            });
+        }
+
     }
 
     function setChildren(elements, parentChildren) {
@@ -107,7 +149,13 @@ define([
                             var childBinder = new dom.Element(binder);
                             childBinder.add(parent);
                             childBinder.text(data);
-                            applyEvents.call(this, childBinder, events);
+                            if (childBinder.data.tplSet.update === 'true') {
+                                watch(obj, key, function () {
+                                    childBinder.text(obj[key]);
+                                }.bind(this));
+                            }
+
+                            applyEvents.call(this, childBinder, events, data);
                         } else if (utils.isArray(data)) {
                             binder.applyAttach();
                             var hasParent = false
@@ -123,8 +171,10 @@ define([
                                 if (this.bind[key]) {
                                     this.bind[key].call(this, childBinder, item);
                                 }
+
+                                applyAttribute.call(this, childBinder, item);
                                 applyBinders.call(this, item, childBinder);
-                                applyEvents.call(this, childBinder, events);
+                                applyEvents.call(this, childBinder, events, item);
                             }.bind(this));
                             hasParent = false;
 
@@ -134,8 +184,13 @@ define([
                             if (this.bind[key]) {
                                 this.bind[key].call(this, childBinder, data);
                             }
-                            applyEvents.call(this, childBinder, events);
-                            applyBinders.call(this, data, childBinder);
+                            applyEvents.call(this, childBinder, events, data);
+
+                            if (!childBinder.data.tplSet.bind) {
+                                applyBinders.call(this, data, childBinder);
+                            } else {
+                                applyAttribute.call(this, childBinder, data);
+                            }
                         }
                     }
                 }
@@ -152,8 +207,8 @@ define([
         if (this.template) {
             var decoder = new Decoder(this.template),
                 template = decoder.render();
-            this.el = template.fragment;
 
+            this.el = template.fragment;
             this.data = this.context.data[data.bind];
             this.children = setChildren.call(this, template.children, children);
             this.bindings = setBinders.call(this, this.children);

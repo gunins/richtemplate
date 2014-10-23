@@ -100,10 +100,20 @@
         return context;
     }
 
+    function applyDataSet(dataset, datakey, attrib) {
+        var subkeys = datakey.split('-');
+        if (subkeys.length > 1) {
+            dataset[subkeys[0]] = dataset[subkeys[0]] || {};
+            dataset[subkeys[0]][subkeys[1]] = attrib;
+        } else {
+            dataset[datakey] = attrib;
+        }
+    }
+
     utils.merge(Coder.prototype, {
         addCoder: Coder.addCoder,
         _compile: function (el) {
-            return{
+            return {
                 children: parseChildren.call(this, el),
                 template: this._parser.getOuterHTML(el)
             };
@@ -116,9 +126,9 @@
 
             Object.keys(attribs).forEach(function (key) {
                 if (key.indexOf('data-') == 0 && key.length > 5) {
-                    dataset[key.substr(5)] = attribs[key];
+                    applyDataSet(dataset, key.substr(5), attribs[key]);
                 } else if (key.indexOf('tp-') == 0 && key.length > 3) {
-                    tplSet[key.substr(3)] = attribs[key];
+                    applyDataSet(tplSet, key.substr(3), attribs[key]);
                 }
                 else {
                     attributes[key] = attribs[key];
@@ -196,7 +206,7 @@
 
         getText: function () {
             var result = JSON.stringify(this.run());
-            return  result;
+            return result;
         }
     });
 

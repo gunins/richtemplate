@@ -8,7 +8,24 @@ define([
 ], function (App, Container, data) {
 
     return App.extend({
-        init:function(data,children){
+        beforeInit: function (data, children) {
+            this.context.eventBus.subscribe('searchvValue', function (value) {
+                this.context.data.table.firstname = value;
+            }.bind(this));
+
+            var active = false;
+            this.context.eventBus.subscribe('setActive', function (data) {
+                console.log(data)
+                active = data;
+            }.bind(this));
+
+            this.context.eventBus.subscribe('removeActive', function (data) {
+                if (active) {
+                    active.class = 'inactive';
+                }
+                data.class = 'active';
+                active = data;
+            }.bind(this))
         },
         AppContainer: Container,
         setContext: function () {
