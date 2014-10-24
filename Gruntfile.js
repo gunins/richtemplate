@@ -12,13 +12,8 @@ module.exports = function (grunt) {
         ],
         exclude: [
             'coders/component/CpCoder',
-            'coders/component/CpDecoder',
             'coders/placeholders/plCoder',
-            'coders/placeholders/plDecoder',
-            'coders/databind/bdCoder',
-            'coders/databind/bdDecoder',
-            'widget/Constructor',
-            'widget/App'
+            'coders/databind/bdCoder'
 
         ]
     }

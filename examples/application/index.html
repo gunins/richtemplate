@@ -15,7 +15,11 @@
     <!-- Custom styles for this template -->
     <link href="css/dashboard.css" rel="stylesheet">
     <script src="../../bower_components/requirejs/require.js"></script>
-    <script src="config.js"></script>
+    <script>
+        require.config({
+            baseUrl:'./target'
+        })
+    </script>
     <!--
         data-name: location to app
         data-target?: location to container if not set, use document.body

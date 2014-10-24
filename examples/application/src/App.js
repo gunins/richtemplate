@@ -4,8 +4,9 @@
 define([
     'widget/App',
     'container',
-    'data'
-], function (App, Container, data) {
+    'data',
+    './Model'
+], function (App, Container, data, model) {
 
     return App.extend({
         beforeInit: function (data, children) {
@@ -24,7 +25,11 @@ define([
                 }
                 data.class = 'active';
                 active = data;
-            }.bind(this))
+            }.bind(this));
+
+        },
+        init: function () {
+            model(data);
         },
         AppContainer: Container,
         setContext: function () {
