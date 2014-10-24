@@ -12,8 +12,14 @@ module.exports = function (grunt) {
         ],
         exclude: [
             'coders/component/CpCoder',
+            'coders/component/CpDecoder',
             'coders/placeholders/plCoder',
-            'coders/databind/bdCoder'
+            'coders/placeholders/plDecoder',
+            'coders/databind/bdDecoder',
+            'coders/databind/bdCoder',
+            'widget/Constructor',
+            'widget/App',
+            'templating/Decoder',
 
         ]
     }
@@ -47,7 +53,8 @@ module.exports = function (grunt) {
                                 'templating/Coder',
                                 'templating/Decoder'
                             ]
-                        }}
+                        }
+                    }
                 }
             },
             prod: {
@@ -55,11 +62,44 @@ module.exports = function (grunt) {
                     baseUrl: 'src',
                     optimize: 'uglify2',
                     removeCombined: true,
-                    out: "target/prod/templating/Decoder.js",
                     paths: {
-                        'htmlparser2': '../lib/htmlparser2'
+                        'htmlparser2': '../lib/htmlparser2',
+                        'watch': '../bower_components/watch/src/watch'
                     },
-                    name: 'templating/Decoder'
+                    dir: 'target/prod',
+                    modules: [
+                        {
+                            name: 'templating/Decoder',
+                            exclude: [
+                                'templating/utils'
+                            ]
+                        },
+                        {
+                            name: 'coders/component/CpDecoder'
+                        },
+                        {
+                            name: 'coders/placeholders/plDecoder',
+                            exclude: [
+                                'templating/utils'
+                            ]
+                        },
+                        {
+                            name: 'coders/databind/bdDecoder',
+                            exclude: [
+                                'templating/utils'
+                            ]
+                        },
+                        {
+                            name: 'widget/App'
+                        },
+                        {
+                            name: 'widget/Constructor',
+                            exclude: [
+                                'widget/mediator',
+                                'widget/utils'
+                            ]
+                        }
+                    ]
                 }
             },
             basic: {
@@ -78,8 +118,8 @@ module.exports = function (grunt) {
                         templating: '../../target/dev/templating',
                         htmlparser2: '../../target/dev/htmlparser2',
                         'widget': '../../src/widget',
-                        'watch':'../../bower_components/watch/src/watch',
-                        'd3':'../../bower_components/d3/d3'
+                        'watch': '../../bower_components/watch/src/watch',
+                        'd3': '../../bower_components/d3/d3'
                     },
                     name: 'test'
 
@@ -100,20 +140,43 @@ module.exports = function (grunt) {
                         templating: '../../../target/dev/templating',
                         htmlparser2: '../../../target/dev/htmlparser2',
                         'widget': '../../../src/widget',
-                        'watch':'../../../bower_components/watch/src/watch',
-                        'd3':'../../../bower_components/d3/d3'
+                        'watch': '../../../bower_components/watch/src/watch',
+                        'd3': '../../../bower_components/d3/d3'
                     },
                     name: 'app'
 
                 }
             }
+        },
+        concat: {
+            options: {
+                separator: ';'
+            },
+            Decoder: {
+
+                src: [
+                    'target/prod/coders/component/CpDecoder.js',
+                    'target/prod/coders/placeholders/plDecoder.js',
+                    'target/prod/coders/databind/bdDecoder.js',
+                    'target/prod/templating/Decoder.js'
+                ],
+                dest: 'target/prod/Decoder.js'
+            },
+            Widget: {
+                src: [
+                    'target/prod/widget/App.js',
+                    'target/prod/widget/Constructor.js',
+                    'target/prod/loader.js'
+                ],
+                dest: 'target/prod/loader.js'
+            }
         }
     });
-
+    grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-exec');
 
-    grunt.registerTask('default', ['clean', 'exec', 'requirejs']);
+    grunt.registerTask('default', ['clean', 'exec', 'requirejs', 'concat']);
 
 };
