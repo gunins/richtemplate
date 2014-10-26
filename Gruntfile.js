@@ -17,17 +17,16 @@ module.exports = function (grunt) {
             'coders/placeholders/plDecoder',
             'coders/databind/bdDecoder',
             'coders/databind/bdCoder',
-            'widget/Constructor',
-            'widget/App',
             'templating/Decoder',
 
         ]
     }
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        clean: ['target'],
+        clean: ['target', 'dist'],
         exec: {
-            browserify: 'browserify -o lib/htmlparser2.js -r htmlparser2 -s htmlparser'
+            browserify: 'browserify -o lib/htmlparser2.js -r htmlparser2 -s htmlparser',
+            npmpack:'npm pack dist'
         },
         requirejs: {
             dev: {
@@ -63,8 +62,7 @@ module.exports = function (grunt) {
                     optimize: 'uglify2',
                     removeCombined: true,
                     paths: {
-                        'htmlparser2': '../lib/htmlparser2',
-                        'watch': '../bower_components/watch/src/watch'
+                        'htmlparser2': '../lib/htmlparser2'
                     },
                     dir: 'target/prod',
                     modules: [
@@ -88,64 +86,22 @@ module.exports = function (grunt) {
                             exclude: [
                                 'templating/utils'
                             ]
-                        },
-                        {
-                            name: 'widget/App'
-                        },
-                        {
-                            name: 'widget/Constructor',
-                            exclude: [
-                                'widget/mediator',
-                                'widget/utils'
-                            ]
                         }
                     ]
                 }
-            },
-            basic: {
-                options: {
-                    baseUrl: 'examples/basic',
-                    removeCombined: true,
-                    optimize: 'none',
-                    templateCoders: coders.templateCoders,
-                    templateDecoders: coders.templateDecoders,
-                    stubModules: ['templating/parser'],
-                    exclude: coders.exclude,
-                    dir: "examples/basic/target",
-                    paths: {
-                        coders: '../../src/coders',
-                        buttona: 'buttonA/buttonA',
-                        templating: '../../target/dev/templating',
-                        htmlparser2: '../../target/dev/htmlparser2',
-                        'widget': '../../src/widget',
-                        'watch': '../../bower_components/watch/src/watch',
-                        'd3': '../../bower_components/d3/d3'
-                    },
-                    name: 'test'
+            }
+        },
+        copy: {
+            dev: {
+                files: [
 
-                }
-            },
-            application: {
-                options: {
-                    baseUrl: 'examples/application/src',
-                    removeCombined: true,
-                    optimize: 'none',
-                    templateCoders: coders.templateCoders,
-                    templateDecoders: coders.templateDecoders,
-                    stubModules: ['templating/parser'],
-                    exclude: coders.exclude,
-                    dir: "examples/application/target",
-                    paths: {
-                        coders: '../../../src/coders',
-                        templating: '../../../target/dev/templating',
-                        htmlparser2: '../../../target/dev/htmlparser2',
-                        'widget': '../../../src/widget',
-                        'watch': '../../../bower_components/watch/src/watch',
-                        'd3': '../../../bower_components/d3/d3'
-                    },
-                    name: 'app'
+                    // includes files within path and its sub-directories
+                    {expand: true, cwd:'target/dev', src: ['coders/**'], dest: 'dist/dev'},
+                    {expand: true, cwd:'target/dev', src: ['templating/**'], dest: 'dist/dev'},
+                    {expand: true, cwd:'target/dev', src: ['htmlparser2.js'], dest: 'dist/dev'},
+                    {expand: true, cwd:'./', src: ['package.json','bower.json'], dest: 'dist'}
 
-                }
+                ]
             }
         },
         concat: {
@@ -160,23 +116,17 @@ module.exports = function (grunt) {
                     'target/prod/coders/databind/bdDecoder.js',
                     'target/prod/templating/Decoder.js'
                 ],
-                dest: 'target/prod/Decoder.js'
-            },
-            Widget: {
-                src: [
-                    'target/prod/widget/App.js',
-                    'target/prod/widget/Constructor.js',
-                    'target/prod/loader.js'
-                ],
-                dest: 'target/prod/loader.js'
+                dest: 'dist/prod/templating/Decoder.js'
             }
         }
     });
+
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-exec');
 
-    grunt.registerTask('default', ['clean', 'exec', 'requirejs', 'concat']);
+    grunt.registerTask('default', ['clean', 'exec:browserify', 'requirejs', 'copy', 'concat', 'exec:npmpack']);
 
 };

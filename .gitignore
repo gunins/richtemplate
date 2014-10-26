@@ -4,3 +4,5 @@ node_modules/*
 bower_components/*
 target
 examples/basic/target
+dist
+domtemplate-0.0.1.tgz

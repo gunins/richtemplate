@@ -8,8 +8,6 @@
   "private": true,
   "dependencies": {
     "requirejs": "^2.1.15",
-    "bootstrap": "latest",
-    "watch": "latest",
-    "d3": "~3.4.13"
+    "bootstrap": "latest"
   }
 }
