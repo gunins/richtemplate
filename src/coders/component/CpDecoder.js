@@ -24,12 +24,15 @@
             var data = node.data;
             var response = {
                 name: data.name,
-                tmpEl: function () {
-                    response.data.instance = new data.src(data.dataset, children);
+                tmpEl: function (tag, obj) {
+                    response.data.instance = new data.src(data.dataset, children, obj);
                     return data.instance['el'];
                 },
                 data: data || {}
             };
+            if (data.dataset.bind !== undefined) {
+                response.bind = data.dataset.bind;
+            }
             return response;
         }
     };

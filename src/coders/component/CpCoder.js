@@ -13,9 +13,13 @@
         tagName: 'cp',
         code: function (nodeContext, data) {
             nodeContext.removeChildren();
-            var name = nodeContext.element.name.substr(3);
-            data.src = nodeContext.get('src');
+            var tagName = nodeContext.element.name,
+                name = tagName.substr(3);
+            data.src = data.attribs.src;
             data.name = name || nodeContext.get('tp-name');
+            data.type = nodeContext.get('tp-type') || tagName.slice(0, 2);
+
+            delete data.attribs.src;
         }
     };
 

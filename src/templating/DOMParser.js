@@ -33,7 +33,7 @@
     utils.merge(DOMParser.prototype, {
         DomUtils: DomUtils,
         getOuterHTML: DomUtils.getOuterHTML,
-        getInnerHTML: DomUtils.x,
+        getInnerHTML: DomUtils.getInnerHTML,
         getChildren: DomUtils.getChildren,
         replaceElement: DomUtils.replaceElement,
         appendChild: DomUtils.appendChild,
@@ -42,7 +42,11 @@
 
         setAttributeValue: function (el, name, value) {
             el.attribs = el.attribs || {};
-            el.attribs[name] = value;
+            if (value === undefined) {
+                el.attribs[name];
+            } else {
+                el.attribs[name] = value;
+            }
         },
 
         createElement: function (tagName) {
