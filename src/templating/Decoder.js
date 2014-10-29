@@ -39,8 +39,8 @@
         return fragment.firstChild;
     }
 
-    function setElement(placeholder, keep, parent) {
-        var el = this.tmpEl((keep) ? placeholder : false),
+    function setElement(placeholder, keep, parent, data) {
+        var el = this.tmpEl((keep) ? placeholder : false, data),
             name = this.name,
             attributes = this.data.attribs,
             plFragment = applyFragment(this.template, this.data.tag);
@@ -64,14 +64,12 @@
             if (this.parent !== null) {
                 this.parent.replaceChild(el, placeholder);
             }
-        }else{
+        } else {
             this.setParent(parent);
             if (this.parent !== null) {
                 this.parent.appendChild(el);
             }
         }
-
-
 
         this.el = el;
         if (this.parse !== undefined) {
@@ -86,7 +84,7 @@
         utils.merge(this, {
             id: node.id,
             template: node.template,
-            noAttach: _decoders[tagName].noAttach,
+            noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach,
             instance: setElement.bind(this),
 
             applyAttach: function () {
@@ -96,14 +94,14 @@
             setParent: function (parent) {
                 this.parent = parent;
             }.bind(this),
-            getParent:function(){
+            getParent: function () {
                 return this.parent;
             }.bind(this),
-            run: function (fragment, keep, parent) {
+            run: function (fragment, keep, parent, data) {
                 if (this.noAttach === undefined) {
                     var placeholder = fragment.querySelector('#' + this.id) || fragment;
                     if (placeholder) {
-                        return this.instance(placeholder, keep, parent);
+                        return this.instance(placeholder, keep, parent, data);
 
                     }
                 }

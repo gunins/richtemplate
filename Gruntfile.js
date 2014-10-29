@@ -73,18 +73,23 @@ module.exports = function (grunt) {
                             ]
                         },
                         {
-                            name: 'coders/component/CpDecoder'
+                            name: 'coders/component/CpDecoder',
+                            exclude:[
+                                'templating/Decoder'
+                            ]
                         },
                         {
                             name: 'coders/placeholders/plDecoder',
                             exclude: [
-                                'templating/utils'
+                                'templating/utils',
+                                'templating/Decoder'
                             ]
                         },
                         {
                             name: 'coders/databind/bdDecoder',
                             exclude: [
-                                'templating/utils'
+                                'templating/utils',
+                                'templating/Decoder'
                             ]
                         }
                     ]

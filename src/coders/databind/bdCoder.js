@@ -14,7 +14,7 @@
         code: function (nodeContext, data) {
             var tagName = nodeContext.element.name;
             data.name = (tagName.split('-')[0] === this.tagName) ? tagName.substr(3) : nodeContext.get('tp-name');
-            data.type = nodeContext.get('tp-type') || 'div';
+            data.type = nodeContext.get('tp-type') || tagName.slice(0, 2);
             return data;
         }
     };

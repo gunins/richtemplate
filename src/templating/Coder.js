@@ -192,7 +192,11 @@
                 },
                 get: function (name) {
                     return this.compiler._parser.getAttributeValue(this.element, name);
+                },
+                set:function(name, value){
+                    return this.compiler._parser.setAttributeValue(this.element, name, value);
                 }
+
             };
             var data = this._setData(nodeContext, coder);
             coder.code(nodeContext, data);
