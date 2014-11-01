@@ -1,4 +1,269 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.htmlparser=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+define('templating/parser',['module'], function (module) {
+
+    var template;
+    var buildMap = {};
+    var srcMap = {};
+    var idToSrc = {};
+    var masterConfig = (module.config && module.config()) || {};
+    var fs;
+
+    template = {
+        /**
+         * Parses a resource name into its component parts. Resource names
+         * look like: module/name.ext
+         * @param {String} name the resource name
+         * @returns {Object} with properties "moduleName", "ext".
+         */
+        parseName: function (name) {
+            var modName, ext, temp,
+                index = name.indexOf('.'),
+                isRelative = name.indexOf('./') === 0 ||
+                    name.indexOf('../') === 0;
+
+            if (index !== -1 && (!isRelative || index > 1)) {
+                modName = name.substring(0, index);
+                ext = name.substring(index + 1, name.length);
+            } else {
+                modName = name;
+            }
+
+            temp = ext || modName;
+            index = temp.indexOf('!');
+            if (index !== -1) {
+                temp = temp.substring(0, index);
+                if (ext) {
+                    ext = temp;
+                } else {
+                    modName = temp;
+                }
+            }
+
+            return {
+                moduleName: modName,
+                ext: ext
+            };
+        },
+
+        traverse: function (o, func) {
+            for (var i in o) {
+                func.apply(this, [i, o[i]]);
+                if (o[i] !== null && typeof(o[i]) == "object") {
+                    template.traverse(o[i], func);
+                }
+            }
+        },
+
+        finishLoad: function (name, content, onLoad, req) {
+
+            function handler(DOMParser, Coder) {
+                var domParser = new DOMParser(content);
+                var coder = new Coder(domParser);
+
+                var jsObject = coder.run();
+                var map = {};
+                var src;
+
+                template.traverse(jsObject, function (key, value) {
+                    if (key == 'data' && value.src) {
+                        map[value.src] = map[value.src] || [];
+                        map[value.src].push(value);
+                    }
+                });
+
+                srcMap[name] = map;
+
+                var sources = Object.keys(map);
+                req(sources, function () {
+                    if (masterConfig.isBuild) {
+                        idToSrc[name] = {};
+
+                        for (src in map) {
+                            var id = Math.random();
+                            map[src].forEach(function (value) {
+                                value.src = id;
+                            });
+                            idToSrc[name][id] = src;
+                        }
+
+                        buildMap[name] = jsObject;
+                    } else {
+                        for (src in map) {
+                            var obj = arguments[sources.indexOf(src)];
+                            map[src].forEach(function (value) {
+                                value.src = obj;
+                            });
+                        }
+                    }
+
+                    onLoad(jsObject);
+                });
+            }
+
+            var paths = {
+                DOMParser: 'templating/DOMParser',
+                Coder: 'templating/Coder'
+            };
+
+            if (masterConfig.isBuild) {
+                var DOMParser = require.nodeRequire(require.toUrl(paths.DOMParser));
+                var Coder = require.nodeRequire(require.toUrl(paths.Coder));
+                masterConfig.templateCoders.forEach(function (coder) {
+                    Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
+                });
+                handler(DOMParser, Coder);
+            } else {
+                require([paths.DOMParser, paths.Coder].concat(masterConfig.templateCoders), handler);
+            }
+        },
+
+        load: function (name, req, onLoad, config) {
+
+            masterConfig.isBuild = config && config.isBuild;
+            if (config) {
+                masterConfig.templateCoders = config.templateCoders || [];
+                masterConfig.templateDecoders = config.templateDecoders || [];
+            }
+
+            //Name has format: some.module.filext
+            var parsed = template.parseName(name);
+            var nonStripName = parsed.moduleName + (parsed.ext ? '.' + parsed.ext : '');
+            var url = req.toUrl(nonStripName);
+
+            // Do not load if it is an empty: url
+            if (url.indexOf('empty:') === 0) {
+                onLoad();
+                return;
+            }
+
+            //Load the template
+            template.get(url, function (content) {
+                req(masterConfig.templateDecoders, function () {
+                    template.finishLoad(name, content, onLoad, req);
+                });
+            }, function (err) {
+                if (onLoad.error) {
+                    onLoad.error(err);
+                }
+            });
+        },
+
+        write: function (pluginName, moduleName, write, config) {
+            if (buildMap.hasOwnProperty(moduleName)) {
+                var content = JSON.stringify(buildMap[moduleName]);
+
+                var map = idToSrc[moduleName];
+                var ids = Object.keys(map);
+                var sources = [];
+                ids.forEach(function (id, i) {
+                    var re = new RegExp(id, 'g');
+                    content = content.replace(re, 'arguments[' + i + ']');
+                    sources.push(map[id]);
+                });
+                var dependencies = sources.concat(masterConfig.templateDecoders);
+
+                write.asModule(pluginName + '!' + moduleName,
+                        "define(" + JSON.stringify(dependencies) + ", function () { return " +
+                        content +
+                        ";});\n");
+            }
+        }
+
+    };
+
+    if (masterConfig.env === 'node' || (!masterConfig.env && typeof process !== 'undefined' &&
+        process.versions && !!process.versions.node && !process.versions['node-webkit'])) {
+        //Using special require.nodeRequire, something added by r.js.
+        fs = require.nodeRequire('fs');
+
+        template.get = function (url, callback, errback) {
+            try {
+                var file = fs.readFileSync(url, 'utf8');
+                //Remove BOM (Byte Mark Order) from utf8 files if it is there.
+                if (file.indexOf('\uFEFF') === 0) {
+                    file = file.substring(1);
+                }
+                callback(file);
+            } catch (e) {
+                if (errback) {
+                    errback(e);
+                }
+            }
+        };
+    } else if (masterConfig.env === 'xhr' || !masterConfig.env) {
+        template.get = function (url, callback, errback, headers) {
+            var xhr = new XMLHttpRequest();
+            var header;
+
+            xhr.open('GET', url, true);
+
+            //Allow plugins direct access to xhr headers
+            if (headers) {
+                for (header in headers) {
+                    if (headers.hasOwnProperty(header)) {
+                        xhr.setRequestHeader(header.toLowerCase(), headers[header]);
+                    }
+                }
+            }
+
+            //Allow overrides specified in config
+            if (masterConfig.onXhr) {
+                masterConfig.onXhr(xhr, url);
+            }
+
+            xhr.onreadystatechange = function () {
+                var status, err;
+                //Do not explicitly handle errors, those should be
+                //visible via console output in the browser.
+                if (xhr.readyState === 4) {
+                    status = xhr.status || 0;
+                    if (status > 399 && status < 600) {
+                        //An http 4xx or 5xx error. Signal an error.
+                        err = new Error(url + ' HTTP status: ' + status);
+                        err.xhr = xhr;
+                        if (errback) {
+                            errback(err);
+                        }
+                    } else {
+                        callback(xhr.responseText);
+                    }
+
+                    if (masterConfig.onXhrComplete) {
+                        masterConfig.onXhrComplete(xhr, url);
+                    }
+                }
+            };
+            xhr.send(null);
+        };
+    }
+
+    return template;
+
+});
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define('templating/utils',[], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.utils = factory();
+    }
+}(this, function () {
+    return {
+        merge: function (obj, dest) {
+            Object.keys(dest).forEach(function (key) {
+                obj[key] = dest[key];
+            });
+        }
+    }
+
+}));
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define('htmlparser2',[],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.htmlparser=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports = CollectingHandler;
 
 function CollectingHandler(cbs){
@@ -3381,7 +3646,7 @@ function decodeUtf8Char (str) {
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
-	'use strict';
+	
 
   var Arr = (typeof Uint8Array !== 'undefined')
     ? Uint8Array
@@ -6898,3 +7163,503 @@ module.exports = {
 
 },{"./CollectingHandler.js":1,"./FeedHandler.js":2,"./Parser.js":3,"./ProxyHandler.js":4,"./Stream.js":5,"./Tokenizer.js":6,"./WritableStream.js":7,"domelementtype":8,"domhandler":9,"domutils":12}]},{},[])("htmlparser2")
 });
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define('templating/DOMParser',['htmlparser2', 'templating/utils'], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('../htmlparser2'), require('./utils'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.DOMParser = factory(root.htmlparser, root.Templating.utils);
+    }
+}(this, function (htmlparser, utils) {
+    var DomUtils = htmlparser.DomUtils;
+
+    /**
+     *
+     * @param html
+     * @constructor
+     */
+    function DOMParser(html) {
+        var handler = new htmlparser.DomHandler();
+        var parser = new htmlparser.Parser(handler);
+
+        parser.write(html);
+        parser.done();
+
+        this.dom = handler.dom;
+    }
+
+    utils.merge(DOMParser.prototype, {
+        DomUtils: DomUtils,
+        getOuterHTML: DomUtils.getOuterHTML,
+        getInnerHTML: DomUtils.getInnerHTML,
+        getChildren: DomUtils.getChildren,
+        replaceElement: DomUtils.replaceElement,
+        appendChild: DomUtils.appendChild,
+        getAttributeValue: DomUtils.getAttributeValue,
+        removeElement: DomUtils.removeElement,
+
+        setAttributeValue: function (el, name, value) {
+            el.attribs = el.attribs || {};
+            if (value === undefined) {
+                el.attribs[name];
+            } else {
+                el.attribs[name] = value;
+            }
+        },
+
+        createElement: function (tagName) {
+            return {
+                type: 'tag',
+                name: tagName,
+                attribs: {},
+                children: []
+            };
+        },
+
+        getElementByTagName: function (tagName, elements) {
+            return DomUtils.findOne(function (el) {
+                return el.name == tagName;
+            }, elements);
+        },
+        getElementByPrefix: function (prefix, elements) {
+            return DomUtils.findOne(function (el) {
+                return el.name.split('-')[0] == prefix;
+            }, elements);
+        },
+
+        getChildrenElements: function (element) {
+            return DomUtils.filter(function (el) {
+                return el.type === 'tag';
+            }, DomUtils.getChildren(element), false);
+        },
+
+        findOneChild: function (element) {
+            return DomUtils.findOneChild(function (el) {
+                return el.type === 'tag';
+            }, element ? element : this.dom);
+        },
+
+        isText: function (el) {
+            return el.type === 'text';
+        }
+    });
+
+    return DOMParser;
+}));
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define('templating/Coder',[
+            'templating/utils'
+        ], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./utils'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.Coder = factory(root.Templating.utils);
+    }
+}(this, function (utils) {
+
+    function applyCoder(element) {
+        var parsed = false;
+        _coders.forEach(function (coder) {
+            if (this._parser.getAttributeValue(element, 'tp-type') !== undefined) {
+            }
+            var tmpType = this._parser.getAttributeValue(element, 'tp-type') || element.name.split('-')[0];
+            if (tmpType === coder.tagName && !parsed) {
+                var attributeTagValue = this._parser.getAttributeValue(element, 'tp-tag');
+                var tag = (element.name.split('-')[0] !==
+                           coder.tagName) ? element.name : attributeTagValue ? attributeTagValue : 'div',
+
+                    children = this._parser.getChildren(element),
+                    placeholder = this._parser.createElement(tag),
+                    holder = this._parser.createElement(tag);
+                if (children && children.length > 0) {
+                    children.forEach(function (child) {
+                        this._parser.appendChild(holder, child);
+                    }.bind(this));
+                }
+
+                var id = 'e' + c++;
+
+                this._parser.setAttributeValue(placeholder, 'id', id);
+                this._parser.replaceElement(element, placeholder);
+                parsed = {
+                    id: id,
+                    tagName: coder.tagName,
+                    data: this._prepare(element, coder),
+                    template: this._parser.getOuterHTML(holder)
+                };
+            }
+        }.bind(this));
+        return parsed;
+    }
+
+    /**
+     *
+     * @constructor
+     * @param dOMParser
+     */
+    function Coder(dOMParser) {
+        this._parser = dOMParser;
+    }
+
+    var _coders = [];
+    var c = 0;
+
+    utils.merge(Coder, {
+        addCoder: function (coder) {
+            if (_coders.indexOf(coder) === -1) {
+                _coders.push(coder);
+            }
+        }
+    });
+    function parseChildren(el) {
+        var context,
+            parsed = false,
+            children,
+            childEl = this._parser.getChildren(el);
+        if (childEl && childEl.length > 0) {
+            childEl.forEach(function (child) {
+                if (!this._parser.isText(child)) {
+                    children = parseChildren.call(this, child);
+                    parsed = applyCoder.call(this, child);
+                    if (parsed || children) {
+                        context = context || [];
+                    }
+                    if (parsed) {
+                        context.push(parsed);
+                        if (children !== undefined) {
+                            parsed.children = children;
+                        }
+                    }
+                    else if (children && children.length > 0) {
+                        context = context.concat(children)
+                    }
+
+                }
+            }.bind(this))
+        }
+
+        return context;
+    }
+
+    function applyDataSet(dataset, datakey, attrib) {
+        var subkeys = datakey.split('-');
+        if (subkeys.length > 1) {
+            dataset[subkeys[0]] = dataset[subkeys[0]] || {};
+            dataset[subkeys[0]][subkeys[1]] = attrib;
+        } else {
+            dataset[datakey] = attrib;
+        }
+    }
+
+    utils.merge(Coder.prototype, {
+        addCoder: Coder.addCoder,
+        _compile: function (el) {
+            return {
+                children: parseChildren.call(this, el),
+                template: this._parser.getOuterHTML(el)
+            };
+        },
+        _setData: function (nodeContext, coder) {
+            var dataset = {},
+                tplSet = {},
+                attributes = {},
+                attribs = nodeContext.element.attribs;
+
+            Object.keys(attribs).forEach(function (key) {
+                if (key.indexOf('data-') == 0 && key.length > 5) {
+                    applyDataSet(dataset, key.substr(5), attribs[key]);
+                } else if (key.indexOf('tp-') == 0 && key.length > 3) {
+                    applyDataSet(tplSet, key.substr(3), attribs[key]);
+                }
+                else {
+                    attributes[key] = attribs[key];
+                }
+            });
+            var tag = (nodeContext.element.name.split('-')[0] !==
+                       coder.tagName) ? nodeContext.element.name : (tplSet.tag) ? tplSet.tag : 'div';
+
+            return {
+                tplSet: tplSet,
+                dataset: dataset,
+                attribs: attributes,
+                tag: tag
+            };
+        },
+        _prepare: function (element, coder) {
+            var nodeContext = {
+                compiler: this,
+                element: element,
+                compile: function (node) {
+                    if (!node) throw "Node is null";
+                    var el;
+                    if (this.compiler._parser.isText(node)) {
+                        el = this.compiler._parser.createElement('span');
+                        this.compiler._parser.appendChild(el, node);
+                    } else {
+                        el = node;
+                    }
+                    return this.compiler._compile(el);
+                },
+                getChildrenByPrefix: function (prefix) {
+                    var children = this.compiler._parser.getChildrenElements(this.element);
+                    return children.filter(function (el) {
+                        return el.name.indexOf(prefix) == 0;
+                    });
+                },
+                getChildrenByTagName: function (name) {
+                    var children = this.compiler._parser.getChildrenElements(this.element);
+                    return children.filter(function (el) {
+                        return el.name == name;
+                    });
+                },
+                getChildren: function () {
+                    return this.compiler._parser.getChildrenElements(this.element);
+                },
+                findChild: function (el) {
+                    var children = this.compiler._parser.getChildren(el);
+                    if (children.length == 1) {
+                        return children[0];
+                    } else {
+                        return this.compiler._parser.findOneChild(children);
+                    }
+                },
+                removeChildren: function () {
+                    var children = this.element.children;
+                    if (children.length > 0) {
+                        children.forEach(function (child) {
+                            this.compiler._parser.removeElement(child);
+                        }.bind(this));
+                    }
+                },
+                get: function (name) {
+                    return this.compiler._parser.getAttributeValue(this.element, name);
+                },
+                set:function(name, value){
+                    return this.compiler._parser.setAttributeValue(this.element, name, value);
+                }
+
+            };
+            var data = this._setData(nodeContext, coder);
+            coder.code(nodeContext, data);
+
+            return data;
+        },
+
+        run: function () {
+            return this._compile(this._parser.findOneChild());
+        },
+
+        getText: function () {
+            var result = JSON.stringify(this.run());
+            return result;
+        }
+    });
+
+    return Coder;
+}));
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        // AMD. Register as an anonymous module.
+        define('templating/Decoder',[
+            'templating/utils'
+        ], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./utils'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.Decoder = factory(root.Templating.utils);
+    }
+}(this, function (utils) {
+    var _decoders = {};
+
+    function applyFragment(template, tag) {
+        var elTag;
+        if (tag === 'li') {
+            elTag = 'ul'
+
+        } else if (tag === 'td' || tag === 'th') {
+            elTag = 'tr'
+
+        } else if (tag === 'tr') {
+            elTag = 'tbody'
+
+        } else {
+            elTag = 'div'
+        }
+        var el = document.createElement(elTag),
+            fragment = document.createDocumentFragment();
+        el.innerHTML = template;
+        fragment.appendChild(el.firstChild);
+        return fragment.firstChild;
+    }
+
+    function setElement(placeholder, keep, parent, data) {
+        var el = this.tmpEl((keep) ? placeholder : false, data),
+            name = this.name,
+            attributes = this.data.attribs,
+            plFragment = applyFragment(this.template, this.data.tag);
+        Object.keys(attributes).forEach(function (key) {
+            el.setAttribute(key, attributes[key]);
+        });
+
+        if (plFragment !== undefined) {
+            while (plFragment.childNodes.length > 0) {
+                el.appendChild(plFragment.childNodes[0]);
+            }
+        }
+
+        if (name !== undefined) {
+            el.classList.add(name);
+        }
+
+        if (!parent) {
+            var parentNode = placeholder.parentNode;
+            this.setParent(parentNode);
+            if (this.parent !== null) {
+                this.parent.replaceChild(el, placeholder);
+            }
+        } else {
+            this.setParent(parent);
+            if (this.parent !== null) {
+                this.parent.appendChild(el);
+            }
+        }
+
+        this.el = el;
+        if (this.parse !== undefined) {
+            this.parse(el);
+        }
+        return el;
+
+    }
+
+    function setParams(node, children) {
+        var tagName = node.tagName;
+        utils.merge(this, {
+            id: node.id,
+            template: node.template,
+            noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach,
+            instance: setElement.bind(this),
+
+            applyAttach: function () {
+                delete this.noAttach;
+            },
+
+            setParent: function (parent) {
+                this.parent = parent;
+            }.bind(this),
+            getParent: function () {
+                return this.parent;
+            }.bind(this),
+            run: function (fragment, keep, parent, data) {
+                if (this.noAttach === undefined) {
+                    var placeholder = fragment.querySelector('#' + this.id) || fragment;
+                    if (placeholder) {
+                        return this.instance(placeholder, keep, parent, data);
+
+                    }
+                }
+            }
+        });
+
+        if (children) {
+            this.children = children;
+        }
+    }
+
+    function parseElements(root) {
+        var context = false,
+            children = false;
+        root.children.forEach(function (node) {
+            if (node.children &&
+                node.children.length > 0) {
+                children = parseElements.call(this, node);
+            }
+            var tagName = node.tagName;
+            if (tagName) {
+                var data = _decoders[tagName].decode(node, children, runEls);
+                if (data) {
+                    var name = data.name;
+
+                    if (name !== undefined) {
+                        context = context || {};
+                        context[name] = data;
+                        setParams.call(context[name], node, children);
+                    }
+                }
+            }
+            children = false;
+        }.bind(this));
+
+        return context;
+    };
+    function runEls(children, fragment) {
+        Object.keys(children).forEach(function (key) {
+            children[key].run(fragment);
+        });
+    }
+
+    /**
+     *
+     * @constructor
+     * @param root
+     */
+    function Decoder(root) {
+        this._root = (typeof root === 'string') ? JSON.parse(root) : root;
+    }
+
+    utils.merge(Decoder, {
+        addDecoder: function (decoder) {
+            if (_decoders[decoder.tagName] === undefined) {
+                _decoders[decoder.tagName] = decoder;
+            }
+        }
+    });
+
+    utils.merge(Decoder.prototype, {
+        addDecoder: Decoder.addDecoder,
+        _renderFragment: function (root) {
+            var children = {},
+                fragment = applyFragment(root.template);
+
+            if (root.children && root.children.length > 0) {
+                children = parseElements.call(this, root);
+
+            }
+            runEls(children, fragment);
+
+            return {
+                fragment: fragment,
+                children: children
+            };
+        },
+
+        render: function () {
+            var fragment = this._renderFragment(this._root);
+
+            return fragment;
+        }
+    });
+
+    return Decoder;
+
+}));

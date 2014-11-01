@@ -3381,7 +3381,7 @@ function decodeUtf8Char (str) {
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
-	'use strict';
+	
 
   var Arr = (typeof Uint8Array !== 'undefined')
     ? Uint8Array
