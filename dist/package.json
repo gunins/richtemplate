@@ -1,11 +1,10 @@
 {
   "name": "richtemplate",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/gunins/richtemplate"
   },
-  "private": true,
   "devDependencies": {
     "derequire": "^1.2.0",
     "grunt": "^0.4.5",
