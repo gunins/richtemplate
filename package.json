@@ -22,7 +22,7 @@
     "htmlparser2": "latest",
     "browserify": "latest"
   },
-  "script": {
+  "scripts": {
     "start": "node server.js",
     "test": "grunt"
   }
