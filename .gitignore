@@ -5,4 +5,4 @@ bower_components/*
 target
 examples/basic/target
 dist
-richtemplate-0.0.1.tgz
+richtemplate*

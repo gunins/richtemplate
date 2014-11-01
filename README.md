@@ -1,4 +1,4 @@
-# Javascript templating engine. [![Build Status](https://api.travis-ci.org/gunins/richtemplate.svg?branch=master)](https://api.travis-ci.org/gunins/richtemplate)
+# Javascript templating engine. [![Build Status](https://travis-ci.org/gunins/richtemplate.svg?branch=master)](https://travis-ci.org/gunins/richtemplate)
 
 Require module for parsing html files to plain Javascript. There is two environments, one Development another production.
 
