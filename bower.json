@@ -5,7 +5,6 @@
     "type": "git",
     "url": "https://github.com/gunins/richtemplate"
   },
-  "private": true,
   "dependencies": {
     "requirejs": "^2.1.15",
     "bootstrap": "latest"
