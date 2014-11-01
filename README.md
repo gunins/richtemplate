@@ -10,7 +10,7 @@ Most javascript templating engines, parsing to string. Domtemplate has dom eleme
 
 Below is image to show difference between prod and dev packages.
 
-![Prod Dev Packages Diagram](https://bitbucket.org/gunsim/domtemplate/raw/master/docs/images/prod_dev.jpg)
+![Prod Dev Packages Diagram](https://raw.githubusercontent.com/gunins/richtemplate/master/docs/images/prod_dev.jpg)
 
 In the development Environment you use runtime version of package, which one parse on browser. For Production you use compiled app version, where is no need for parser and coder.
 
