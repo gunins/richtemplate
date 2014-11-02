@@ -2,6 +2,12 @@
 
 Require module for parsing html files to plain Javascript. There is two environments, one Development another production.
 
+## Installation
+
+using npm
+
+    npm install richtemplate
+
 ## Why Templating Engine
 
 Most javascript templating engines, parsing to string. Domtemplate has dom elements or require modules. You has direct access to Dom elements. In this case no need for jquery selectors etc.
