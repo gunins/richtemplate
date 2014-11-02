@@ -26,7 +26,8 @@ module.exports = function (grunt) {
         clean: ['target', 'dist'],
         exec: {
             browserify: 'browserify -o lib/htmlparser2.js -r htmlparser2 -s htmlparser',
-            npmpack:'npm pack dist'
+            npmpack:'npm pack dist',
+            publish:'npm publish dist'
         },
         requirejs: {
             dev: {
@@ -104,7 +105,7 @@ module.exports = function (grunt) {
                     {expand: true, cwd:'target/dev', src: ['coders/**'], dest: 'dist/dev'},
                     {expand: true, cwd:'target/dev', src: ['templating/**'], dest: 'dist/dev'},
                     {expand: true, cwd:'target/dev', src: ['htmlparser2.js'], dest: 'dist/dev'},
-                    {expand: true, cwd:'./', src: ['package.json','bower.json'], dest: 'dist'}
+                    {expand: true, cwd:'./', src: ['package.json','bower.json', 'README.md'], dest: 'dist'}
 
                 ]
             }
@@ -123,6 +124,16 @@ module.exports = function (grunt) {
                 ],
                 dest: 'dist/prod/templating/Decoder.js'
             }
+        },
+        bump: {
+            options: {
+                files: ['package.json', 'bower.json'],
+                commit: false,
+                createTag: true,
+                tagName: '%VERSION%',
+                tagMessage: 'Version %VERSION%',
+                push: false
+            }
         }
     });
 
@@ -131,7 +142,10 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-exec');
+    grunt.loadNpmTasks('grunt-bump');
 
-    grunt.registerTask('default', ['clean', 'exec:browserify', 'requirejs', 'copy', 'concat', 'exec:npmpack']);
+
+    grunt.registerTask('default', ['clean', 'exec:browserify', 'requirejs', 'copy', 'concat']);
+    grunt.registerTask('publish', ['bump', 'default', 'exec:publish']);
 
 };
