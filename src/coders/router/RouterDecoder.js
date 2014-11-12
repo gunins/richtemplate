@@ -20,19 +20,24 @@
 
     var componentDecoder = {
         tagName: 'rt',
+        noAttach: true,
         decode: function (node, children) {
             var data = node.data;
             var response = {
                 name: data.name,
-                tmpEl: function (tag, obj) {
-                    response.data.instance = new data.src(data.dataset, children, obj);
-                    return data.instance['el'];
+                tmpEl: function (el) {
+                    return el || document.createElement(data.tag);
+                },
+                parse: function (fragment) {
+                    if (children) {
+                        Object.keys(children).forEach(function (key) {
+                            children[key].run(fragment);
+                        });
+                    }
                 },
                 data: data || {},
+                route:data.route
             };
-            if (data.dataset.bind !== undefined) {
-                response.bind = data.dataset.bind;
-            }
             return response;
         }
     };

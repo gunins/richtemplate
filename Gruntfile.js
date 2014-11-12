@@ -3,12 +3,14 @@ module.exports = function (grunt) {
         templateCoders: [
             'coders/component/CpCoder',
             'coders/placeholders/plCoder',
-            'coders/databind/bdCoder'
+            'coders/databind/bdCoder',
+            'coders/router/RouterDecoder'
         ],
         templateDecoders: [
             'coders/component/CpDecoder',
             'coders/placeholders/plDecoder',
-            'coders/databind/bdDecoder'
+            'coders/databind/bdDecoder',
+            'coders/router/RouterDecoder'
         ],
         exclude: [
             'coders/component/CpCoder',
@@ -17,7 +19,9 @@ module.exports = function (grunt) {
             'coders/placeholders/plDecoder',
             'coders/databind/bdDecoder',
             'coders/databind/bdCoder',
-            'templating/Decoder',
+            'coders/router/RouterCoder',
+            'coders/router/RouterDecoder',
+            'templating/Decoder'
 
         ]
     }
@@ -92,6 +96,13 @@ module.exports = function (grunt) {
                                 'templating/utils',
                                 'templating/Decoder'
                             ]
+                        },
+                        {
+                            name: 'coders/router/RouterDecoder',
+                            exclude: [
+                                'templating/utils',
+                                'templating/Decoder'
+                            ]
                         }
                     ]
                 }
@@ -120,6 +131,7 @@ module.exports = function (grunt) {
                     'target/prod/coders/component/CpDecoder.js',
                     'target/prod/coders/placeholders/plDecoder.js',
                     'target/prod/coders/databind/bdDecoder.js',
+                    'target/prod/coders/router/RouterDecoder.js',
                     'target/prod/templating/Decoder.js'
                 ],
                 dest: 'dist/prod/templating/Decoder.js'

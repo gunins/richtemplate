@@ -7517,6 +7517,7 @@ module.exports = {
             name = this.name,
             attributes = this.data.attribs,
             plFragment = applyFragment(this.template, this.data.tag);
+
         Object.keys(attributes).forEach(function (key) {
             el.setAttribute(key, attributes[key]);
         });
