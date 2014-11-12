@@ -19,7 +19,7 @@
 }(this, function (Decoder) {
 
     var componentDecoder = {
-        tagName: 'cp',
+        tagName: 'rt',
         decode: function (node, children) {
             var data = node.data;
             var response = {
@@ -28,7 +28,7 @@
                     response.data.instance = new data.src(data.dataset, children, obj);
                     return data.instance['el'];
                 },
-                data: data || {}
+                data: data || {},
             };
             if (data.dataset.bind !== undefined) {
                 response.bind = data.dataset.bind;

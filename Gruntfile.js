@@ -127,12 +127,13 @@ module.exports = function (grunt) {
         },
         bump: {
             options: {
-                files: ['package.json', 'bower.json'],
-                commit: false,
+                files: ['package.json', 'bower.json', 'dist/package.json', 'dist/bower.json'],
+                commit: true,
                 createTag: true,
                 tagName: '%VERSION%',
                 tagMessage: 'Version %VERSION%',
-                push: false
+                push: true,
+                pushTo: 'origin'
             }
         }
     });
@@ -146,6 +147,6 @@ module.exports = function (grunt) {
 
 
     grunt.registerTask('default', ['clean', 'exec:browserify', 'requirejs', 'copy', 'concat']);
-    grunt.registerTask('publish', ['bump', 'default', 'exec:publish']);
+    grunt.registerTask('publish', ['default', 'bump', 'exec:publish']);
 
 };
