@@ -39,6 +39,7 @@
                 var id = 'e' + c++;
 
                 this._parser.setAttributeValue(placeholder, 'id', id);
+                this._parser.setAttributeValue(placeholder, 'style', 'display:none');
                 this._parser.replaceElement(element, placeholder);
                 parsed = {
                     id: id,
