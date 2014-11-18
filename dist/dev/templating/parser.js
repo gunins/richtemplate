@@ -7611,12 +7611,15 @@ module.exports = {
     }
 
     function parseElements(root, obj) {
+        if (!obj) {
+            obj = {};
+        }
         var context = false,
             children = false;
         root.children.forEach(function (node) {
             if (node.children &&
                 node.children.length > 0) {
-                var contextData = (obj && obj[node.data.name]) ? obj[node.data.name] : {};
+                var contextData = (obj[node.data.name]) ? obj[node.data.name] : obj;
                 children = parseElements.call(this, node, contextData);
             }
             var tagName = node.tagName;
