@@ -12,7 +12,7 @@
 <script>
     require(['templating/Decoder', 'test'], function (Decoder, template) {
         var decoder = new Decoder(template);
-        var context = decoder.render();
+        var context = decoder.render({test: 'blah'});
         var el = document.getElementById('el');
         el.appendChild(context.fragment);
     })
