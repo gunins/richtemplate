@@ -6,9 +6,9 @@ define([
         child.run(parent.el, true);
 
     }
-    return function(data, children){
+    return function(data, children, obj){
         var decoder = new Decoder(template);
-        var context = decoder.render();
+        var context = decoder.render(obj);
         console.log(context, children)
         var els = context.children;
 

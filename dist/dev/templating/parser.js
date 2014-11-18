@@ -7628,7 +7628,7 @@ module.exports = {
                     if (name !== undefined) {
                         context = context || {};
                         context[name] = data;
-                        setParams.call(context[name], node, children, obj[name] || {});
+                        setParams.call(context[name], node, children, obj[name] || obj);
                     }
                 }
             }
