@@ -15,9 +15,10 @@
         root.Templating.Coder = factory(root.Templating.utils);
     }
 }(this, function (utils) {
-
+    var templId = 0;
     function applyCoder(element) {
         var parsed = false;
+
         _coders.forEach(function (coder) {
             if (this._parser.getAttributeValue(element, 'tp-type') !== undefined) {
             }
@@ -35,12 +36,14 @@
                         this._parser.appendChild(holder, child);
                     }.bind(this));
                 }
-
-                var id = 'e' + c++;
-
-                this._parser.setAttributeValue(placeholder, 'id', id);
-                this._parser.setAttributeValue(placeholder, 'style', 'display:none');
-                this._parser.replaceElement(element, placeholder);
+                if(tmpType!=='style') {
+                    var id = 'e' + c++;
+                    this._parser.setAttributeValue(placeholder, 'id', id);
+                    this._parser.setAttributeValue(placeholder, 'style', 'display:none');
+                    this._parser.replaceElement(element, placeholder);
+                }else{
+                    this._parser.removeElement(element);
+                }
                 parsed = {
                     id: id,
                     tagName: coder.tagName,
@@ -72,6 +75,10 @@
         }
     });
     function parseChildren(el) {
+        if (!this._parser.isText(el)) {
+            var classList = this._parser.getAttributeValue(el, 'class') || '';
+            this._parser.setAttributeValue(el, 'class', (this.templateId + ' ' + classList).trim());
+        }
         var context,
             parsed = false,
             children,
@@ -79,6 +86,7 @@
         if (childEl && childEl.length > 0) {
             childEl.forEach(function (child) {
                 if (!this._parser.isText(child)) {
+
                     children = parseChildren.call(this, child);
                     parsed = applyCoder.call(this, child);
                     if (parsed || children) {
@@ -194,7 +202,7 @@
                 get: function (name) {
                     return this.compiler._parser.getAttributeValue(this.element, name);
                 },
-                set:function(name, value){
+                set: function (name, value) {
                     return this.compiler._parser.setAttributeValue(this.element, name, value);
                 }
 
@@ -206,6 +214,9 @@
         },
 
         run: function () {
+            this.templateId = 'tid_' + new Date().valueOf() + templId;
+            templId++;
+
             return this._compile(this._parser.findOneChild());
         },
 

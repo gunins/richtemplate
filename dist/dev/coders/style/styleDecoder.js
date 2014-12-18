@@ -18,30 +18,23 @@
     }
 }(this, function (Decoder) {
 
-    var componentDecoder = {
-        tagName: 'cp',
-        decode: function (node, children) {
-            var data = node.data;
-            data.attribs = {};
-            var response = {
-                name: data.name,
-                tmpEl: function (tag, obj) {
-                    response.data.instance = new data.src(data.dataset, children, obj);
-                    return data.instance['el'];
-                },
-                data: data || {}
-            };
-            if (data.dataset.bind !== undefined) {
-                response.bind = data.dataset.bind;
+    var styleDecoder = {
+        tagName: 'style',
+        decode: function (node) {
+            if (node.data.styleAttached === undefined) {
+                node.data.styleAttached = true;
+                var style = document.createElement('style');
+                style.innerHTML = node.data.style;
+                document.head.appendChild(style);
             }
-            return response;
+
         }
     };
 
     if (Decoder) {
-        Decoder.addDecoder(componentDecoder);
+        Decoder.addDecoder(styleDecoder);
     }
 
-    return componentDecoder;
+    return styleDecoder;
 
 }));

@@ -1,10 +1,13 @@
 <div class="buttonClass">
     <style-less>
         div {
-            .header {
-                color: red;
-            }
+            margin: 15px;
+            padding: 10px;
+            border: solid #666666 3px;
+        }
 
+        .header {
+            color: red;
         }
     </style-less>
     <pl-header tp-tag="h2"></pl-header>
@@ -12,5 +15,10 @@
         <cp src="buttonA/buttonA" tp-name="testButton"></cp>
     </div>
     <p>There is some test text</p>
-    <pl-footer tp-tag="strong"></pl-footer>
+    <style-less>
+        .footer {
+            background: #cccccc;
+        }
+    </style-less>
+    <pl-footer ></pl-footer>
 </div>
