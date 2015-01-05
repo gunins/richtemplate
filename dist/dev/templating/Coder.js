@@ -16,12 +16,11 @@
     }
 }(this, function (utils) {
     var templId = 0;
+
     function applyCoder(element) {
         var parsed = false;
 
         _coders.forEach(function (coder) {
-            if (this._parser.getAttributeValue(element, 'tp-type') !== undefined) {
-            }
             var tmpType = this._parser.getAttributeValue(element, 'tp-type') || element.name.split('-')[0];
             if (tmpType === coder.tagName && !parsed) {
                 var attributeTagValue = this._parser.getAttributeValue(element, 'tp-tag');
@@ -36,12 +35,12 @@
                         this._parser.appendChild(holder, child);
                     }.bind(this));
                 }
-                if(tmpType!=='style') {
+                if (!coder.noTag) {
                     var id = 'e' + c++;
                     this._parser.setAttributeValue(placeholder, 'id', id);
                     this._parser.setAttributeValue(placeholder, 'style', 'display:none');
                     this._parser.replaceElement(element, placeholder);
-                }else{
+                } else {
                     this._parser.removeElement(element);
                 }
                 parsed = {

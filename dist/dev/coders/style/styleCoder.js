@@ -9453,19 +9453,19 @@ require('./polyfill-done.js');
     }
 }(this, function (Coder, less) {
     function applyId(content, id) {
-        replacer = function (item) {
+        var replacer = function (item) {
             var replacer = item.substring(item.length - 1, item.length);
             var out = item.replace(replacer, '').trim();
             content = content.replace(item, out + '.' + id + replacer);
         }
         var items = content.match(/\w((?!\)).)*(\{|,)/g) || [];
         items.forEach(replacer.bind(this));
-
         return content;
     }
 
     var styleCoder = {
         tagName: 'style',
+        noTag: true,
         code: function (nodeContext, data) {
             var content = nodeContext.compiler._parser.getInnerHTML(nodeContext.element),
                 templateId = nodeContext.compiler.templateId;
