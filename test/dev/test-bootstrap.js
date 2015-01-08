@@ -46,7 +46,7 @@ require.config({
     templateDecoders: [
         'coders/component/CpDecoder',
         'coders/placeholders/plDecoder',
-        'coders/router/routerDecoder',
+        'coders/router/RouterDecoder',
         'coders/style/styleDecoder'
     ],
     paths: {
