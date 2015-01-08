@@ -11,7 +11,7 @@ define([
      var el = document.createElement('div');
      el.appendChild(context.fragment);*/
 
-    describe('Templating Tests', function () {
+    describe('Templating Tests for compiled source', function () {
         describe('Checking if Template parsed correctly', function () {
             it('first children should be a Style', function () {
                 var children = template.children[0],
