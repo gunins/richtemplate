@@ -36,7 +36,7 @@
                     }
                 },
                 data: data || {},
-                route:data.route
+                route: data.route
             };
             return response;
         }

@@ -1,5 +1,5 @@
 define([
-    'templating/parser!./button/_button.html',
+    'templating/parser!./_button.html',
     'templating/Decoder'
 ], function (template, Decoder) {
     function append(parent, child){

@@ -123,7 +123,8 @@
         _compile: function (el) {
             return {
                 children: parseChildren.call(this, el),
-                template: this._parser.getOuterHTML(el)
+                template: this._parser.getOuterHTML(el),
+                templateId:this.templateId
             };
         },
         _setData: function (nodeContext, coder) {

@@ -3,20 +3,20 @@ require.config({
     templateCoders: [
         'coders/component/CpCoder',
         'coders/placeholders/plCoder',
+        'coders/router/RouterCoder',
         'coders/style/styleCoder'
 
     ],
     templateDecoders: [
         'coders/component/CpDecoder',
         'coders/placeholders/plDecoder',
+        'coders/router/routerDecoder',
         'coders/style/styleDecoder'
     ],
     paths: {
         'less': '../../node_modules/less/dist/less',
         'coders': '../../src/coders',
-        'buttona': 'buttonA/buttonA',
         'templating': '../../src/templating',
-        'htmlparser2': '../../lib/htmlparser2',
-        'test': './test'
+        'htmlparser2': '../../lib/htmlparser2'
     }
 });

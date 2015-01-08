@@ -107,6 +107,7 @@ define(['module'], function (module) {
             if (masterConfig.isBuild) {
                 var DOMParser = require.nodeRequire(require.toUrl(paths.DOMParser));
                 var Coder = require.nodeRequire(require.toUrl(paths.Coder));
+
                 masterConfig.templateCoders.forEach(function (coder) {
                     Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
                 });

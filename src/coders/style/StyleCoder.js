@@ -2,7 +2,7 @@
     if (typeof define === 'function' && define.amd) {
         define(['templating/Coder', 'less'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory();
+        module.exports = factory(require('../../templating/Coder'), require('less'));
     } else {
         // Browser globals (root is window)
         root.Templating = root.Templating || {};

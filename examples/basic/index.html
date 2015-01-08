@@ -10,7 +10,7 @@
 <div id="el"></div>
 
 <script>
-    require(['templating/Decoder', 'test'], function (Decoder, template) {
+    require(['templating/Decoder', 'App'], function (Decoder, template) {
         var decoder = new Decoder(template);
         var context = decoder.render();
         var el = document.getElementById('el');
