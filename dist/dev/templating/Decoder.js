@@ -176,7 +176,8 @@
 
             return {
                 fragment: fragment,
-                children: children
+                children: children,
+                templateId: root.templateId
             };
         },
 
