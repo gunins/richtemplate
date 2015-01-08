@@ -79,7 +79,7 @@
 
     }
 
-    function setParams(node, children) {
+    function setParams(node, children, obj) {
         var tagName = node.tagName;
         utils.merge(this, {
             id: node.id,
@@ -98,7 +98,7 @@
                 if (this.noAttach === undefined) {
                     var placeholder = fragment.querySelector('#' + this.id) || fragment;
                     if (placeholder) {
-                        return setElement.call(this, placeholder, keep, parent, data);
+                        return setElement.call(this, placeholder, keep, parent, data || obj);
                     }
                 }
             }
@@ -108,13 +108,17 @@
         }
     }
 
-    function parseElements(root) {
+    function parseElements(root, obj) {
+        if (!obj) {
+            obj = {};
+        }
         var context = false,
             children = false;
         root.children.forEach(function (node) {
             if (node.children &&
                 node.children.length > 0) {
-                children = parseElements.call(this, node);
+                var contextData = (obj[node.data.name]) ? obj[node.data.name] : obj;
+                children = parseElements.call(this, node, contextData);
             }
             var tagName = node.tagName;
             if (tagName) {
@@ -125,7 +129,7 @@
                     if (name !== undefined) {
                         context = context || {};
                         context[name] = data;
-                        setParams.call(context[name], node, children);
+                        setParams.call(context[name], node, children, obj[name] || obj);
                     }
                 }
             }
@@ -159,12 +163,12 @@
 
     utils.merge(Decoder.prototype, {
         addDecoder: Decoder.addDecoder,
-        _renderFragment: function (root) {
+        _renderFragment: function (root, data) {
             var children = {},
                 fragment = applyFragment(root.template);
 
             if (root.children && root.children.length > 0) {
-                children = parseElements.call(this, root);
+                children = parseElements.call(this, root, data || {});
 
             }
             runEls(children, fragment);
@@ -176,8 +180,8 @@
             };
         },
 
-        render: function () {
-            var fragment = this._renderFragment(this._root);
+        render: function (data) {
+            var fragment = this._renderFragment(this._root, data);
 
             return fragment;
         }
