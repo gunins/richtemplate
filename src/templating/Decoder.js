@@ -54,9 +54,9 @@
             }
         }
 
-        if (name !== undefined) {
+/*        if (name !== undefined) {
             el.classList.add(name);
-        }
+        }*/
 
         if (!parent) {
             var parentNode = placeholder.parentNode;
@@ -85,12 +85,9 @@
             id: node.id,
             template: node.template,
             noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach,
-            instance: setElement.bind(this),
-
             applyAttach: function () {
                 delete this.noAttach;
             },
-
             setParent: function (parent) {
                 this.parent = parent;
             }.bind(this),
@@ -101,13 +98,11 @@
                 if (this.noAttach === undefined) {
                     var placeholder = fragment.querySelector('#' + this.id) || fragment;
                     if (placeholder) {
-                        return this.instance(placeholder, keep, parent, data);
-
+                        return setElement.call(this, placeholder, keep, parent, data);
                     }
                 }
             }
         });
-
         if (children) {
             this.children = children;
         }
