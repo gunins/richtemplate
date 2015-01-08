@@ -21,13 +21,14 @@ define([
                 var children = template.children[0],
                     templateId = template.templateId;
                 expect(children.data.style).to.equal('div.' + templateId +
-                                                     ' {\n  margin: 5px;\n  padding: 15px;\n  border: solid #008000 2px;\n}\n');
+                                                     ' {\n  margin: 5px;\n  padding: 15px;\n  border: solid #008000 2px;\n}\n' +
+                                                     '.header.' + templateId + ' {\n  color: #008000;\n}\n');
             });
             it('Second children should be a Component', function () {
                 var children = template.children[1];
                 expect(children.data.type).to.equal('cp');
                 expect(children.data.src).to.be.a('function');
-                expect(children.children.length).to.equal(2);
+                expect(children.children).to.have.length(2);
                 expect(children.data.dataset.test).to.equal('test');
             });
             it('Fourth children should be a placeHolder', function () {
@@ -46,10 +47,11 @@ define([
                 var root = decoder._root,
                     templateId = root.templateId,
                     template = '<div class="' + templateId + '">\n    ' +
-                               '\n    <div id="e2" style="display:none"></div>\n    \n' +
+                               '\n    <h2 class=\"' + templateId + ' header\">RootElement Header</h2>\n' +
+                               '    <div id="e2" style="display:none"></div>\n    \n' +
                                '    <div id="e3" style="display:none"></div>\n</div>';
                 expect(root.template).to.equal(template);
-                expect(root.children.length).to.equal(4);
+                expect(root.children).to.have.length(4);
             });
             it('Decoder Rendering items correctly', function () {
                 var children = context.children,
@@ -65,8 +67,8 @@ define([
             it('if templateId is generated, and generated elements are attached to Node', function () {
                 var templateId = decoder._root.templateId,
                     els = Array.prototype.slice.call(el.querySelectorAll('.' + templateId));
-                expect(els.length).to.equal(2);
-                expect(els.indexOf(context.children.footer.el)).to.equal(1);
+                expect(els).to.have.length(3);
+                expect(els.indexOf(context.children.footer.el)).to.equal(2);
             });
         });
     });
