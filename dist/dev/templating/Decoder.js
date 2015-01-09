@@ -60,7 +60,6 @@
 
         if (!parent) {
             var parentNode = placeholder.parentNode;
-            console.log(parentNode);
             this.setParent(parentNode);
             if (this.parent !== null || this.parent !== undefined) {
                 this.parent.replaceChild(el, placeholder);
@@ -81,8 +80,9 @@
     }
 
     function setParams(node, children, obj) {
-        var tagName = node.tagName;
-        utils.merge(this, {
+        var tagName = node.tagName,
+            self = this;
+        utils.merge(self, {
             id: node.id,
             template: node.template,
             noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach,
@@ -91,15 +91,15 @@
             },
             setParent: function (parent) {
                 this.parent = parent;
-            }.bind(this),
+            }.bind(self),
             getParent: function () {
                 return this.parent;
-            }.bind(this),
+            }.bind(self),
             run: function (fragment, keep, parent, data) {
-                if (this.noAttach === undefined) {
-                    var placeholder = fragment.querySelector('#' + this.id) || fragment;
+                if (self.noAttach === undefined) {
+                    var placeholder = fragment.querySelector('#' + self.id) || fragment;
                     if (placeholder) {
-                        return setElement.call(this, placeholder, keep, parent, data || obj);
+                        return setElement.call(self, placeholder, keep, parent, data || obj);
                     }
                 }
             }
