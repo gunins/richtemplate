@@ -41,22 +41,20 @@
 
     function setElement(placeholder, keep, parent, data) {
         var el = this.tmpEl((keep) ? placeholder : false, data),
-            name = this.name,
             attributes = this.data.attribs,
             plFragment = applyFragment(this.template, this.data.tag);
-        Object.keys(attributes).forEach(function (key) {
-            el.setAttribute(key, attributes[key]);
-        });
+
+        if (!keep) {
+            Object.keys(attributes).forEach(function (key) {
+                el.setAttribute(key, attributes[key]);
+            });
+        }
 
         if (plFragment !== undefined) {
             while (plFragment.childNodes.length > 0) {
                 el.appendChild(plFragment.childNodes[0]);
             }
         }
-
-        /*        if (name !== undefined) {
-         el.classList.add(name);
-         }*/
 
         if (!parent) {
             var parentNode = placeholder.parentNode;
