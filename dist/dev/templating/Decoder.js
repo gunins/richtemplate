@@ -54,14 +54,15 @@
             }
         }
 
-/*        if (name !== undefined) {
-            el.classList.add(name);
-        }*/
+        /*        if (name !== undefined) {
+         el.classList.add(name);
+         }*/
 
         if (!parent) {
             var parentNode = placeholder.parentNode;
+            console.log(parentNode);
             this.setParent(parentNode);
-            if (this.parent !== null) {
+            if (this.parent !== null || this.parent !== undefined) {
                 this.parent.replaceChild(el, placeholder);
             }
         } else {
