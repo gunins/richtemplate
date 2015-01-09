@@ -96,8 +96,8 @@
                 return this.parent;
             }.bind(self),
             run: function (fragment, keep, parent, data) {
-                if (self.noAttach === undefined) {
-                    var placeholder = fragment.querySelector('#' + self.id) || fragment;
+                if (this.noAttach === undefined) {
+                    var placeholder = fragment.querySelector('#' + this.id) || fragment;
                     if (placeholder) {
                         return setElement.call(self, placeholder, keep, parent, data || obj);
                     }
