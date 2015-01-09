@@ -44,7 +44,7 @@ module.exports = function (grunt) {
                     optimize: 'none',
                     dir: 'target/dev',
                     paths: {
-                        htmlparser2: '../lib/htmlparser2'
+                        'templating/htmlparser2': '../lib/htmlparser2'
                     },
                     name: 'templating/parser',
                     include: [
@@ -71,7 +71,7 @@ module.exports = function (grunt) {
                     optimize: 'none',
                     dir: 'target/dev',
                     paths: {
-                        htmlparser2: '../lib/htmlparser2',
+                        'templating/htmlparser2': '../lib/htmlparser2',
                         'less': '../node_modules/less/dist/less'
                     },
                     name: 'coders/style/styleCoder',
@@ -87,7 +87,7 @@ module.exports = function (grunt) {
                     optimize: 'uglify2',
                     removeCombined: true,
                     paths: {
-                        'htmlparser2': '../lib/htmlparser2'
+                        'templating/htmlparser2': '../lib/htmlparser2'
                     },
                     dir: 'target/prod',
                     modules: [
@@ -158,7 +158,6 @@ module.exports = function (grunt) {
                     paths: {
                         'coders': '../../dist/dev/coders',
                         'templating': '../../dist/dev/templating',
-                        'htmlparser2': '../../dist/dev/htmlparser2',
                         'less': '../../node_modules/less/dist/less'
                     },
                     exclude: [
