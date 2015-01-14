@@ -44,8 +44,8 @@
             /*    var currentUrl = '@current-url: "' + config['resources'] + '/' + name.substr(0, name.lastIndexOf('/')) +
              '";';
              var resourcesUrl = '@resources-url: "' + config['resources'] + '";';*/
-            less.render(applyId(content, templateId), function (e, output) {
-                data.style += output.css;
+            less.render(content, function (e, output) {
+                data.style += applyId(output.css, templateId);
             });
 
         }
