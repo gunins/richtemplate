@@ -41,12 +41,14 @@
 
     function setElement(placeholder, keep, parent, data) {
         var el = this.tmpEl((keep) ? placeholder : false, data),
-            name = this.name,
             attributes = this.data.attribs,
             plFragment = applyFragment(this.template, this.data.tag);
-        Object.keys(attributes).forEach(function (key) {
-            el.setAttribute(key, attributes[key]);
-        });
+
+        if (!keep) {
+            Object.keys(attributes).forEach(function (key) {
+                el.setAttribute(key, attributes[key]);
+            });
+        }
 
         if (plFragment !== undefined) {
             while (plFragment.childNodes.length > 0) {
@@ -54,14 +56,10 @@
             }
         }
 
-/*        if (name !== undefined) {
-            el.classList.add(name);
-        }*/
-
         if (!parent) {
             var parentNode = placeholder.parentNode;
             this.setParent(parentNode);
-            if (this.parent !== null) {
+            if (this.parent !== null || this.parent !== undefined) {
                 this.parent.replaceChild(el, placeholder);
             }
         } else {
@@ -80,8 +78,9 @@
     }
 
     function setParams(node, children, obj) {
-        var tagName = node.tagName;
-        utils.merge(this, {
+        var tagName = node.tagName,
+            self = this;
+        utils.merge(self, {
             id: node.id,
             template: node.template,
             noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach,
@@ -90,15 +89,15 @@
             },
             setParent: function (parent) {
                 this.parent = parent;
-            }.bind(this),
+            }.bind(self),
             getParent: function () {
                 return this.parent;
-            }.bind(this),
+            }.bind(self),
             run: function (fragment, keep, parent, data) {
                 if (this.noAttach === undefined) {
                     var placeholder = fragment.querySelector('#' + this.id) || fragment;
                     if (placeholder) {
-                        return setElement.call(this, placeholder, keep, parent, data || obj);
+                        return setElement.call(self, placeholder, keep, parent, data || obj);
                     }
                 }
             }

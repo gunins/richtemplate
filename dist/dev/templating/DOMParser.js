@@ -1,12 +1,12 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['htmlparser2', 'templating/utils'], factory);
+        define(['templating/htmlparser2', 'templating/utils'], factory);
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory(require('../htmlparser2'), require('./utils'));
+        module.exports = factory(require('./htmlparser2'), require('./utils'));
     } else {
         // Browser globals (root is window)
         root.Templating = root.Templating || {};

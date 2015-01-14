@@ -14,9 +14,9 @@ require.config({
         'coders/style/styleDecoder'
     ],
     paths: {
-        'less': '../../node_modules/less/dist/less',
+        'templating/less': '../../node_modules/less/dist/less',
         'coders': '../../src/coders',
         'templating': '../../src/templating',
-        'htmlparser2': '../../lib/htmlparser2'
+        'templating/htmlparser2': '../../lib/htmlparser2'
     }
 });
