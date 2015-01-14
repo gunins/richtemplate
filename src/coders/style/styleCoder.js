@@ -20,9 +20,9 @@
                         bracket = true;
                     }
 
-                    names[index] = name.trim()+'.'+id+((bracket)?' {':'');
+                    names[index] = '\n'+name.trim()+'.'+id+((bracket)?' {':'');
                 });
-                content = content.replace(item, names.join(','));
+                content = content.replace(item, names.join(',')).trim()+'\n';
             }
         }
 
