@@ -1,6 +1,6 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['templating/Coder', 'less'], factory);
+        define(['templating/Coder', 'templating/less'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../../templating/Coder'), require('less'));
     } else {
@@ -11,12 +11,24 @@
 }(this, function (Coder, less) {
     function applyId(content, id) {
         var replacer = function (item) {
-            var replacer = item.substring(item.length - 1, item.length);
-            var out = item.replace(replacer, '').trim();
-            content = content.replace(item, out + '.' + id + replacer);
+            if (item.trim().length > 0) {
+                var names = item.split(',');
+                names.forEach(function (name, index) {
+                    var bracket = false;
+                    if(name.indexOf('{')!==-1){
+                        name = name.replace('{','');
+                        bracket = true;
+                    }
+
+                    names[index] = name.trim()+'.'+id+((bracket)?' {':'');
+                });
+                content = content.replace(item, names.join(','));
+            }
         }
-        var items = content.match(/\w((?!\)).)*(\{|,)/g) || [];
-        items.forEach(replacer.bind(this));
+
+        var classNames = content.match(/[^}]*(?=)*(\{|$)/g);
+
+        classNames.forEach(replacer.bind(this));
         return content;
     }
 

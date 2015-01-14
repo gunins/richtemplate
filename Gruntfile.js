@@ -72,12 +72,12 @@ module.exports = function (grunt) {
                     dir: 'target/dev',
                     paths: {
                         'templating/htmlparser2': '../lib/htmlparser2',
-                        'less': '../node_modules/less/dist/less'
+                        'templating/less': '../node_modules/less/dist/less'
                     },
                     name: 'coders/style/styleCoder',
                     exclude: [
                         'templating/Coder',
-                        'less'
+                        'templating/less'
                     ]
                 }
             },
@@ -158,7 +158,7 @@ module.exports = function (grunt) {
                     paths: {
                         'coders': '../../dist/dev/coders',
                         'templating': '../../dist/dev/templating',
-                        'less': '../../node_modules/less/dist/less'
+                        'templating/less': '../../node_modules/less/dist/less'
                     },
                     exclude: [
                         'coders/component/CpCoder',
@@ -189,7 +189,7 @@ module.exports = function (grunt) {
                     {expand: true, cwd: 'target/dev', src: ['coders/**'], dest: 'dist/dev'},
                     {expand: true, cwd: 'target/dev', src: ['templating/**'], dest: 'dist/dev'},
                     {expand: true, cwd: 'target/dev', src: ['htmlparser2.js'], dest: 'dist/dev'},
-                    {expand: true, cwd: 'node_modules/less/dist/', src: ['less.js'], dest: 'dist/dev'},
+                    {expand: true, cwd: 'node_modules/less/dist/', src: ['less.js'], dest: 'dist/dev/templating'},
                     {expand: true, cwd: './', src: ['package.json', 'bower.json', 'README.md'], dest: 'dist'}
 
                 ]
