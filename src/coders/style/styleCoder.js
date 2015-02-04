@@ -20,9 +20,9 @@
                         bracket = true;
                     }
 
-                    names[index] = name.trim()+'.'+id+((bracket)?' {':'');
+                    names[index] = '\n'+name.trim()+'.'+id+((bracket)?' {':'');
                 });
-                content = content.replace(item, names.join(','));
+                content = content.replace(item, names.join(',')).trim()+'\n';
             }
         }
 
@@ -44,8 +44,8 @@
             /*    var currentUrl = '@current-url: "' + config['resources'] + '/' + name.substr(0, name.lastIndexOf('/')) +
              '";';
              var resourcesUrl = '@resources-url: "' + config['resources'] + '";';*/
-            less.render(applyId(content, templateId), function (e, output) {
-                data.style += output.css;
+            less.render(content, function (e, output) {
+                data.style += applyId(output.css, templateId);
             });
 
         }

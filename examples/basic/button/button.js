@@ -3,8 +3,10 @@ define([
     'templating/Decoder'
 ], function (template, Decoder) {
     function append(parent, child){
+        console.log(child);
         child.data.attribs={};
-        child.run(parent.el, true);
+        child.run(parent._node.el, true);
+
 
     }
     return function(data, children){
