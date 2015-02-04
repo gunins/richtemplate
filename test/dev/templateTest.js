@@ -55,7 +55,7 @@ define([
                     testthing = children.testthing;
                 expect(footer.data.dataset).to.deep.equal({item: 'test item', size: '34'});
                 expect(footer.data.type).to.equal('pl');
-                expect(footer.el).to.be.instanceof(HTMLElement);
+                expect(footer._node.el).to.be.instanceof(HTMLElement);
             });
         });
 
@@ -64,7 +64,7 @@ define([
                 var templateId = decoder._root.templateId,
                     els = Array.prototype.slice.call(el.querySelectorAll('.' + templateId));
                 expect(els.length).to.equal(2);
-                expect(els.indexOf(context.children.footer.el)).to.equal(1);
+                expect(els.indexOf(context.children.footer._node.el)).to.equal(1);
             });
         });
     });

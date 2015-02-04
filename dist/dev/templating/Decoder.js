@@ -40,9 +40,10 @@
     }
 
     function setElement(placeholder, keep, parent, data) {
-        var el = this.tmpEl((keep) ? placeholder : false, data),
-            attributes = this.data.attribs,
-            plFragment = applyFragment(this.template, this.data.tag);
+        var params = this._node,
+            el = params.tmpEl((keep) ? placeholder : false, data),
+            attributes = params.data.attribs,
+            plFragment = applyFragment(params.template, params.data.tag);
 
         if (!keep) {
             Object.keys(attributes).forEach(function (key) {
@@ -58,20 +59,20 @@
 
         if (!parent) {
             var parentNode = placeholder.parentNode;
-            this.setParent(parentNode);
-            if (this.parent !== null || this.parent !== undefined) {
-                this.parent.replaceChild(el, placeholder);
+            params.setParent(parentNode);
+            if (params.parent !== null || params.parent !== undefined) {
+                params.parent.replaceChild(el, placeholder);
             }
         } else {
-            this.setParent(parent);
-            if (this.parent !== null) {
-                this.parent.appendChild(el);
+            params.setParent(parent);
+            if (params.parent !== null) {
+                params.parent.appendChild(el);
             }
         }
 
-        this.el = el;
-        if (this.parse !== undefined) {
-            this.parse(el);
+        this._node.el = el;
+        if (params.parse !== undefined) {
+            params.parse(el);
         }
         return el;
 
@@ -80,31 +81,43 @@
     function setParams(node, children, obj) {
         var tagName = node.tagName,
             self = this;
-        utils.merge(self, {
+        var params = {
             id: node.id,
             template: node.template,
             noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach,
             applyAttach: function () {
-                delete this.noAttach;
+                delete this._node.noAttach;
             },
             setParent: function (parent) {
-                this.parent = parent;
+                this._node.parent = parent;
             }.bind(self),
             getParent: function () {
-                return this.parent;
+                return this._node.parent;
             }.bind(self),
             run: function (fragment, keep, parent, data) {
-                if (this.noAttach === undefined) {
-                    var placeholder = fragment.querySelector('#' + this.id) || fragment;
+                if (this._node.noAttach === undefined) {
+                    var placeholder = fragment.querySelector('#' + this._node.id) || fragment;
                     if (placeholder) {
                         return setElement.call(self, placeholder, keep, parent, data || obj);
                     }
                 }
             }
-        });
+        };
         if (children) {
-            this.children = children;
+            params.children = children;
         }
+        self._node = self._node || {};
+        utils.merge(self._node, params);
+        self.data = self._node.data;
+
+        self.run = function () {
+            return this._node.run.apply(this, arguments)
+        }.bind(this);
+
+        self.applyAttach = function () {
+            return this._node.applyAttach.apply(this, arguments)
+        }.bind(this);
+
     }
 
     function parseElements(root, obj) {
@@ -124,10 +137,9 @@
                 var data = _decoders[tagName].decode(node, children, runEls);
                 if (data) {
                     var name = data.name;
-
                     if (name !== undefined) {
                         context = context || {};
-                        context[name] = data;
+                        context[name] = {_node: data};
                         setParams.call(context[name], node, children, obj[name] || obj);
                     }
                 }
@@ -139,7 +151,7 @@
     };
     function runEls(children, fragment) {
         Object.keys(children).forEach(function (key) {
-            children[key].run(fragment);
+            children[key]._node.run.call(children[key], fragment);
         });
     }
 
