@@ -26,7 +26,7 @@
             var response = {
                 name: data.name,
                 tmpEl: function (tag, obj) {
-                    response.data.instance = new data.src(data.dataset, children, obj);
+                    response.data.instance = new data.src(data.dataset, children, obj, node);
                     return data.instance['el'];
                 },
                 data: data || {}

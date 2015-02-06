@@ -134,15 +134,20 @@
             }
             var tagName = node.tagName;
             if (tagName) {
-                var data = _decoders[tagName].decode(node, children, runEls);
-                if (data) {
-                    var name = data.name;
-                    if (name !== undefined) {
-                        context = context || {};
-                        context[name] = {_node: data};
-                        setParams.call(context[name], node, children, obj[name] || obj);
-                    }
+                var name = node.data.name;
+                if (name !== undefined) {
+                    context = context || {};
+                    context[name] = {}
+                    node.getInstance = function () {
+                        return context[name];
+                    };
                 }
+                var data = _decoders[tagName].decode(node, children);
+                if (data) {
+                    context[name]._node = data;
+                    setParams.call(context[name], node, children, obj[name] || obj);
+                }
+
             }
             children = false;
         }.bind(this));
