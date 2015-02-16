@@ -19,9 +19,7 @@ define([
             it('first children should be a Style', function () {
                 var children = template.children[0],
                     templateId = template.templateId;
-                expect(children.data.style).to.equal('div.' + templateId +
-                                                     ' {\n  margin: 5px;\n  padding: 15px;\n  border: solid #008000 2px;\n}\n.header.' +
-                                                     templateId + ' {\n  color: #008000;\n}\n');
+                expect(children.data.style).to.equal('div.'+templateId+' {\n  margin: 5px;\n  padding: 15px;\n  border: solid #008000 2px;\n}\n.header.'+templateId+' {\n  color: #008000;\n}\n.header.'+templateId+':hover {\n  color: darkred;\n}\n');
             });
             it('Second children should be a Component', function () {
                 var children = template.children[1];

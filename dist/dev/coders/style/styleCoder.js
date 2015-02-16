@@ -15,14 +15,21 @@
                 var names = item.split(',');
                 names.forEach(function (name, index) {
                     var bracket = false;
-                    if(name.indexOf('{')!==-1){
-                        name = name.replace('{','');
+                    if (name.indexOf('{') !== -1) {
+                        name = name.replace('{', '');
                         bracket = true;
                     }
+                    var replace;
+                    if (name.indexOf(':') !== -1) {
+                        var parts = name.trim().split(':');
+                        replace = parts[0] + '.' + id + ':' + parts[1];
 
-                    names[index] = '\n'+name.trim()+'.'+id+((bracket)?' {':'');
+                    } else {
+                        replace = name.trim() + '.' + id;
+                    }
+                    names[index] = '\n' + replace + ((bracket) ? ' {' : '');
                 });
-                content = content.replace(item, names.join(',')).trim()+'\n';
+                content = content.replace(item, names.join(',')).trim() + '\n';
             }
         }
 
