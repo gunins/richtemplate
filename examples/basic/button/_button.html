@@ -4,14 +4,15 @@
             margin: 15px;
             padding: 10px;
             border: solid #666666 3px;
-            animation: animation 1s forwards
         }
 
         .header {
+            position: relative;
             color: red;
             padding: 5px 10px;
             border: solid 1px #cccccc;
-            animation:  1s forwards animation
+            animation: animation  1s;
+            -webkit-animation: animation  1s;
 
         }
 
@@ -21,7 +22,7 @@
                 opacity: 0;
             }
             100% {
-                left: 10%;
+                left: 0%;
                 opacity: 1;
             }
         }
@@ -31,7 +32,7 @@
                 opacity: 0;
             }
             100% {
-                left: 10%;
+                left: 0%;
                 opacity: 1;
             }
         }
@@ -41,20 +42,15 @@
             .header {
                 border-radius: 15px;
             }
-
-            @-moz-keyframes animation {
-                0% {
-                    left: 110%;
-                    opacity: 0;
-                }
-                100% {
-                    left: 10%;
-                    opacity: 1;
-                }
+            .test{
+                display: inline-block;
             }
         }
+
         .test{
             display: block;
+            background: #efefef;
+            padding: 5px 10px;
         }
 
     </style-less>
@@ -63,7 +59,7 @@
         <cp src="../buttonA/buttonA" tp-name="testButton"></cp>
     </div>
     <p>There is some test text</p>
-
+<span class="test">This is a span element.</span>
     <pl-footer class="footer" ></pl-footer>
     <style-less>
         .footer {

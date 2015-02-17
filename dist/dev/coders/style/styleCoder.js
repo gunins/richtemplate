@@ -51,11 +51,11 @@
     }
 
     function getFrames(content) {
-        return content.match(/(@(-webkit-|-moz-)?keyframes[^{]+\{[\s\S]+?}\s*})/g);
+        return content.match(/(@(-(.+)-)?keyframes[^{]+\{[\s\S]+?}\s*})/g);
     }
 
     function getframeName(content) {
-        return (/@(?:-webkit-|-moz-)?keyframes[^{](\w+)/g).exec(content)[1];
+        return (/@(?:-(?:.+)-)?keyframes[^{](\w+)/g).exec(content)[1];
     }
 
     function removeItems(content, items) {
