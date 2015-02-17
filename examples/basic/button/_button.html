@@ -4,21 +4,70 @@
             margin: 15px;
             padding: 10px;
             border: solid #666666 3px;
+            animation: animation 1s forwards
         }
 
         .header {
             color: red;
+            padding: 5px 10px;
+            border: solid 1px #cccccc;
+            animation:  1s forwards animation
+
         }
+
+        @keyframes animation {
+            0% {
+                left: 110%;
+                opacity: 0;
+            }
+            100% {
+                left: 10%;
+                opacity: 1;
+            }
+        }
+        @-webkit-keyframes animation {
+            0% {
+                left: 110%;
+                opacity: 0;
+            }
+            100% {
+                left: 10%;
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 767px) {
+            /*{asd}*/
+            .header {
+                border-radius: 15px;
+            }
+
+            @-moz-keyframes animation {
+                0% {
+                    left: 110%;
+                    opacity: 0;
+                }
+                100% {
+                    left: 10%;
+                    opacity: 1;
+                }
+            }
+        }
+        .test{
+            display: block;
+        }
+
     </style-less>
     <pl-header class="header" tp-tag="h2"></pl-header>
     <div>There Going Another Button Component
         <cp src="../buttonA/buttonA" tp-name="testButton"></cp>
     </div>
     <p>There is some test text</p>
+
+    <pl-footer class="footer" ></pl-footer>
     <style-less>
         .footer {
-            background: #cccccc;
+        background: #cccccc;
         }
     </style-less>
-    <pl-footer class="footer" ></pl-footer>
 </div>
