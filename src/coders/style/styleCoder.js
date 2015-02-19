@@ -137,7 +137,8 @@
         code: function (nodeContext, data) {
             var content = nodeContext.compiler._parser.getInnerHTML(nodeContext.element),
                 templateId = nodeContext.compiler.templateId,
-                currentUrl, importUrl;
+                currentUrl,
+                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
             data.style = data.style || '';
             nodeContext.removeChildren();
 
@@ -152,12 +153,9 @@
                 });
 
                 currentUrl = '@current-url: "' + root.join('/') + '";';
-                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
 
             } else {
                 currentUrl = '@current-url: "' + nodeContext.compiler.url + '";';
-                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
-
             }
 
             less.render(importUrl + currentUrl + content, {

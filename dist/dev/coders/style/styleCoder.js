@@ -76,10 +76,13 @@
 
     function applyFrameNames(frameNames, content, id) {
         frameNames.forEach(function (name) {
-            var match = content.match(new RegExp('(:(?:.+)?' + name + '(?:.+)?;)', 'g'));
+            var regExp = new RegExp('(animation:(?:.+)?' + name + '(?:.+)?;)', 'g');
+            var match = content.match(regExp);
             if (match && match.length > 0) {
                 match.forEach(function (inner) {
-                    content = content.replace(inner, inner.replace(name, name + '_' + id));
+                    var text = inner.replace('animation:', ':');
+                    text = 'animation' + text.replace(name, name + '_' + id);
+                    content = content.replace(inner, text);
                 })
             }
         });
@@ -134,7 +137,8 @@
         code: function (nodeContext, data) {
             var content = nodeContext.compiler._parser.getInnerHTML(nodeContext.element),
                 templateId = nodeContext.compiler.templateId,
-                currentUrl, importUrl;
+                currentUrl,
+                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
             data.style = data.style || '';
             nodeContext.removeChildren();
 
@@ -149,12 +153,9 @@
                 });
 
                 currentUrl = '@current-url: "' + root.join('/') + '";';
-                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
 
             } else {
                 currentUrl = '@current-url: "' + nodeContext.compiler.url + '";';
-                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
-
             }
 
             less.render(importUrl + currentUrl + content, {
