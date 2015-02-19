@@ -213,10 +213,10 @@
             return data;
         },
 
-        run: function () {
+        run: function (url) {
+            this.url = url;
             this.templateId = 'tid_' + new Date().valueOf() + templId;
             templId++;
-
             return this._compile(this._parser.findOneChild());
         },
 

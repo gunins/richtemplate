@@ -58,8 +58,7 @@ define(['module'], function (module) {
             function handler(DOMParser, Coder) {
                 var domParser = new DOMParser(content);
                 var coder = new Coder(domParser);
-
-                var jsObject = coder.run();
+                var jsObject = coder.run(req.toUrl('./'));
                 var map = {};
                 var src;
 
@@ -94,7 +93,6 @@ define(['module'], function (module) {
                             });
                         }
                     }
-
                     onLoad(jsObject);
                 });
             }

@@ -1,57 +1,6 @@
 <div class="buttonClass">
     <style-less>
-        div, p {
-            margin: 15px;
-            padding: 10px;
-            border: solid #666666 3px;
-        }
-
-        .header {
-            position: relative;
-            color: red;
-            padding: 5px 10px;
-            border: solid 1px #cccccc;
-            animation: animation  1s;
-            -webkit-animation: animation  1s;
-
-        }
-
-        @keyframes animation {
-            0% {
-                left: 110%;
-                opacity: 0;
-            }
-            100% {
-                left: 0%;
-                opacity: 1;
-            }
-        }
-        @-webkit-keyframes animation {
-            0% {
-                left: 110%;
-                opacity: 0;
-            }
-            100% {
-                left: 0%;
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 767px) {
-            /*{asd}*/
-            .header {
-                border-radius: 15px;
-            }
-            .test{
-                display: inline-block;
-            }
-        }
-
-        .test{
-            display: block;
-            background: #efefef;
-            padding: 5px 10px;
-        }
+        @import "@{import-url}/_button.less";
 
     </style-less>
     <pl-header class="header" tp-tag="h2"></pl-header>

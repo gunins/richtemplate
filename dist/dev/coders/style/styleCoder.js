@@ -133,16 +133,44 @@
         noTag: true,
         code: function (nodeContext, data) {
             var content = nodeContext.compiler._parser.getInnerHTML(nodeContext.element),
-                templateId = nodeContext.compiler.templateId;
+                templateId = nodeContext.compiler.templateId,
+                currentUrl, importUrl;
             data.style = data.style || '';
             nodeContext.removeChildren();
 
-            /*    var currentUrl = '@current-url: "' + config['resources'] + '/' + name.substr(0, name.lastIndexOf('/')) +
-             '";';
-             var resourcesUrl = '@resources-url: "' + config['resources'] + '";';*/
-            less.render(content, function(e, output){
-                data.style += parseCSS(output.css, templateId);
-            })
+            if (typeof exports === 'object') {
+                var dirName = __dirname.split('/');
+                var curUrl = nodeContext.compiler.url.split('/');
+                var root = [];
+                curUrl.forEach(function (url, index) {
+                    if (url !== dirName[index]) {
+                        root.push(url);
+                    }
+                });
+
+                currentUrl = '@current-url: "' + root.join('/') + '";';
+                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
+
+            } else {
+                currentUrl = '@current-url: "' + nodeContext.compiler.url + '";';
+                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
+
+            }
+
+            less.render(importUrl + currentUrl + content, {
+                syncImport: true,
+                relativeUrls: true
+            }, function (e, output) {
+                //console.log('css', output.css);
+
+                var style = parseCSS(output.css, templateId);
+                if (typeof exports === 'object') {
+                    var CleanCSS = require('clean-css');
+                    data.style += new CleanCSS().minify(style).styles;
+                } else {
+                    data.style += style;
+                }
+            });
 
         }
     };
