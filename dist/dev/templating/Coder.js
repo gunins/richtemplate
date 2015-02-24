@@ -15,7 +15,9 @@
         root.Templating.Coder = factory(root.Templating.utils);
     }
 }(this, function (utils) {
-    var templId = 0;
+    var templId = 0,
+        _coders = [],
+        c = 0;
 
     function applyCoder(element) {
         var parsed = false;
@@ -51,6 +53,7 @@
                 };
             }
         }.bind(this));
+
         return parsed;
     }
 
@@ -62,9 +65,6 @@
     function Coder(dOMParser) {
         this._parser = dOMParser;
     }
-
-    var _coders = [];
-    var c = 0;
 
     utils.merge(Coder, {
         addCoder: function (coder) {
@@ -88,6 +88,7 @@
 
                     children = parseChildren.call(this, child);
                     parsed = applyCoder.call(this, child);
+
                     if (parsed || children) {
                         context = context || [];
                     }
@@ -99,6 +100,20 @@
                     }
                     else if (children && children.length > 0) {
                         context = context.concat(children)
+                    }
+                    if (!parsed) {
+                        var name = this._parser.getAttributeValue(child, 'tp-name');
+                        if (name !== undefined) {
+                            this._parser.setAttributeValue(child, 'tp-name', undefined);
+                            var id = 'e' + c++;
+                            this._parser.setAttributeValue(child, 'id', id);
+                            context.push({
+                                id: id,
+                                data: {
+                                    name: name
+                                }
+                            });
+                        }
                     }
 
                 }
@@ -124,7 +139,7 @@
             return {
                 children: parseChildren.call(this, el),
                 template: this._parser.getOuterHTML(el),
-                templateId:this.templateId
+                templateId: this.templateId
             };
         },
         _setData: function (nodeContext, coder) {

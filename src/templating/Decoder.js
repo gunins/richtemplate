@@ -127,14 +127,16 @@
         var context = false,
             children = false;
         root.children.forEach(function (node) {
+            var name = node.data.name;
             if (node.children &&
                 node.children.length > 0) {
-                var contextData = (obj[node.data.name]) ? obj[node.data.name] : obj;
+                var contextData = (obj[name]) ? obj[name] : obj;
                 children = parseElements.call(this, node, contextData);
             }
             var tagName = node.tagName;
+
             if (tagName) {
-                var name = node.data.name;
+                var name = name;
                 if (name !== undefined) {
                     context = context || {};
                     context[name] = {}
@@ -148,15 +150,24 @@
                     setParams.call(context[name], node, children, obj[name] || obj);
                 }
 
+            } else if (name) {
+                context = context || {};
+                context[name] = {}
+                context[name]._node = node;
             }
             children = false;
         }.bind(this));
-
         return context;
     };
     function runEls(children, fragment) {
         Object.keys(children).forEach(function (key) {
-            children[key]._node.run.call(children[key], fragment);
+            if (children[key]._node.run !== undefined) {
+                children[key]._node.run.call(children[key], fragment);
+            }
+            if (children[key]._node.el === undefined) {
+                children[key]._node.el = fragment.querySelector('#' + children[key]._node.id);
+                children[key]._node.el.removeAttribute('id');
+            }
         });
     }
 

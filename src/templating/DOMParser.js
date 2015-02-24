@@ -43,7 +43,7 @@
         setAttributeValue: function (el, name, value) {
             el.attribs = el.attribs || {};
             if (value === undefined) {
-                el.attribs[name];
+               delete el.attribs[name];
             } else {
                 el.attribs[name] = value;
             }
