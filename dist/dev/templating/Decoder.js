@@ -164,7 +164,7 @@
             if (children[key]._node.run !== undefined) {
                 children[key]._node.run.call(children[key], fragment);
             }
-            if (children[key]._node.el === undefined) {
+            if (children[key]._node.el === undefined && children[key]._node.template === undefined) {
                 children[key]._node.el = fragment.querySelector('#' + children[key]._node.id);
                 children[key]._node.el.removeAttribute('id');
             }
