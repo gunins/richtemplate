@@ -104,6 +104,7 @@
                     if (!parsed) {
                         var name = this._parser.getAttributeValue(child, 'tp-name');
                         if (name !== undefined) {
+                            context = context || [];
                             this._parser.setAttributeValue(child, 'tp-name', undefined);
                             var id = 'e' + c++;
                             this._parser.setAttributeValue(child, 'id', id);
