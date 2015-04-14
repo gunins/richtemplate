@@ -72,7 +72,7 @@
 
         this._node.el = el;
         if (params.parse !== undefined) {
-            params.parse(el);
+            params.parse(el, data);
         }
         return el;
 
@@ -95,10 +95,13 @@
                 return this._node.parent;
             }.bind(self),
             run: function (fragment, keep, parent, data) {
+                if (data) {
+                    obj = data;
+                }
                 if (this._node.noAttach === undefined) {
                     var placeholder = fragment.querySelector('#' + this._node.id) || fragment;
                     if (placeholder) {
-                        return setElement.call(self, placeholder, keep, parent, data || obj);
+                        return setElement.call(self, placeholder, keep, parent, obj);
                     }
                 }
             }
@@ -127,10 +130,11 @@
         var context = false,
             children = false;
         root.children.forEach(function (node) {
-            var name = node.data.name;
+            var name = node.data.name,
+                contextData = (obj[name]) ? obj[name] : obj;
+
             if (node.children &&
                 node.children.length > 0) {
-                var contextData = (obj[name]) ? obj[name] : obj;
                 children = parseElements.call(this, node, contextData);
             }
             var tagName = node.tagName;
@@ -147,7 +151,7 @@
                 var data = _decoders[tagName].decode(node, children);
                 if (data) {
                     context[name]._node = data;
-                    setParams.call(context[name], node, children, obj[name] || obj);
+                    setParams.call(context[name], node, children, contextData);
                 }
 
             } else if (name) {
@@ -162,11 +166,11 @@
         }.bind(this));
         return context;
     };
-    function runEls(children, fragment) {
+    function runEls(children, fragment, data) {
         if (children) {
             Object.keys(children).forEach(function (key) {
                 if (children[key]._node.run !== undefined) {
-                    children[key]._node.run.call(children[key], fragment);
+                    children[key]._node.run.call(children[key], fragment, false, false, data);
                 }
                 if (children[key]._node.el === undefined && children[key]._node.template === undefined) {
                     children[key]._node.el = fragment.querySelector('#' + children[key]._node.id);
@@ -196,14 +200,15 @@
     utils.merge(Decoder.prototype, {
         addDecoder: Decoder.addDecoder,
         _renderFragment: function (root, data) {
+            data = data || {}
             var children = {},
                 fragment = applyFragment(root.template);
 
             if (root.children && root.children.length > 0) {
-                children = parseElements.call(this, root, data || {});
+                children = parseElements.call(this, root, data);
 
             }
-            runEls(children, fragment);
+            runEls(children, fragment, data);
 
             return {
                 fragment: fragment,

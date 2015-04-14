@@ -170,7 +170,7 @@
         if (children) {
             Object.keys(children).forEach(function (key) {
                 if (children[key]._node.run !== undefined) {
-                    children[key]._node.run.call(children[key], fragment, false, data);
+                    children[key]._node.run.call(children[key], fragment, false, false, data);
                 }
                 if (children[key]._node.el === undefined && children[key]._node.template === undefined) {
                     children[key]._node.el = fragment.querySelector('#' + children[key]._node.id);
