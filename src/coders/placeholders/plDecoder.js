@@ -27,10 +27,10 @@
                 tmpEl: function (el) {
                     return el || document.createElement(data.tag);
                 },
-                parse: function (fragment) {
+                parse: function (fragment, obj) {
                     if (children) {
                         Object.keys(children).forEach(function (key) {
-                            children[key].run(fragment);
+                            children[key].run(fragment, false, false, obj);
                         });
                     }
                 },
