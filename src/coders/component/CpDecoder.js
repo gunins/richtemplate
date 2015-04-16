@@ -25,8 +25,8 @@
             data.attribs = {};
             var response = {
                 name: data.name,
-                tmpEl: function (tag, obj) {
-                    response.data.instance = new data.src(data.dataset, children, obj, node);
+                tmpEl: function (tag, obj, scope) {
+                    response.data.instance = new data.src(data.dataset, children, obj, scope);
                     return data.instance['el'];
                 },
                 data: data || {}
