@@ -23,7 +23,8 @@
                     var replace;
                     if (name.indexOf(':') !== -1) {
                         var parts = name.trim().split(':');
-                        replace = parts[0] + '.' + id + ':' + parts[1];
+
+                        replace = parts.shift() + '.' + id + ':' + parts.join(':');
 
                     } else {
                         replace = name.trim() + '.' + id;
