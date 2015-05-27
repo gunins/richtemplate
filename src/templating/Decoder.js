@@ -12,7 +12,7 @@
         module.exports = factory(require('./utils'));
     } else {
         // Browser globals (root is window)
-        root.Templating = root.Templating || {};
+        root.Templating         = root.Templating || {};
         root.Templating.Decoder = factory(root.Templating.utils);
     }
 }(this, function (utils) {
@@ -32,16 +32,16 @@
         } else {
             elTag = 'div'
         }
-        var el = document.createElement(elTag),
+        var el       = document.createElement(elTag),
             fragment = document.createDocumentFragment();
         el.innerHTML = template;
         fragment.appendChild(el.firstChild);
         return fragment.firstChild;
     }
 
-    function setElement(placeholder, keep, parent, data) {
-        var params = this._node,
-            el = params.tmpEl((keep) ? placeholder : false, data, this),
+    function setElement(placeholder, keep, parent, data, index) {
+        var params     = this._node,
+            el         = params.tmpEl((keep) ? placeholder : false, data, this),
             attributes = params.data.attribs,
             plFragment = applyFragment(params.template, params.data.tag);
 
@@ -63,10 +63,16 @@
             if (params.parent !== null || params.parent !== undefined) {
                 params.parent.replaceChild(el, placeholder);
             }
-        } else {
+        } else if (parent) {
             params.setParent(parent);
             if (params.parent !== null) {
                 params.parent.appendChild(el);
+            }
+        } else if (parent && index !== undefined) {
+            params.setParent(parent);
+            if (params.parent !== null) {
+                params.parent.appendChild(el);
+                params.parent.insertBefore(el, params.parent.childNodes[index]);
             }
         }
 
@@ -80,31 +86,31 @@
 
     function setParams(node, children, obj) {
         var tagName = node.tagName,
-            self = this;
-        var params = {
-            id: node.id,
-            template: node.template,
-            noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach,
+            self    = this;
+        var params  = {
+            id:          node.id,
+            template:    node.template,
+            noAttach:    _decoders[tagName].noAttach || node.data.tplSet.noattach,
             applyAttach: function () {
                 delete this._node.noAttach;
             },
-            setParent: function (parent) {
+            setParent:   function (parent) {
                 this._node.parent = parent;
             }.bind(self),
-            getParent: function () {
+            getParent:   function () {
                 return this._node.parent;
             }.bind(self),
             getInstance: function () {
                 return this;
             }.bind(self),
-            run: function (fragment, keep, parent, data) {
+            run:         function (fragment, keep, parent, data, index) {
                 if (data) {
                     obj = data;
                 }
                 if (this._node.noAttach === undefined) {
                     var placeholder = fragment.querySelector('#' + this._node.id) || fragment;
                     if (placeholder) {
-                        return setElement.call(self, placeholder, keep, parent, obj);
+                        return setElement.call(self, placeholder, keep, parent, obj, index);
                     }
                 }
             }
@@ -114,7 +120,7 @@
         }
         self._node = self._node || {};
         utils.merge(self._node, params);
-        self.data = self._node.data;
+        self.data  = self._node.data;
 
         self.getInstance = function () {
             return this._node.getInstance.apply(this, arguments)
@@ -134,12 +140,12 @@
         if (!obj) {
             obj = {};
         }
-        var context = false,
+        var context  = false,
             children = false;
         root.children.forEach(function (node) {
-            var name = node.data.name,
+            var name        = node.data.name,
                 contextData = (obj[name]) ? obj[name] : obj,
-                scope = {};
+                scope       = {};
 
             if (node.children &&
                 node.children.length > 0) {
@@ -155,14 +161,14 @@
 
                 }
                 if (name !== undefined) {
-                    context = context || {};
+                    context       = context || {};
                     context[name] = scope;
                 }
 
             } else if (name) {
-                context = context || {};
-                scope._node = {
-                    id: node.id,
+                context       = context || {};
+                scope._node   = {
+                    id:   node.id,
                     data: node.data
                 }
                 context[name] = scope;
@@ -203,9 +209,9 @@
     });
 
     utils.merge(Decoder.prototype, {
-        addDecoder: Decoder.addDecoder,
+        addDecoder:      Decoder.addDecoder,
         _renderFragment: function (root, data) {
-            data = data || {}
+            data         = data || {}
             var children = {},
                 fragment = applyFragment(root.template);
 
@@ -216,8 +222,8 @@
             runEls(children, fragment, data);
 
             return {
-                fragment: fragment,
-                children: children,
+                fragment:   fragment,
+                children:   children,
                 templateId: root.templateId
             };
         },
