@@ -39,7 +39,7 @@
         return fragment.firstChild;
     }
 
-    function setElement(placeholder, keep, parent, data, index) {
+    function setElement(placeholder, keep, parent, data, beforeEl) {
         var params     = this._node,
             el         = params.tmpEl((keep) ? placeholder : false, data, this),
             attributes = params.data.attribs,
@@ -63,16 +63,15 @@
             if (params.parent !== null || params.parent !== undefined) {
                 params.parent.replaceChild(el, placeholder);
             }
+        } else if (parent !== undefined && beforeEl !== undefined) {
+            params.setParent(parent);
+            if (params.parent !== null) {
+                params.parent.insertBefore(el, beforeEl);
+            }
         } else if (parent) {
             params.setParent(parent);
             if (params.parent !== null) {
                 params.parent.appendChild(el);
-            }
-        } else if (parent && index !== undefined) {
-            params.setParent(parent);
-            if (params.parent !== null) {
-                params.parent.appendChild(el);
-                params.parent.insertBefore(el, params.parent.childNodes[index]);
             }
         }
 
@@ -103,14 +102,14 @@
             getInstance: function () {
                 return this;
             }.bind(self),
-            run:         function (fragment, keep, parent, data, index) {
+            run:         function (fragment, keep, parent, data, beforeEl) {
                 if (data) {
                     obj = data;
                 }
                 if (this._node.noAttach === undefined) {
                     var placeholder = fragment.querySelector('#' + this._node.id) || fragment;
                     if (placeholder) {
-                        return setElement.call(self, placeholder, keep, parent, obj, index);
+                        return setElement.call(self, placeholder, keep, parent, obj, beforeEl);
                     }
                 }
             }
