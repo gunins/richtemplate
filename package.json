@@ -24,7 +24,7 @@
     "browserify": "^6.3.2",
     "clean-css": "^3.0.10",
     "htmlparser2": "^3.8.2",
-    "less": "2.4.0",
+    "less": "2.5.1",
     "node-static": "^0.7.6",
     "requirejs": "^2.1.15"
   },
