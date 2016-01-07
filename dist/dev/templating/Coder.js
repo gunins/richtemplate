@@ -21,13 +21,12 @@
 
     function applyCoder(element) {
         var parsed = false;
-
+        var tmpType = this._parser.getAttributeValue(element, 'tp-type') || element.name.split('-')[0];
         _coders.forEach(function (coder) {
-            var tmpType = this._parser.getAttributeValue(element, 'tp-type') || element.name.split('-')[0];
             if (tmpType === coder.tagName && !parsed) {
                 var attributeTagValue = this._parser.getAttributeValue(element, 'tp-tag');
                 var tag = (element.name.split('-')[0] !==
-                           coder.tagName) ? element.name : attributeTagValue ? attributeTagValue : 'div',
+                    coder.tagName) ? element.name : attributeTagValue ? attributeTagValue : 'div',
 
                     children = this._parser.getChildren(element),
                     placeholder = this._parser.createElement(tag),
@@ -46,9 +45,9 @@
                     this._parser.removeElement(element);
                 }
                 parsed = {
-                    id: id,
-                    tagName: coder.tagName,
-                    data: this._prepare(element, coder),
+                    id:       id,
+                    tagName:  coder.tagName,
+                    data:     this._prepare(element, coder),
                     template: this._parser.getOuterHTML(holder)
                 };
             }
@@ -87,7 +86,11 @@
                 if (!this._parser.isText(child)) {
 
                     children = parseChildren.call(this, child);
-                    parsed = applyCoder.call(this, child);
+                    if (child.type !== 'comment') {
+                        parsed = applyCoder.call(this, child);
+                    } else {
+                        this._parser.removeElement(child);
+                    }
 
                     if (parsed || children) {
                         context = context || [];
@@ -109,7 +112,7 @@
                             var id = 'e' + c++;
                             this._parser.setAttributeValue(child, 'id', id);
                             context.push({
-                                id: id,
+                                id:   id,
                                 data: {
                                     name: name
                                 }
@@ -138,8 +141,8 @@
         addCoder: Coder.addCoder,
         _compile: function (el) {
             return {
-                children: parseChildren.call(this, el),
-                template: this._parser.getOuterHTML(el),
+                children:   parseChildren.call(this, el),
+                template:   this._parser.getOuterHTML(el),
                 templateId: this.templateId
             };
         },
@@ -160,20 +163,20 @@
                 }
             });
             var tag = (nodeContext.element.name.split('-')[0] !==
-                       coder.tagName) ? nodeContext.element.name : (tplSet.tag) ? tplSet.tag : 'div';
+            coder.tagName) ? nodeContext.element.name : (tplSet.tag) ? tplSet.tag : 'div';
 
             return {
-                tplSet: tplSet,
+                tplSet:  tplSet,
                 dataset: dataset,
                 attribs: attributes,
-                tag: tag
+                tag:     tag
             };
         },
         _prepare: function (element, coder) {
             var nodeContext = {
-                compiler: this,
-                element: element,
-                compile: function (node) {
+                compiler:             this,
+                element:              element,
+                compile:              function (node) {
                     if (!node) throw "Node is null";
                     var el;
                     if (this.compiler._parser.isText(node)) {
@@ -184,7 +187,7 @@
                     }
                     return this.compiler._compile(el);
                 },
-                getChildrenByPrefix: function (prefix) {
+                getChildrenByPrefix:  function (prefix) {
                     var children = this.compiler._parser.getChildrenElements(this.element);
                     return children.filter(function (el) {
                         return el.name.indexOf(prefix) == 0;
@@ -196,10 +199,10 @@
                         return el.name == name;
                     });
                 },
-                getChildren: function () {
+                getChildren:          function () {
                     return this.compiler._parser.getChildrenElements(this.element);
                 },
-                findChild: function (el) {
+                findChild:            function (el) {
                     var children = this.compiler._parser.getChildren(el);
                     if (children.length == 1) {
                         return children[0];
@@ -207,7 +210,7 @@
                         return this.compiler._parser.findOneChild(children);
                     }
                 },
-                removeChildren: function () {
+                removeChildren:       function () {
                     var children = this.element.children;
                     if (children.length > 0) {
                         children.forEach(function (child) {
@@ -215,10 +218,10 @@
                         }.bind(this));
                     }
                 },
-                get: function (name) {
+                get:                  function (name) {
                     return this.compiler._parser.getAttributeValue(this.element, name);
                 },
-                set: function (name, value) {
+                set:                  function (name, value) {
                     return this.compiler._parser.setAttributeValue(this.element, name, value);
                 }
 

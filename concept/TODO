@@ -1,0 +1,31 @@
+1. Rewrite whole templating and StoneWall to es6 + compile in es5
+2. when rewrite doing proper cloning.
+3 Each Children should be an array, but not breaking backwards compatability.
+        Advantage here will be proper tree tracking, and when destroy, will not leaving any relations.
+
+4. Create support for d3 Templating coders.
+5. create support for custom options tags, will make more deklarative.
+6. allowing script tags, for element inline javascript, with all state support, elReady, elOnChange.
+7. proper class mechanism.
+8. Review requirejs, if any better alternatives.
+9. If there is advantage use shadowDOM but keep less in templates.
+10 try to allow comment tags in templates, check how difficult to allow camelCase in tags. If its possible allow ':' in tags.
+
+
+11. Check in data binding, might possible mixins, for data parsing. (not sure if good idea)
+
+12 For Dynamic Models, review options if loading large data dynamic web workers, creating and removing on demand.
+There need some algoritm to make desidions, when is worthed to create new worker, when keep in existing.
+13. Adding some library for server client sync, indexedDb -> mongoDb, couchDb some other maybe.
+
+14. Creating slides
+    a. Templating
+    b. Stonewall
+    c. Comparison Angular, Reactjs.
+    d. Create sample with large data, for showing perfomance advantage.
+    f. Angular 2 Is the key.
+    g. Dynamic Models and Routing.
+    h. if dynamic workers concept will works, demo Client side parsing very very large amount of data, by using web workers, using full power.
+        Target there is not use in real applications, but show advantage for this approach.
+
+

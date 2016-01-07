@@ -1,16 +1,16 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define(['templating/Coder'], factory);
+        define(['templating/Coder', 'd3'], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('../../templating/Coder'));
+        module.exports = factory(require('../templating/Coder'),require('d3'));
     } else {
         // Browser globals (root is window)
         root.Templating = root.Templating || {};
         root.Templating.ComponentCoder = factory(root.Templating.Coder);
     }
-}(this, function (Coder) {
+}(this, function (Coder, d3) {
     var ComponentCoder = {
-        tagName: 'cp',
+        tagName: 'd3',
         code: function (nodeContext, data) {
             nodeContext.removeChildren();
             var tagName = nodeContext.element.name,

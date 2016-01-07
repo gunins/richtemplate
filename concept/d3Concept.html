@@ -1,0 +1,28 @@
+<div>
+
+    //Below is declarative templating system for d3.
+    // This will help to understand structure of svg structure, all elements are removed, from DOM, and saved in to tree functions, + binded to d3 data.
+    // using this concept we can easly make readable structure, and adding certain elements regarding to css.
+    // Because css use scoped css structure, each className is unique just for this particular widget.
+    // child d3 widgets are possible, just data-bind attribute is mandatory.
+    // when data is changed, all widgets automatically triggering transitions, enter or remove. No need for common redraw() call.
+    <style-less>
+//
+        g{
+
+        }
+    </style-less>
+    <d3-chart>
+        <x-axis data-bind="x"></x-axis>
+        <y-axis></y-axis>
+        <g-bubble_group>
+            <circle-circle_test></circle-circle_test>
+        </g-bubble_group>
+        <g-line_one data-bind="lineOne">
+            <path-line></path-line>
+        </g-line_one>
+        <div-some_bar></div-some_bar>
+        <label-xaxis></label-xaxis>
+        <label-yaxis></label-yaxis>
+    </d3-chart>
+</div>
