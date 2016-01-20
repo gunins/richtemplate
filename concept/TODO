@@ -5,9 +5,7 @@
 
 4. Create support for d3 Templating coders.
 5. create support for custom options tags, will make more deklarative.
-6. allowing script tags, for element inline javascript, with all state support, elReady, elOnChange.
 7. proper class mechanism.
-8. Review requirejs, if any better alternatives.
 9. If there is advantage use shadowDOM but keep less in templates.
 10 try to allow comment tags in templates, check how difficult to allow camelCase in tags. If its possible allow ':' in tags.
 

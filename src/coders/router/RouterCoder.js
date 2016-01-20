@@ -16,8 +16,8 @@
             var tagName = nodeContext.element.name,
                 name = tagName.substr(3);
             data.route = data.attribs.route || name;
-            data.name = name || nodeContext.get('tp-name') || data.attribs.route.replace(/^\//, '').replace(/\//g, '_');
-            data.type = nodeContext.get('tp-type') || tagName.slice(0, 2);
+            data.name = name || nodeContext['tp-name'] || data.attribs.route.replace(/^\//, '').replace(/\//g, '_');
+            data.type = nodeContext['tp-type'] || tagName.slice(0, 2);
             delete data.attribs.route;
         }
     };

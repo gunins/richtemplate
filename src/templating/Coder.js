@@ -56,22 +56,7 @@
         return parsed;
     }
 
-    /**
-     *
-     * @constructor
-     * @param dOMParser
-     */
-    function Coder(dOMParser) {
-        this._parser = dOMParser;
-    }
 
-    utils.merge(Coder, {
-        addCoder: function (coder) {
-            if (_coders.indexOf(coder) === -1) {
-                _coders.push(coder);
-            }
-        }
-    });
     function parseChildren(el) {
         if (!this._parser.isText(el)) {
             var classList = this._parser.getAttributeValue(el, 'class') || '';
@@ -127,123 +112,169 @@
         return context;
     }
 
-    function applyDataSet(dataset, datakey, attrib) {
-        var subkeys = datakey.split('-');
-        if (subkeys.length > 1) {
-            dataset[subkeys[0]] = dataset[subkeys[0]] || {};
-            dataset[subkeys[0]][subkeys[1]] = attrib;
-        } else {
-            dataset[datakey] = attrib;
+    function setDataFromAttributes(attributes) {
+        var dataset = {},
+            tplSet = {},
+            attribs = {};
+
+        Object.keys(attributes).forEach((key) => {
+            let subKeys = key.split('-'),
+                attrib = attributes[key];
+            if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
+                let data = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
+                if (subKeys[0] === 'data') {
+                    dataset[subKeys[1]] = data;
+                } else {
+                    tplSet[subKeys[1]] = data;
+                }
+            } else {
+                attribs[key] = attrib;
+            }
+        });
+
+        return {
+            dataset, tplSet, attribs
         }
+
     }
 
-    utils.merge(Coder.prototype, {
-        addCoder: Coder.addCoder,
-        _compile: function (el) {
+    function setContext(compiler, element) {
+        return {
+            element:  element,
+            compiler: compiler,
+            compile:  function (node) {
+                if (!node) throw "Node is null";
+                var el;
+                if (compiler._parser.isText(node)) {
+                    el = compiler._parser.createElement('span');
+                    compiler._parser.appendChild(el, node);
+                } else {
+                    el = node;
+                }
+                return compiler._compile(el);
+            },
+            getInnerHTML(){
+                return compiler._parser.getInnerHTML(element)
+            },
+            getChildrenByPrefix (prefix) {
+                var children = compiler._parser.getChildrenElements(element);
+                return children.filter(function (el) {
+                    return el.name.indexOf(prefix) == 0;
+                });
+            },
+            getChildrenByTagName (name) {
+                var children = compiler._parser.getChildrenElements(element);
+                return children.filter(function (el) {
+                    return el.name == name;
+                });
+            },
+            getChildren () {
+                return compiler._parser.getChildrenElements(element);
+            },
+            findChild (el) {
+                var children = compiler._parser.getChildren(el);
+                if (children.length == 1) {
+                    return children[0];
+                } else {
+                    return compiler._parser.findOneChild(children);
+                }
+            },
+            removeChildren () {
+                var children = element.children;
+                if (children.length > 0) {
+                    children.forEach(function (child) {
+                        compiler._parser.removeElement(child);
+                    }.bind(this));
+                }
+            },
+                      get parser() {
+                          return compiler._parser;
+                      },
+                      get templateId() {
+                          return compiler.templateId;
+                      },
+                      get url() {
+                          return compiler.url;
+                      },
+                      get attribs() {
+                          return element.attribs;
+                      },
+                      get name() {
+                          return element.name;
+                      },
+                      get children() {
+                          return element.children;
+                      },
+            get (name) {
+                return compiler._parser.getAttributeValue(element, name);
+            },
+            set (name, value) {
+                return compiler._parser.setAttributeValue(element, name, value);
+            }
+
+        };
+    }
+
+    /**
+     *
+     * @constructor
+     * @param dOMParser
+     */
+    class Coder {
+        static    addCoder(coder) {
+            if (_coders.indexOf(coder) === -1) {
+                _coders.push(coder);
+            }
+        }
+
+        constructor(dOMParser) {
+            this._parser = dOMParser;
+
+        }
+
+        _compile() {
+            let el = this._parser.findOneChild();
             return {
                 children:   parseChildren.call(this, el),
                 template:   this._parser.getOuterHTML(el),
                 templateId: this.templateId
             };
-        },
-        _setData: function (nodeContext, coder) {
-            var dataset = {},
-                tplSet = {},
-                attributes = {},
-                attribs = nodeContext.element.attribs;
+        }
 
-            Object.keys(attribs).forEach(function (key) {
-                if (key.indexOf('data-') == 0 && key.length > 5) {
-                    applyDataSet(dataset, key.substr(5), attribs[key]);
-                } else if (key.indexOf('tp-') == 0 && key.length > 3) {
-                    applyDataSet(tplSet, key.substr(3), attribs[key]);
-                }
-                else {
-                    attributes[key] = attribs[key];
-                }
-            });
-            var tag = (nodeContext.element.name.split('-')[0] !==
-            coder.tagName) ? nodeContext.element.name : (tplSet.tag) ? tplSet.tag : 'div';
+        _setData(nodeContext, coder) {
+            let resp = setDataFromAttributes(nodeContext.attribs);
+            resp.tag = (nodeContext.name.split('-')[0] !==
+            coder.tagName) ? nodeContext.name : (resp.tplSet.tag) ? resp.tplSet.tag : 'div';
+            return resp;
+        }
 
-            return {
-                tplSet:  tplSet,
-                dataset: dataset,
-                attribs: attributes,
-                tag:     tag
-            };
-        },
-        _prepare: function (element, coder) {
-            var nodeContext = {
-                compiler:             this,
-                element:              element,
-                compile:              function (node) {
-                    if (!node) throw "Node is null";
-                    var el;
-                    if (this.compiler._parser.isText(node)) {
-                        el = this.compiler._parser.createElement('span');
-                        this.compiler._parser.appendChild(el, node);
-                    } else {
-                        el = node;
-                    }
-                    return this.compiler._compile(el);
-                },
-                getChildrenByPrefix:  function (prefix) {
-                    var children = this.compiler._parser.getChildrenElements(this.element);
-                    return children.filter(function (el) {
-                        return el.name.indexOf(prefix) == 0;
-                    });
-                },
-                getChildrenByTagName: function (name) {
-                    var children = this.compiler._parser.getChildrenElements(this.element);
-                    return children.filter(function (el) {
-                        return el.name == name;
-                    });
-                },
-                getChildren:          function () {
-                    return this.compiler._parser.getChildrenElements(this.element);
-                },
-                findChild:            function (el) {
-                    var children = this.compiler._parser.getChildren(el);
-                    if (children.length == 1) {
-                        return children[0];
-                    } else {
-                        return this.compiler._parser.findOneChild(children);
-                    }
-                },
-                removeChildren:       function () {
-                    var children = this.element.children;
-                    if (children.length > 0) {
-                        children.forEach(function (child) {
-                            this.compiler._parser.removeElement(child);
-                        }.bind(this));
-                    }
-                },
-                get:                  function (name) {
-                    return this.compiler._parser.getAttributeValue(this.element, name);
-                },
-                set:                  function (name, value) {
-                    return this.compiler._parser.setAttributeValue(this.element, name, value);
-                }
-
-            };
-            var data = this._setData(nodeContext, coder);
+        _prepare(element, coder) {
+            let nodeContext = setContext(this, element),
+                data = this._setData(nodeContext, coder);
             coder.code(nodeContext, data);
-
             return data;
-        },
+        }
 
-        run: function (url) {
+        run(url) {
             this.url = url;
             this.templateId = 'tid_' + new Date().valueOf() + templId;
             templId++;
-            return this._compile(this._parser.findOneChild());
-        },
+            return this._compile();
+        }
 
-        getText: function () {
+        getText() {
             var result = JSON.stringify(this.run());
             return result;
         }
-    });
+    }
+    /*    Object.assign(Coder.prototype, {
+     //addCoder: Coder.addCoder,
+
+
+
+
+
+     });*/
 
     return Coder;
 }));
