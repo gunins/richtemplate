@@ -1,1 +1,493 @@
-!function(e,t){"function"==typeof define&&define.amd?define("templating/utils",[],t):"object"==typeof exports?module.exports=t():(e.Templating=e.Templating||{},e.Templating.utils=t())}(this,function(){return{merge:function(e,t){Object.keys(t).forEach(function(n){e[n]=t[n]})}}}),function(e,t){"function"==typeof define&&define.amd?define("coders/component/CpDecoder",["templating/Decoder"],t):"object"==typeof exports?module.exports=t(require("./Decoder")):(e.Templating=e.Templating||{},e.Templating.componentDecoder=t(e.Templating.Decoder))}(this,function(e){var t={tagName:"cp",decode:function(e,t){var n=e.data;n.attribs={};var i={name:n.name,tmpEl:function(e,o,a){return i.data.instance=new n.src(n.dataset,t,o,a),n.instance.el},data:n||{}};return void 0!==n.dataset.bind&&(i.bind=n.dataset.bind),i}};return e&&e.addDecoder(t),t});;!function(e,n){"function"==typeof define&&define.amd?define("coders/placeholders/plDecoder",["templating/Decoder"],n):"object"==typeof exports?module.exports=n(require("./Decoder")):(e.Templating=e.Templating||{},e.Templating.componentDecoder=n(e.Templating.Decoder))}(this,function(e){var n={tagName:"pl",decode:function(e,n){var t=e.data;return{name:t.name,tmpEl:function(e){return e||document.createElement(t.tag)},parse:function(e,t){n&&Object.keys(n).forEach(function(o){n[o].run(e,!1,!1,t)})},data:t}}};return e&&e.addDecoder(n),n});;!function(e,t){"function"==typeof define&&define.amd?define("coders/databind/bdDecoder",["templating/Decoder"],t):"object"==typeof exports?module.exports=t(require("./Decoder")):(e.Templating=e.Templating||{},e.Templating.componentDecoder=t(e.Templating.Decoder))}(this,function(e){var t={tagName:"bd",noAttach:!0,decode:function(e){var t=this.data=e.data,n={name:t.name,tmpEl:function(){return document.createElement(t.tag)},data:t,bind:t.dataset.bind||t.name};return n}};return e&&e.addDecoder(t),t});;!function(e,t){"function"==typeof define&&define.amd?define("coders/router/RouterDecoder",["templating/Decoder"],t):"object"==typeof exports?module.exports=t(require("./Decoder")):(e.Templating=e.Templating||{},e.Templating.componentDecoder=t(e.Templating.Decoder))}(this,function(e){var t={tagName:"rt",noAttach:!0,decode:function(e,t){var n=e.data,o={name:n.name,tmpEl:function(e){return e||document.createElement(n.tag)},parse:function(e){t&&Object.keys(t).forEach(function(n){t[n].run(e)})},data:n||{},route:n.route};return o}};return e&&e.addDecoder(t),t});;!function(e,t){"function"==typeof define&&define.amd?define("coders/style/styleDecoder",["templating/Decoder"],t):"object"==typeof exports?module.exports=t(require("./Decoder")):(e.Templating=e.Templating||{},e.Templating.componentDecoder=t(e.Templating.Decoder))}(this,function(e){var t={tagName:"style",decode:function(e){if(void 0===e.data.styleAttached){e.data.styleAttached=!0;var t=document.createElement("style");t.innerHTML=e.data.style,document.head.appendChild(t)}}};return e&&e.addDecoder(t),t});;!function(e,t){"function"==typeof define&&define.amd?define("templating/Decoder",["templating/utils"],t):"object"==typeof exports?module.exports=t(require("./utils")):(e.Templating=e.Templating||{},e.Templating.Decoder=t(e.Templating.utils))}(this,function(e){function t(e,t){var n;n="li"===t?"ul":"td"===t||"th"===t?"tr":"tr"===t?"tbody":"div";var r=document.createElement(n),i=document.createDocumentFragment();return r.innerHTML=e,i.appendChild(r.firstChild),i.firstChild}function n(e,n,r,i,a){var d=this._node,o=d.tmpEl(n?e:!1,i,this),l=d.data.attribs,c=t(d.template,d.data.tag);if(n||Object.keys(l).forEach(function(e){o.setAttribute(e,l[e])}),void 0!==c)for(;c.childNodes.length>0;)o.appendChild(c.childNodes[0]);if(r)void 0!==r&&void 0!==a?(d.setParent(r),null!==d.parent&&d.parent.insertBefore(o,a)):r&&(d.setParent(r),null!==d.parent&&d.parent.appendChild(o));else{var u=e.parentNode;d.setParent(u),(null!==d.parent||void 0!==d.parent)&&d.parent.replaceChild(o,e)}return this._node.el=o,void 0!==d.parse&&d.parse(o,i),o}function r(t,r,i){var a=t.tagName,d=this,l={id:t.id,template:t.template,noAttach:o[a].noAttach||t.data.tplSet.noattach,applyAttach:function(){delete this._node.noAttach},setParent:function(e){this._node.parent=e}.bind(d),getParent:function(){return this._node.parent}.bind(d),getInstance:function(){return this}.bind(d),run:function(e,t,r,a,o){if(a&&(i=a),void 0===this._node.noAttach){var l=e.querySelector("#"+this._node.id)||e;if(l)return n.call(d,l,t,r,i,o)}}};r&&(l.children=r),d._node=d._node||{},e.merge(d._node,l),d.data=d._node.data,d.getInstance=function(){return this._node.getInstance.apply(this,arguments)}.bind(this),d.run=function(){return this._node.run.apply(this,arguments)}.bind(this),d.applyAttach=function(){return this._node.applyAttach.apply(this,arguments)}.bind(this)}function i(e,t){t||(t={});var n=!1,a=!1;return e.children.forEach(function(e){var d=e.data.name,l=t[d]?t[d]:t,c={};e.children&&e.children.length>0&&(a=i.call(this,e,l));var u=e.tagName;if(u){var h=o[u].decode(e,a);h&&(c._node=h,r.call(c,e,a,l)),void 0!==d&&(n=n||{},n[d]=c)}else d&&(n=n||{},c._node={id:e.id,data:e.data},n[d]=c);a=!1}.bind(this)),n}function a(e,t,n){e&&Object.keys(e).forEach(function(r){void 0!==e[r]._node.run&&e[r]._node.run.call(e[r],t,!1,!1,n),void 0===e[r]._node.el&&void 0===e[r]._node.template&&(e[r]._node.el=t.querySelector("#"+e[r]._node.id),e[r]._node.el.removeAttribute("id"))})}function d(e){this._root="string"==typeof e?JSON.parse(e):e}var o={};return e.merge(d,{addDecoder:function(e){void 0===o[e.tagName]&&(o[e.tagName]=e)}}),e.merge(d.prototype,{addDecoder:d.addDecoder,_renderFragment:function(e,n){n=n||{};var r={},d=t(e.template);return e.children&&e.children.length>0&&(r=i.call(this,e,n)),a(r,d,n),{fragment:d,children:r,templateId:e.templateId}},render:function(e){var t=this._renderFragment(this._root,e);return t}}),d});
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define('templating/utils',[], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.utils = factory();
+    }
+}(this, function () {
+    return {
+        merge: function (obj, dest) {
+            Object.keys(dest).forEach(function (key) {
+                obj[key] = dest[key];
+            });
+        }
+    }
+
+}));
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        // AMD. Register as an anonymous module.
+        define('coders/component/CpDecoder',[
+            'templating/Decoder'
+        ], factory)
+        ;
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./Decoder'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.componentDecoder = factory(root.Templating.Decoder);
+    }
+}(this, function (Decoder) {
+
+    var componentDecoder = {
+        tagName: 'cp',
+        decode: function (node, children) {
+            var data = node.data;
+            data.attribs = {};
+            var response = {
+                name: data.name,
+                tmpEl: function (tag, obj, scope) {
+                    response.data.instance = new data.src(data.dataset, children, obj, scope);
+                    return data.instance['el'];
+                },
+                data: data || {}
+            };
+            if (data.dataset.bind !== undefined) {
+                response.bind = data.dataset.bind;
+            }
+            return response;
+        }
+    };
+
+    if (Decoder) {
+        Decoder.addDecoder(componentDecoder);
+    }
+
+    return componentDecoder;
+
+}));
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        // AMD. Register as an anonymous module.
+        define('coders/placeholders/plDecoder',[
+            'templating/Decoder'
+        ], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./Decoder'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.componentDecoder = factory(root.Templating.Decoder);
+    }
+}(this, function (Decoder) {
+
+    var componentDecoder = {
+        tagName: 'pl',
+        decode: function (node, children) {
+
+            var data = node.data;
+            return {
+                name: data.name,
+                tmpEl: function (el) {
+                    return el || document.createElement(data.tag);
+                },
+                parse: function (fragment, obj) {
+                    if (children) {
+                        Object.keys(children).forEach(function (key) {
+                            children[key].run(fragment, false, false, obj);
+                        });
+                    }
+                },
+                data: data
+            };
+        }
+    };
+
+    if (Decoder) {
+        Decoder.addDecoder(componentDecoder);
+    }
+
+    return componentDecoder;
+
+}));
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        // AMD. Register as an anonymous module.
+        define('coders/databind/bdDecoder',[
+            'templating/Decoder'
+        ], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./Decoder'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.componentDecoder = factory(root.Templating.Decoder);
+    }
+}(this, function (Decoder) {
+
+    var componentDecoder = {
+        tagName: 'bd',
+        noAttach: true,
+        decode: function (node) {
+            var data = this.data = node.data;
+            var response = {
+                name: data.name,
+                tmpEl: function(){
+                    return document.createElement(data.tag);
+                },
+                data: data,
+                bind: data.dataset.bind || data.name
+            };
+
+            return  response;
+        }
+    };
+
+    if (Decoder) {
+        Decoder.addDecoder(componentDecoder);
+    }
+
+    return componentDecoder;
+
+}));
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        // AMD. Register as an anonymous module.
+        define('coders/router/RouterDecoder',[
+            'templating/Decoder'
+        ], factory)
+        ;
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./Decoder'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.componentDecoder = factory(root.Templating.Decoder);
+    }
+}(this, function (Decoder) {
+
+    var componentDecoder = {
+        tagName: 'rt',
+        noAttach: true,
+        decode: function (node, children) {
+            var data = node.data;
+            var response = {
+                name: data.name,
+                tmpEl: function (el) {
+                    return el || document.createElement(data.tag);
+                },
+                parse: function (fragment) {
+                    if (children) {
+                        Object.keys(children).forEach(function (key) {
+                            children[key].run(fragment);
+                        });
+                    }
+                },
+                data: data || {},
+                route: data.route
+            };
+            return response;
+        }
+    };
+
+    if (Decoder) {
+        Decoder.addDecoder(componentDecoder);
+    }
+
+    return componentDecoder;
+
+}));
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        // AMD. Register as an anonymous module.
+        define('coders/style/styleDecoder',[
+            'templating/Decoder'
+        ], factory)
+        ;
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./Decoder'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating = root.Templating || {};
+        root.Templating.componentDecoder = factory(root.Templating.Decoder);
+    }
+}(this, function (Decoder) {
+
+    var styleDecoder = {
+        tagName: 'style',
+        decode: function (node) {
+            if (node.data.styleAttached === undefined) {
+                node.data.styleAttached = true;
+                var style = document.createElement('style');
+                style.innerHTML = node.data.style;
+                document.head.appendChild(style);
+            }
+
+        }
+    };
+
+    if (Decoder) {
+        Decoder.addDecoder(styleDecoder);
+    }
+
+    return styleDecoder;
+
+}));
+;(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        // AMD. Register as an anonymous module.
+        define('templating/Decoder',[
+            'templating/utils'
+        ], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require('./utils'));
+    } else {
+        // Browser globals (root is window)
+        root.Templating         = root.Templating || {};
+        root.Templating.Decoder = factory(root.Templating.utils);
+    }
+}(this, function (utils) {
+    var _decoders = {};
+
+    function applyFragment(template, tag) {
+        var elTag;
+        if (tag === 'li') {
+            elTag = 'ul'
+
+        } else if (tag === 'td' || tag === 'th') {
+            elTag = 'tr'
+
+        } else if (tag === 'tr') {
+            elTag = 'tbody'
+
+        } else {
+            elTag = 'div'
+        }
+        var el       = document.createElement(elTag),
+            fragment = document.createDocumentFragment();
+        el.innerHTML = template;
+        fragment.appendChild(el.firstChild);
+        return fragment.firstChild;
+    }
+
+    function setElement(placeholder, keep, parent, data, beforeEl) {
+        var params     = this._node,
+            el         = params.tmpEl((keep) ? placeholder : false, data, this),
+            attributes = params.data.attribs,
+            plFragment = applyFragment(params.template, params.data.tag);
+
+        if (!keep) {
+            Object.keys(attributes).forEach(function (key) {
+                el.setAttribute(key, attributes[key]);
+            });
+        }
+
+        if (plFragment !== undefined) {
+            while (plFragment.childNodes.length > 0) {
+                el.appendChild(plFragment.childNodes[0]);
+            }
+        }
+
+        if (!parent) {
+            var parentNode = placeholder.parentNode;
+            params.setParent(parentNode);
+            if (params.parent !== null || params.parent !== undefined) {
+                params.parent.replaceChild(el, placeholder);
+            }
+        } else if (parent !== undefined && beforeEl !== undefined) {
+            params.setParent(parent);
+            if (params.parent !== null) {
+                params.parent.insertBefore(el, beforeEl);
+            }
+        } else if (parent) {
+            params.setParent(parent);
+            if (params.parent !== null) {
+                params.parent.appendChild(el);
+            }
+        }
+
+        this._node.el = el;
+        if (params.parse !== undefined) {
+            params.parse(el, data);
+        }
+        return el;
+
+    }
+
+    function setParams(node, children, obj) {
+        var tagName = node.tagName,
+            self    = this;
+        var params  = {
+            id:          node.id,
+            template:    node.template,
+            noAttach:    _decoders[tagName].noAttach || node.data.tplSet.noattach,
+            applyAttach: function () {
+                delete this._node.noAttach;
+            },
+            setParent:   function (parent) {
+                this._node.parent = parent;
+            }.bind(self),
+            getParent:   function () {
+                return this._node.parent;
+            }.bind(self),
+            getInstance: function () {
+                return this;
+            }.bind(self),
+            run:         function (fragment, keep, parent, data, beforeEl) {
+                if (data) {
+                    obj = data;
+                }
+                if (this._node.noAttach === undefined) {
+                    var placeholder = fragment.querySelector('#' + this._node.id) || fragment;
+                    if (placeholder) {
+                        return setElement.call(self, placeholder, keep, parent, obj, beforeEl);
+                    }
+                }
+            }
+        };
+        if (children) {
+            params.children = children;
+        }
+        self._node = self._node || {};
+        utils.merge(self._node, params);
+        self.data  = self._node.data;
+
+        self.getInstance = function () {
+            return this._node.getInstance.apply(this, arguments)
+        }.bind(this);
+
+        self.run = function () {
+            return this._node.run.apply(this, arguments)
+        }.bind(this);
+
+        self.applyAttach = function () {
+            return this._node.applyAttach.apply(this, arguments)
+        }.bind(this);
+
+    }
+
+    function parseElements(root, obj) {
+        if (!obj) {
+            obj = {};
+        }
+        var context  = false,
+            children = false;
+        root.children.forEach(function (node) {
+            var name        = node.data.name,
+                contextData = (obj[name]) ? obj[name] : obj,
+                scope       = {};
+
+            if (node.children &&
+                node.children.length > 0) {
+                children = parseElements.call(this, node, contextData);
+            }
+            var tagName = node.tagName;
+
+            if (tagName) {
+                var data = _decoders[tagName].decode(node, children);
+                if (data) {
+                    scope._node = data;
+                    setParams.call(scope, node, children, contextData);
+
+                }
+                if (name !== undefined) {
+                    context       = context || {};
+                    context[name] = scope;
+                }
+
+            } else if (name) {
+                context       = context || {};
+                scope._node   = {
+                    id:   node.id,
+                    data: node.data
+                }
+                context[name] = scope;
+            }
+            children = false;
+        }.bind(this));
+        return context;
+    };
+    function runEls(children, fragment, data) {
+        if (children) {
+            Object.keys(children).forEach(function (key) {
+                if (children[key]._node.run !== undefined) {
+                    children[key]._node.run.call(children[key], fragment, false, false, data);
+                }
+                if (children[key]._node.el === undefined && children[key]._node.template === undefined) {
+                    children[key]._node.el = fragment.querySelector('#' + children[key]._node.id);
+                    children[key]._node.el.removeAttribute('id');
+                }
+            });
+        }
+    }
+
+    /**
+     *
+     * @constructor
+     * @param root
+     */
+    function Decoder(root) {
+        this._root = (typeof root === 'string') ? JSON.parse(root) : root;
+    }
+
+    utils.merge(Decoder, {
+        addDecoder: function (decoder) {
+            if (_decoders[decoder.tagName] === undefined) {
+                _decoders[decoder.tagName] = decoder;
+            }
+        }
+    });
+
+    utils.merge(Decoder.prototype, {
+        addDecoder:      Decoder.addDecoder,
+        _renderFragment: function (root, data) {
+            data         = data || {}
+            var children = {},
+                fragment = applyFragment(root.template);
+
+            if (root.children && root.children.length > 0) {
+                children = parseElements.call(this, root, data);
+
+            }
+            runEls(children, fragment, data);
+
+            return {
+                fragment:   fragment,
+                children:   children,
+                templateId: root.templateId
+            };
+        },
+
+        render: function (data) {
+            var fragment = this._renderFragment(this._root, data);
+
+            return fragment;
+        }
+    });
+
+    return Decoder;
+
+}));

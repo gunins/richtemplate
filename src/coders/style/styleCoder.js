@@ -134,13 +134,13 @@
     //get frame name /@(?:-webkit-|-moz-)?keyframes[^{](\w+)/g
     var styleCoder = {
         tagName: 'style',
-        noTag: true,
-        code: function (nodeContext, data) {
+        noTag:   true,
+        code:    function (nodeContext, data) {
             var content = nodeContext.getInnerHTML(),
                 templateId = nodeContext.templateId,
                 currentUrl,
-                importUrl = '@import-url: "' + nodeContext.url + '";';
-            data.style = data.style || '';
+                importUrl = '@import-url: "' + nodeContext.url + '";',
+                style = data.style || '';
             nodeContext.removeChildren();
 
             if (typeof exports === 'object') {
@@ -160,20 +160,20 @@
             }
 
             less.render(importUrl + currentUrl + content, {
-                syncImport: true,
+                syncImport:   true,
                 relativeUrls: true
             }, function (e, output) {
                 //console.log('css', output.css);
 
-                var style = parseCSS(output.css, templateId);
+                let innerStyle = parseCSS(output.css, templateId);
                 if (typeof exports === 'object') {
                     var CleanCSS = require('clean-css');
-                    data.style += new CleanCSS().minify(style).styles;
+                    style += new CleanCSS().minify(innerStyle).styles;
                 } else {
-                    data.style += style;
+                    style += innerStyle;
                 }
             });
-
+            return {style}
         }
     };
 

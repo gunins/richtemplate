@@ -55,9 +55,9 @@ define(['module'], function (module) {
 
         finishLoad: function (name, content, onLoad, req) {
 
-            function handler(DOMParser, Coder) {
-                var domParser = new DOMParser(content);
-                var coder = new Coder(domParser);
+            function handler(Coder) {
+                //var domParser = new DOMParser(content);
+                var coder = new Coder(content);
                 var jsObject = coder.run(req.toUrl('./'));
                 var map = {};
                 var src;
@@ -98,20 +98,20 @@ define(['module'], function (module) {
             }
 
             var paths = {
-                DOMParser: 'templating/DOMParser',
+                //DOMParser: 'templating/DOMParser',
                 Coder: 'templating/Coder'
             };
 
             if (masterConfig.isBuild) {
-                var DOMParser = require.nodeRequire(require.toUrl(paths.DOMParser));
+                //var DOMParser = require.nodeRequire(require.toUrl(paths.DOMParser));
                 var Coder = require.nodeRequire(require.toUrl(paths.Coder));
 
                 masterConfig.templateCoders.forEach(function (coder) {
                     Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
                 });
-                handler(DOMParser, Coder);
+                handler(Coder);
             } else {
-                require([paths.DOMParser, paths.Coder].concat(masterConfig.templateCoders), handler);
+                require([paths.Coder].concat(masterConfig.templateCoders), handler);
             }
         },
 

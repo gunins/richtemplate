@@ -13,12 +13,10 @@
         tagName: 'rt',
         code: function (nodeContext, data) {
             //nodeContext.removeChildren();
-            var tagName = nodeContext.element.name,
-                name = tagName.substr(3);
-            data.route = data.attribs.route || name;
-            data.name = name || nodeContext['tp-name'] || data.attribs.route.replace(/^\//, '').replace(/\//g, '_');
-            data.type = nodeContext['tp-type'] || tagName.slice(0, 2);
+            data.route = data.attribs.route || data.name;
+            data.name = data.name || data.attribs.route.replace(/^\//, '').replace(/\//g, '_');
             delete data.attribs.route;
+            return data;
         }
     };
     if (Coder) {

@@ -136,16 +136,16 @@
         tagName: 'style',
         noTag: true,
         code: function (nodeContext, data) {
-            var content = nodeContext.compiler._parser.getInnerHTML(nodeContext.element),
-                templateId = nodeContext.compiler.templateId,
+            var content = nodeContext.getInnerHTML(),
+                templateId = nodeContext.templateId,
                 currentUrl,
-                importUrl = '@import-url: "' + nodeContext.compiler.url + '";';
+                importUrl = '@import-url: "' + nodeContext.url + '";';
             data.style = data.style || '';
             nodeContext.removeChildren();
 
             if (typeof exports === 'object') {
                 var dirName = __dirname.split('/');
-                var curUrl = nodeContext.compiler.url.split('/');
+                var curUrl = nodeContext.url.split('/');
                 var root = [];
                 curUrl.forEach(function (url, index) {
                     if (url !== dirName[index]) {
@@ -156,7 +156,7 @@
                 currentUrl = '@current-url: "' + root.join('/') + '";';
 
             } else {
-                currentUrl = '@current-url: "' + nodeContext.compiler.url + '";';
+                currentUrl = '@current-url: "' + nodeContext.url + '";';
             }
 
             less.render(importUrl + currentUrl + content, {

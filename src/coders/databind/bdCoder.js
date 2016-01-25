@@ -12,9 +12,6 @@
     var PlaceholderCoder = {
         tagName: 'bd',
         code: function (nodeContext, data) {
-            var tagName = nodeContext.name;
-            data.name = (tagName.split('-')[0] === this.tagName) ? tagName.substr(3) : nodeContext['tp-name'];
-            data.type = nodeContext['tp-type'] || tagName.slice(0, 2);
             return data;
         }
     };

@@ -84,7 +84,7 @@ module.exports = function (grunt) {
             prod: {
                 options: {
                     baseUrl: 'src',
-                    optimize: 'uglify2',
+                    optimize: 'none',
                     removeCombined: true,
                     paths: {
                         'templating/htmlparser2': '../lib/htmlparser2'

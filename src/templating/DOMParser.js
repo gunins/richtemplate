@@ -13,7 +13,9 @@
         root.Templating.DOMParser = factory(root.htmlparser, root.Templating.utils);
     }
 }(this, function (htmlparser) {
+    'use strict';
     let DomUtils = htmlparser.DomUtils;
+
 
     /**
      *
@@ -62,6 +64,32 @@
             return DomUtils.filter(function (el) {
                 return el.type === 'tag';
             }, DomUtils.getChildren(element), false);
+        }
+
+        removeComments(element) {
+            element = element || this.dom[0];
+            if (element.type === 'comment') {
+                DomUtils.removeElement(element);
+            }
+            var children = DomUtils.getChildren(element);
+            if (children && children.length > 0) {
+                children.forEach((el)=> {
+                    this.removeComments(el);
+                });
+            }
+        }
+
+        applyClass(templateId, element) {
+            element = element || this.dom[0];
+            if (element.type === 'tag') {
+                this.setAttributeValue(element, 'class', (templateId + ' ' + (this.getAttributeValue(element, 'class') || '')).trim());
+            }
+            var children = DomUtils.getChildren(element);
+            if (children && children.length > 0) {
+                children.forEach((el)=> {
+                    this.applyClass(templateId, el);
+                });
+            }
         }
 
         findOneChild(element) {
