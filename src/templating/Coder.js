@@ -14,83 +14,6 @@
         _coders = [],
         tagId = 0;
 
-    function applyCoder(el, nodeContext) {
-        var parsed = false,
-            tmpType = this._parser.getAttributeValue(el, 'tp-type') || el.name.split('-')[0],
-            data = nodeContext.data;
-
-        _coders.forEach((coder) => {
-            if (tmpType === coder.tagName && !parsed) {
-                data.type = coder.tagName;
-
-                var tag = data.tag = (el.name.split('-')[0] !== coder.tagName) ? el.name : data.tplSet.tag ? data.tplSet.tag : 'div',
-                    children = this._parser.getChildren(el),
-                    placeholder = this._parser.createElement(tag),
-                    holder = this._parser.createElement(tag);
-
-                if (children && children.length > 0) {
-                    children.forEach((child)=> {
-                        this._parser.appendChild(holder, child);
-                    });
-                }
-                if (!coder.noTag) {
-                    var id = 'e' + tagId++;
-                    this._parser.setAttributeValue(placeholder, 'id', id);
-                    this._parser.setAttributeValue(placeholder, 'style', 'display:none');
-                    this._parser.replaceElement(el, placeholder);
-                } else {
-                    this._parser.removeElement(el);
-                }
-
-                parsed = {
-                    id:       id,
-                    tagName:  coder.tagName,
-                    data:     coder.code(nodeContext, data),
-                    template: this._parser.getOuterHTML(holder)
-                };
-            }
-        });
-
-        if (!parsed) {
-            var name = data.name;
-            if (name !== undefined) {
-                let id = 'e' + tagId++;
-                nodeContext.setAttributeValue('id', id);
-                nodeContext.setAttributeValue('tp-name', undefined);
-                parsed = {
-                    id:   id,
-                    data: data
-                }
-            }
-        }
-        return parsed;
-    }
-
-
-    function parseChildren(el) {
-        var nodeContext = this.prepareChild(el),
-            context = [],
-            childEl = nodeContext.getChildren();
-
-        if (childEl && childEl.length > 0) {
-            childEl.forEach((child) => {
-                let children = parseChildren.call(this, child);
-                if (children.parsed) {
-                    context.push(children.parsed);
-                    if (!children.parsed.tagName) {
-                        context = context.concat(children.context);
-                    }
-                }
-            });
-        }
-        let parsed = applyCoder.call(this, el, nodeContext);
-        if (parsed && parsed.tagName) {
-            parsed.children = context;
-        }
-
-        return {context, parsed};
-    }
-
 
     /**
      *
@@ -106,29 +29,88 @@
 
         constructor(content) {
             this.templateId = 'tid_' + new Date().valueOf() + templId;
-            var parser = new DOMParser(content);
-            this._parser = parser;
-            parser.removeComments();
-            parser.applyClass(this.templateId);
-            this._rootEl = parser.findOneChild();
+            var domParser = new DOMParser(content);
+            domParser.removeComments();
+            domParser.applyClass(this.templateId);
+            this._domParser = domParser;
+            this._rootEl = domParser.findOneChild();
 
         }
 
-        _getOuterHTML() {
-            return this._parser.getOuterHTML(this._rootEl);
+        getOuterHTML() {
+            return this._domParser.getOuterHTML(this._rootEl);
         }
 
         _compile() {
             return {
-                children:   parseChildren.call(this, this._rootEl).context,
-                template:   this._getOuterHTML(),
+                children:   this._parseChildren(this._rootEl).context,
+                template:   this.getOuterHTML(),
                 templateId: this.templateId
             };
         }
 
-        prepareChild(element) {
-            var parentNode = DOMContext(this, element);
-            return parentNode;
+        _parseChildren(el) {
+            var nodeContext = this._prepareChild(el),
+                context = [],
+                childEl = nodeContext.getChildrenElements();
+
+            if (childEl && childEl.length > 0) {
+                childEl.forEach((child) => {
+                    let children = this._parseChildren(child);
+                    if (children.parsed) {
+                        context.push(children.parsed);
+                        if (!children.parsed.tagName) {
+                            context = context.concat(children.context);
+                        }
+                    }
+                });
+            }
+
+            let parsed = this._applyCoder(nodeContext);
+            if (parsed && parsed.tagName) {
+                parsed.children = context;
+            }
+
+            return {context, parsed};
+        }
+
+        _applyCoder(nodeContext) {
+            var parsed = false,
+                data = nodeContext.data;
+            _coders.forEach((coder) => {
+                if (nodeContext.type === coder.tagName && !parsed) {
+                    var id = 'e' + tagId++;
+
+                    nodeContext.setTag(coder.tagName);
+                    nodeContext.setPlaceholder(id, coder.noTag);
+
+                    parsed = {
+                        id:       id,
+                        tagName:  coder.tagName,
+                        data:     coder.code(nodeContext, data),
+                        template: nodeContext.outerTemplate()
+                    };
+                }
+            });
+
+            if (!parsed) {
+                var name = data.name;
+                if (name !== undefined) {
+                    let id = 'e' + tagId++;
+                    nodeContext.setAttributeValue('id', id);
+                    nodeContext.setAttributeValue('tp-name', undefined);
+                    parsed = {
+                        id:   id,
+                        data: data
+                    }
+                }
+            }
+
+            return parsed;
+        }
+
+        _prepareChild(element) {
+            return DOMContext(this, element);
         }
 
         run(url) {

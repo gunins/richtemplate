@@ -45,66 +45,59 @@
     }
 
     return function DOMContext(compiler, element) {
-        var data = setDataFromAttributes(element.attribs);
+        var domParser = compiler._domParser,
+            data = setDataFromAttributes(element.attribs);
         data.name = element.name.split('-')[1] || data.tplSet.name;
+        data.tag = data.tplSet.tag || 'div';
+        data.type = data.tplSet.type || element.name.split('-')[0];
+
 
         return {
-            compile: function (node) {
-                if (!node) throw "Node is null";
-                var el;
-                if (compiler._parser.isText(node)) {
-                    el = compiler._parser.createElement('span');
-                    compiler._parser.appendChild(el, node);
-                } else {
-                    el = node;
+            setTag(coderName){
+                if (!data.tplSet.tag) {
+                    data.tag = (data.type !== coderName) ? element.name : data.tag;
                 }
-                return compiler._compile(el);
             },
-            isText(){
-                return compiler._parser.isText(element);
+            outerTemplate(){
+                var children = domParser.getChildren(element),
+                    holder = domParser.createElement(data.tag);
+
+                if (children && children.length > 0) {
+                    children.forEach((child)=> {
+                        domParser.appendChild(holder, child);
+                    });
+                }
+                return domParser.getOuterHTML(holder);
+            },
+            setPlaceholder(id, noTag){
+                if (noTag) {
+                    domParser.removeElement(element);
+                } else {
+                    var placeholder = domParser.createElement(data.tag);
+                    domParser.setAttributeValue(placeholder, 'id', id);
+                    domParser.setAttributeValue(placeholder, 'style', 'display:none');
+                    domParser.replaceElement(element, placeholder);
+                }
             },
             getInnerHTML(){
-                return compiler._parser.getInnerHTML(element)
+                return domParser.getInnerHTML(element)
             },
-            getChildrenByPrefix (prefix) {
-                var children = compiler._parser.getChildrenElements(element);
-                return children.filter(function (el) {
-                    return el.name.indexOf(prefix) == 0;
-                });
-            },
-            getChildrenByTagName (name) {
-                var children = compiler._parser.getChildrenElements(element);
-                return children.filter(function (el) {
-                    return el.name == name;
-                });
-            },
-            getChildren () {
-                return compiler._parser.getChildrenElements(element);
-            },
-            findChild (el) {
-                var children = compiler._parser.getChildren(el);
-                if (children.length == 1) {
-                    return children[0];
-                } else {
-                    return compiler._parser.findOneChild(children);
-                }
-            },
-            removeElement(){
-                compiler._parser.removeElement(element);
+            getChildrenElements () {
+                return domParser.getChildrenElements(element);
             },
             removeChildren () {
                 var children = element.children;
                 if (children.length > 0) {
                     children.forEach(function (child) {
-                        compiler._parser.removeElement(child);
+                        domParser.removeElement(child);
                     }.bind(this));
                 }
             },
                      get type() {
-                         return element.type;
+                         return data.type;
                      },
-                     get parser() {
-                         return compiler._parser;
+                     get tag() {
+                         return data.tag;
                      },
                      get templateId() {
                          return compiler.templateId;
@@ -112,23 +105,14 @@
                      get url() {
                          return compiler.url;
                      },
-                     get attribs() {
-                         return element.attribs;
-                     },
-                     get name() {
-                         return element.name;
-                     },
-                     get children() {
-                         return element.children;
-                     },
                      get data() {
                          return data;
                      },
             getAttributeValue(name) {
-                return compiler._parser.getAttributeValue(element, name);
+                return domParser.getAttributeValue(element, name);
             },
             setAttributeValue(name, value) {
-                return compiler._parser.setAttributeValue(element, name, value);
+                return domParser.setAttributeValue(element, name, value);
             }
         };
     }
