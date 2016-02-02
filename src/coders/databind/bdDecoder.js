@@ -10,35 +10,30 @@
         // only CommonJS-like environments that support module.exports,
         // like Node.
         module.exports = factory(require('./Decoder'));
-    } else {
-        // Browser globals (root is window)
-        root.Templating = root.Templating || {};
-        root.Templating.componentDecoder = factory(root.Templating.Decoder);
     }
 }(this, function (Decoder) {
 
-    var componentDecoder = {
-        tagName: 'bd',
+    var bindingsDecoder = {
+        tagName:  'bd',
         noAttach: true,
-        decode: function (node) {
+        decode:   function (node) {
             var data = this.data = node.data;
             var response = {
-                name: data.name,
-                tmpEl: function(){
-                    return document.createElement(data.tag);
+                name:  data.name,
+                tmpEl: function (el, children, obj) {
+                    return {el: el || document.createElement(data.tag)};
                 },
-                data: data,
-                bind: data.dataset.bind || data.name
+                data:  data
             };
 
-            return  response;
+            return response;
         }
     };
 
     if (Decoder) {
-        Decoder.addDecoder(componentDecoder);
+        Decoder.addDecoder(bindingsDecoder);
     }
 
-    return componentDecoder;
+    return bindingsDecoder;
 
 }));

@@ -3,16 +3,17 @@
         @import "@{import-url}/_button.less";
 
     </style-less>
-    <pl-header class="header" tp-tag="h2"></pl-header>
+    <pl-header class="header" tp-tag="h2">This is a Header</pl-header>
     <div tp-name="smallDiv">There Going Another Button Component
         <cp src="../buttonA/buttonA" tp-name="testButton"></cp>
     </div>
     <p>There is some test text</p>
-<span class="test">This is a span element.</span>
-    <pl-footer class="footer" ></pl-footer>
+    <span class="test">This is a span element.</span>
+    <pl-footer tp-tag="footer">This is a footer</pl-footer>
     <style-less>
-        .footer {
-        background: #cccccc;
+        footer {
+            background: #cccccc;
+            color: yellow;
         }
     </style-less>
 </div>

@@ -60,7 +60,7 @@
                     if (children.parsed) {
                         context.push(children.parsed);
                         if (!children.parsed.tagName) {
-                            context = context.concat(children.context);
+                            context = [...context, ...children.context];
                         }
                     }
                 });

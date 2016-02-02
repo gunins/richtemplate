@@ -19,24 +19,17 @@
 }(this, function (Decoder) {
 
     var componentDecoder = {
-        tagName: 'rt',
+        tagName:  'rt',
         noAttach: true,
-        decode: function (node, children) {
+        decode:   function (node) {
             var data = node.data;
             var response = {
-                name: data.name,
-                tmpEl: function (el) {
-                    return el || document.createElement(data.tag);
+                name:  data.name,
+                tmpEl: function (el, children, obj) {
+                    return {el: el || document.createElement(data.tag)};
                 },
-                parse: function (fragment) {
-                    if (children) {
-                        Object.keys(children).forEach(function (key) {
-                            children[key].run(fragment);
-                        });
-                    }
-                },
-                data: data || {},
-                route: data.route
+                parse: true,
+                data:  data || {},
             };
             return response;
         }

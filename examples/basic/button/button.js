@@ -3,8 +3,9 @@ define([
     'templating/Decoder'
 ], function (template, Decoder) {
     function append(parent, child){
-        child.data.attribs={};
-        child.run(parent._node.el, true);
+        //child.data.attribs={};
+        let key = [...parent.els.keys()][0];
+        child.run(key);
     }
     return function(data, children){
         var decoder = new Decoder(template);
@@ -12,6 +13,7 @@ define([
         var els = context.children;
         append(els.header, children.header);
         append(els.footer, children.footer);
+        //console.log(context);
         return{
             el: context.fragment
         }

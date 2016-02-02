@@ -20,16 +20,16 @@
 
     var componentDecoder = {
         tagName: 'cp',
-        decode: function (node, children) {
+        decode:  function (node) {
             var data = node.data;
-            data.attribs = {};
             var response = {
-                name: data.name,
-                tmpEl: function (tag, obj, scope) {
-                    response.data.instance = new data.src(data.dataset, children, obj, scope);
-                    return data.instance['el'];
+                name:    data.name,
+                replace: true,
+                tmpEl:   function (placeholder, obj, children) {
+                    var instance = new data.src(data.dataset, children, obj);
+                    return instance;
                 },
-                data: data || {}
+                data:    data || {}
             };
             if (data.dataset.bind !== undefined) {
                 response.bind = data.dataset.bind;

@@ -17,9 +17,20 @@
                 testButton: 'blah'
             }
         });
-        console.log(context);
+        console.log(context)
         var el = document.getElementById('el');
         el.appendChild(context.fragment);
+
+
+        var a = context.children.test.run(true);
+        a.children.testthing.run();//.el.innerHTML = 'Test 1';
+        var b = context.children.test.run(true);
+        b.children.testthing.run();//.el.innerHTML = 'Test 1';
+        var c = context.children.test.run(true, 1);
+        c.children.testthing.run();//.el.innerHTML = 'Test 1';
+        console.log(c.el);
+
+
     })
 </script>
 </body>

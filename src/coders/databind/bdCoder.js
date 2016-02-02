@@ -3,23 +3,20 @@
         define(['templating/Coder'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory();
-    } else {
-        // Browser globals (root is window)
-        root.Templating = root.Templating || {};
-        root.Templating.PlaceholderCoder = factory(root.Templating.Coder);
     }
 }(this, function (Coder) {
-    var PlaceholderCoder = {
+    var bindingsCoder = {
         tagName: 'bd',
-        code: function (nodeContext, data) {
+        code:    function (nodeContext, data) {
+            data.bind = data.dataset.bind || data.name;
             return data;
         }
     };
 
     if (Coder) {
-        Coder.addCoder(PlaceholderCoder);
+        Coder.addCoder(bindingsCoder);
     }
 
-    return PlaceholderCoder;
+    return bindingsCoder;
 
 }));

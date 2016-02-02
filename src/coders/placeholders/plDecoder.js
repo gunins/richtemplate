@@ -19,22 +19,16 @@
 
     var componentDecoder = {
         tagName: 'pl',
-        decode: function (node, children) {
+        decode:  function (node) {
 
             var data = node.data;
             return {
-                name: data.name,
-                tmpEl: function (el) {
-                    return el || document.createElement(data.tag);
+                name:  data.name,
+                tmpEl: function (el, children, obj) {
+                    return {el: el || document.createElement(data.tag)};
                 },
-                parse: function (fragment, obj) {
-                    if (children) {
-                        Object.keys(children).forEach(function (key) {
-                            children[key].run(fragment, false, false, obj);
-                        });
-                    }
-                },
-                data: data
+                parse: true,
+                data:  data
             };
         }
     };
