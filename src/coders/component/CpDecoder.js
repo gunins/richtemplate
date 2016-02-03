@@ -25,8 +25,8 @@
             var response = {
                 name:    data.name,
                 replace: true,
-                tmpEl:   function (placeholder, obj, children) {
-                    var instance = new data.src(data.dataset, children, obj);
+                tmpEl:   function (placeholder, obj, children, node) {
+                    var instance = new data.src(data.dataset, children, obj, node);
                     return instance;
                 },
                 data:    data || {}

@@ -18,9 +18,17 @@
                 border:solid 1px #cccccc;
             }
         }
+        .label{
+            background: #cccccc;
+            border-radius: 5px;
+            font-size:.7em;
+            color: #ffffff;
+            padding: 3px 10px;
+            display: inline-block;
+        }
 
     </style-less>
-    <h2 tp-name="fake" class="header">RootElement <Headera tp-name="another"></Headera></h2>
+    <h2 tp-name="fake" class="header">RootElement <span class="label" tp-name="another">Label</span></h2>
     <!--Here is some Comment-->
 
 
@@ -53,7 +61,9 @@
                 <td>Six</td>
             </tr>
         </table>
-        <cp-testThing data-test="test" src="./button/button">
+        <span tp-name="extra" tp-type="bd">
+        </span>
+        <cp-testThing data-test="test" src="./buttonA/buttonA">
             <pl-header>
                 Outer Some Header other
             </pl-header>

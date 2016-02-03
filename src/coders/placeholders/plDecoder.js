@@ -3,19 +3,16 @@
         // AMD. Register as an anonymous module.
         // AMD. Register as an anonymous module.
         define([
-            'templating/Decoder'
+            'templating/Decoder',
+            'templating/dom'
         ], factory);
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory(require('./Decoder'));
-    } else {
-        // Browser globals (root is window)
-        root.Templating = root.Templating || {};
-        root.Templating.componentDecoder = factory(root.Templating.Decoder);
+        module.exports = factory(require('./Decoder'), require('./dom'));
     }
-}(this, function (Decoder) {
+}(this, function (Decoder, dom) {
 
     var componentDecoder = {
         tagName: 'pl',
@@ -24,8 +21,8 @@
             var data = node.data;
             return {
                 name:  data.name,
-                tmpEl: function (el, children, obj) {
-                    return {el: el || document.createElement(data.tag)};
+                tmpEl: function (el, obj, children, node) {
+                    return new dom.Element(el || document.createElement(data.tag), node);
                 },
                 parse: true,
                 data:  data
