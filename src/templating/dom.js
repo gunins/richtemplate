@@ -16,92 +16,132 @@ define(function () {
         return placeholder;
     }
 
-    var dom = {
-        // Method to attach to DOM
-        //
-        //      @method append
-        //      @param {dom.Element} parent
-        //      @param {dom.Element} child
-        //      @param {Object} data
-        _after: function (parent, child, data) {
-            if (child._node !== undefined) {
-                child.placeholder = parent.el.querySelector('#' + child._node.id) ||
-                    createPlaceholder(child._node.data.tag || child.el.tagName);
-            } else {
-                child.placeholder = createPlaceholder(child.el.tagName);
-            }
-
-            if (child.run !== undefined) {
-                child.el = child.run.call(child, parent.el, true, false, data);
-            }
-        },
-
-        // Replacing element in to DOM
-        //
-        //      @method replace
-        //      @param {dom.Element} parent
-        //      @param {dom.Element} child
-        //      @param {Object} data
-        replace:         function (parent, child, data) {
-            parent.el.innerHTML = '';
-            dom._after.apply(this, arguments);
-        },
-        // Insert element to the end of parent childs
-        //
-        //      @method append
-        //      @param {dom.Element} parent
-        //      @param {dom.Element} child
-        append:          function (parent, child) {
-            if (parent.el !== undefined && child.el !== undefined) {
-                parent.el.appendChild(child.el);
-            }
-
-        },
-        // Insert element to the beginning of parent childs
-        //
-        //      @method prepend
-        //      @param {dom.Element} parent
-        //      @param {dom.Element} child
-        prepend:         function (parent, child) {
-            dom.insertBefore(parent, child, 0);
-        },
-        // Insert element to the before of specific, child by index
-        //
-        //      @method insertBefore
-        //      @param {dom.Element} parent
-        //      @param {dom.Element} child
-        insertBefore:    function (parent, child, index) {
-            var parentEl = parent.el;
-            var childEl = child.el;
-            if (parentEl !== undefined && childEl !== undefined) {
-                if (parentEl.childNodes[index] !== undefined) {
-                    parentEl.insertBefore(childEl, parentEl.childNodes[index]);
-                } else {
-                    parentEl.appendChild(childEl);
+    // ## widget/dom.Element
+    //     @method Element
+    //     @param {Object} node
+    class Element {
+        constructor(el, node) {
+            let data = node.data;
+            this._events = [];
+            this._node = node;
+            this.el = el;
+            this.name = node.name;
+            if (data) {
+                if (data.bind) {
+                    this.bind = data.bind;
+                }
+                if (data.dataset) {
+                    this.dataset = data.dataset;
                 }
             }
-        },
-        detach:          function (el) {
-            if (el.placeholder instanceof HTMLElement === false) {
-                el.placeholder = createPlaceholder(el._node.data.tag || el.el.tagName);
+        };
+
+        clone(...args) {
+            return this.run(...args);
+        };
+
+        // Shortcut to - `dom.text`
+        text(text) {
+            dom.text(this, text);
+        };
+
+        detach() {
+            dom.detach(this);
+        };
+
+        attach() {
+            dom.attach(this);
+        };
+
+        // Shortcut to - `dom.setAttribute`
+        setAttribute(prop, value) {
+            dom.setAttribute(this, prop, value);
+        };
+
+        // Shortcut to - `dom.getAttribute`
+        getAttribute(prop) {
+            return dom.getAttribute(this, prop);
+        };
+
+        // Shortcut to - `dom.removeAttribute`
+        removeAttribute(prop) {
+            dom.removeAttribute(this, prop);
+        };
+
+        // Shortcut to - `dom.setStyle`
+        setStyle(prop, value) {
+            dom.setStyle(this, prop, value);
+        };
+
+        // Shortcut to - `dom.getStyle`
+        getStyle(prop) {
+            return dom.getStyle(this, prop);
+        }
+
+        // Shortcut to - `dom.removeStyle`
+        removeStyle(prop) {
+            dom.removeStyle(this, prop);
+        };
+
+        // Shortcut to - `dom.addClass`
+        addClass(className) {
+            dom.addClass(this, className);
+        };
+
+        // Shortcut to - `dom.hasClass`
+        hasClass(className) {
+            return dom.hasClass(this, className);
+        };
+
+        // Shortcut to - `dom.removeClass`
+        removeClass(className) {
+            dom.removeClass(this, className);
+        };
+
+        // Shortcut to - `dom.val`
+        val(val) {
+            return dom.val(this, val);
+        };
+
+        // Shortcut to - `dom.on`
+        on(event, cb, context) {
+            var args = Array.prototype.slice.call(arguments, 0);
+            return dom.on.apply(false, [this].concat(args));
+        };
+
+        // Shortcut to - `dom.onDOMAttached`
+        onDOMAttached() {
+            return dom.onDOMAttached(this);
+        };
+
+        // Shortcut to - `dom.remove`
+        remove() {
+            dom.remove(this);
+        };
+    };
+
+    var dom = {
+        //Removing element from DOM
+        //
+        //      @method detach
+        //      @param {dom.Element}
+
+        detach:          function (node) {
+            if (node.placeholder instanceof HTMLElement === false) {
+                node.placeholder = createPlaceholder(node._node.data.tag || node.el.tagName);
             }
-
-            if (el && el.el && el.el.parentNode) {
-                el.el.parentNode.replaceChild(el.placeholder, el.el)
+            if (node && node.el && node.el.parentNode) {
+                node.el.parentNode.replaceChild(node.placeholder, node.el)
             }
         },
-        attach:          function (el) {
-            if (el && el.el && el.placeholder && el.placeholder.parentNode) {
-                el.placeholder.parentNode.replaceChild(el.el, el.placeholder)
+        //Adding element back to DOM
+        //
+        //      @method attach
+        //      @param {dom.Element}
+        attach:          function (node) {
+            if (node && node.el && node.placeholder && node.placeholder.parentNode) {
+                node.placeholder.parentNode.replaceChild(node.el, node.placeholder)
             }
-        },
-        add:             function (el, fragment, parent, data, index) {
-            el.placeholder = fragment.querySelector('#' + el._node.id) ||
-                createPlaceholder(el._node.data.tag || el.el.tagName);
-
-            el.el = el.run.call(el, fragment, false, parent, data, index);
-
-
         },
         // Adding text in to node
         //
@@ -252,11 +292,10 @@ define(function () {
         //      @param {Function} cb
         //      @param {Object} context
         //      @return {Object} { remove() }
-        on:              function (element, ev, cb, context) {
-            var args = Array.prototype.slice.call(arguments, 4, arguments.length),
-                el = element.el,
+        on:              function (element, ev, cb, context, ...args) {
+            var el = element.el,
                 events = ev.split(' '),
-                fn = function (e) {
+                fn = (e) => {
                     cb.apply(context || this, [e, element].concat(args));
                 };
 
@@ -264,10 +303,10 @@ define(function () {
                 el.addEventListener(event, fn);
             });
             var evt = {
-                remove: function () {
-                    events.forEach(function (event) {
-                        el.removeEventListener(event, fn);
-                    });
+                remove: () => {
+                    events.forEach(event => el.removeEventListener(event, fn));
+                    let evts = element._events;
+                    evts.splice(evts.indexOf(evt), 1);
                 }
             };
             element._events.push(evt);
@@ -297,14 +336,14 @@ define(function () {
         //      @param {function} cb
         //      @param {function} context
         onDOMAttached:   function (el) {
-            var handlers = [];
+            let handlers = [],
+                attached = false;
+
             if (el.el !== undefined) {
-                var attached = false,
-                    handler;
-                var step = function () {
+                var step = () => {
                     if (attached) {
                         while (handlers.length > 0) {
-                            handler = handlers[0];
+                            let handler = handlers[0];
                             handler();
                             handlers.shift()
                         }
@@ -314,129 +353,19 @@ define(function () {
                             attached = true;
                         }
                     }
-                }.bind(this);
+                };
             }
             return {
-                then: function (cb, context) {
+                then: (cb, context) => {
                     handlers.push(cb.bind(context || this));
                     window.requestAnimationFrame(step);
-                }.bind(this)
+                }
             }
         },
         // Element
         Element:         Element
     }
 
-    // ## widget/dom.Element
-    //     @method Element
-    //     @param {Object} node
-    function Element(el, node) {
-        let data = node.data;
-        this._events = [];
-        this._node = node;
-        this.el = el;
-        this.name = node.name;
-        if (data && data.bind) {
-            this.bind = data.bind;
-        }
-
-        if (data && data.dataset) {
-            this.dataset = data.dataset;
-        }
-    }
-
-    Object.assign(Element.prototype, {
-        clone:           function (...args) {
-            return this.run(...args);
-        },
-        // Shortcut to - `dom.append`
-        _after:          function (child) {
-            dom._after(this, child)
-        },
-        // Shortcut to - `dom.replace`
-        replace:         function (child, data) {
-            dom.replace(this, child, data);
-        },
-        // Shortcut to - `dom.prepend`
-        prepend:         function (child) {
-            dom.prepend(this, child);
-        },
-        // Shortcut to - `dom.insertBefore`
-        insertBefore:    function (child, index) {
-            dom.insertBefore(this, child, index);
-        },
-        // Shortcut to - `dom.append`
-        append:          function (child) {
-            dom.append(this, child);
-        },
-        // Shortcut to - `dom.text`
-        text:            function (text) {
-            dom.text(this, text);
-        },
-        // Shortcut to - `dom.add`
-        add:             function (fragment, parent, data, index) {
-            dom.add(this, fragment, parent, data, index);
-        },
-        detach:          function () {
-            dom.detach(this);
-        },
-        attach:          function () {
-            dom.attach(this);
-        },
-        // Shortcut to - `dom.setAttribute`
-        setAttribute:    function (prop, value) {
-            dom.setAttribute(this, prop, value);
-        },
-        // Shortcut to - `dom.getAttribute`
-        getAttribute:    function (prop) {
-            return dom.getAttribute(this, prop);
-        },
-        // Shortcut to - `dom.removeAttribute`
-        removeAttribute: function (prop) {
-            dom.removeAttribute(this, prop);
-        },
-        // Shortcut to - `dom.setStyle`
-        setStyle:        function (prop, value) {
-            dom.setStyle(this, prop, value);
-        },
-        // Shortcut to - `dom.getStyle`
-        getStyle:        function (prop) {
-            return dom.getStyle(this, prop);
-        },
-        // Shortcut to - `dom.removeStyle`
-        removeStyle:     function (prop) {
-            dom.removeStyle(this, prop);
-        },
-        // Shortcut to - `dom.addClass`
-        addClass:        function (className) {
-            dom.addClass(this, className);
-        },
-        // Shortcut to - `dom.hasClass`
-        hasClass:        function (className) {
-            return dom.hasClass(this, className);
-        },
-        // Shortcut to - `dom.removeClass`
-        removeClass:     function (className) {
-            dom.removeClass(this, className);
-        },
-        // Shortcut to - `dom.val`
-        val:             function (val) {
-            return dom.val(this, val);
-        },
-        // Shortcut to - `dom.on`
-        on:              function (event, cb, context) {
-            var args = Array.prototype.slice.call(arguments, 0);
-            return dom.on.apply(false, [this].concat(args));
-        },
-        // Shortcut to - `dom.onDOMAttached`
-        onDOMAttached:   function () {
-            return dom.onDOMAttached(this);
-        },
-        // Shortcut to - `dom.remove`
-        remove:          function () {
-            dom.remove(this);
-        }
-    });
 
     return dom;
 });

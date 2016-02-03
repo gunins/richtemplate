@@ -9,6 +9,7 @@
         root.Templating.styleCoder = factory(root.Templating.Coder);
     }
 }(this, function (Coder, less) {
+    'use strict';
     function applyId(content, id) {
         var classNames = getClassNames(content);
         classNames.forEach(function (item) {

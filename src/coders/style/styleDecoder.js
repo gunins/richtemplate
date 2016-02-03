@@ -17,10 +17,10 @@
         root.Templating.componentDecoder = factory(root.Templating.Decoder);
     }
 }(this, function (Decoder) {
-
+    'use strict';
     var styleDecoder = {
         tagName: 'style',
-        decode: function (node) {
+        decode:  function (node) {
             if (node.data.styleAttached === undefined) {
                 node.data.styleAttached = true;
                 var style = document.createElement('style');
