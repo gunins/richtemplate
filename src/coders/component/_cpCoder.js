@@ -3,12 +3,9 @@
         define(['templating/Coder'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../../templating/Coder'));
-    } else {
-        // Browser globals (root is window)
-        root.Templating = root.Templating || {};
-        root.Templating.ComponentCoder = factory(root.Templating.Coder);
     }
 }(this, function (Coder) {
+    'use strict';
     var ComponentCoder = {
         tagName: 'cp',
         code: function (nodeContext, data) {

@@ -11,13 +11,9 @@
         // only CommonJS-like environments that support module.exports,
         // like Node.
         module.exports = factory(require('./Decoder'));
-    } else {
-        // Browser globals (root is window)
-        root.Templating = root.Templating || {};
-        root.Templating.componentDecoder = factory(root.Templating.Decoder);
     }
 }(this, function (Decoder) {
-
+    'use strict';
     var componentDecoder = {
         tagName: 'cp',
         decode:  function (node) {
