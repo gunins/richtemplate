@@ -2,6 +2,7 @@ define([
     'templating/parser!./_button.html',
     'templating/Decoder'
 ], function (template, Decoder) {
+    'use strict';
     function append(parent, child) {
         let key = parent.elGroup.getKeyByIndex(0);
         let el = child.run(key);

@@ -3,10 +3,6 @@
         define(['templating/Coder', 'templating/less'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../../templating/Coder'), require('less'));
-    } else {
-        // Browser globals (root is window)
-        root.Templating = root.Templating || {};
-        root.Templating.styleCoder = factory(root.Templating.Coder);
     }
 }(this, function (Coder, less) {
     'use strict';

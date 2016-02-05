@@ -1,4 +1,5 @@
 define(['module'], function (module) {
+    'use strict';
 
     var template;
     var buildMap = {};
