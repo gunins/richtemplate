@@ -10,7 +10,6 @@ define([
     }
 
     return function (data, children, obj, node) {
-        console.log(obj);
         var decoder = new Decoder(template);
         var context = decoder.render();
         var els = context.children;

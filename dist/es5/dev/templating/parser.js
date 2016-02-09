@@ -4,11 +4,11 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 define('templating/parser', ['module'], function (module) {
   'use strict';
@@ -18,191 +18,122 @@ define('templating/parser', ['module'], function (module) {
   var srcMap = {};
   var idToSrc = {};
   var masterConfig = module.config && module.config() || {};
-  var fs;
+  var loadDependencies;
 
-  template = {
-    /**
-     * Parses a resource name into its component parts. Resource names
-     * look like: module/name.ext
-     * @param {String} name the resource name
-     * @returns {Object} with properties "moduleName", "ext".
-     */
-    parseName: function parseName(name) {
-      var modName,
-          ext,
-          temp,
-          index = name.indexOf('.'),
-          isRelative = name.indexOf('./') === 0 || name.indexOf('../') === 0;
+  function traverse(o, func) {
+    for (var i in o) {
+      func.apply(this, [i, o[i]]);
+      if (o[i] !== null && _typeof(o[i]) == "object") {
+        traverse(o[i], func);
+      }
+    }
+  }
 
-      if (index !== -1 && (!isRelative || index > 1)) {
-        modName = name.substring(0, index);
-        ext = name.substring(index + 1, name.length);
+  function sourceMap(jsObject) {
+    var map = {};
+    traverse(jsObject, function (key, value) {
+      if (key == 'data' && value.src) {
+        map[value.src] = map[value.src] || [];
+        map[value.src].push(value);
+      }
+    });
+    return map;
+  }
+
+  /**
+   * Parses a resource name into its component parts. Resource names
+   * look like: module/name.ext
+   * @param {String} name the resource name
+   * @returns {Object} with properties "moduleName", "ext".
+   */
+  function parseName(name) {
+    var modName,
+        ext,
+        temp,
+        index = name.indexOf('.'),
+        isRelative = name.indexOf('./') === 0 || name.indexOf('../') === 0;
+
+    if (index !== -1 && (!isRelative || index > 1)) {
+      modName = name.substring(0, index);
+      ext = name.substring(index + 1, name.length);
+    } else {
+      modName = name;
+    }
+
+    temp = ext || modName;
+    index = temp.indexOf('!');
+    if (index !== -1) {
+      temp = temp.substring(0, index);
+      if (ext) {
+        ext = temp;
       } else {
-        modName = name;
-      }
-
-      temp = ext || modName;
-      index = temp.indexOf('!');
-      if (index !== -1) {
-        temp = temp.substring(0, index);
-        if (ext) {
-          ext = temp;
-        } else {
-          modName = temp;
-        }
-      }
-
-      return {
-        moduleName: modName,
-        ext: ext
-      };
-    },
-
-    traverse: function traverse(o, func) {
-      for (var i in o) {
-        func.apply(this, [i, o[i]]);
-        if (o[i] !== null && _typeof(o[i]) == "object") {
-          template.traverse(o[i], func);
-        }
-      }
-    },
-
-    finishLoad: function finishLoad(name, content, onLoad, req) {
-
-      function handler(Coder) {
-        //var domParser = new DOMParser(content);
-        var coder = new Coder(content);
-        var jsObject = coder.run(req.toUrl('./'));
-        var map = {};
-        var src;
-
-        template.traverse(jsObject, function (key, value) {
-          if (key == 'data' && value.src) {
-            map[value.src] = map[value.src] || [];
-            map[value.src].push(value);
-          }
-        });
-
-        srcMap[name] = map;
-
-        var sources = Object.keys(map);
-        req(sources, function () {
-          if (masterConfig.isBuild) {
-            idToSrc[name] = {};
-
-            for (src in map) {
-              var id = Math.random();
-              map[src].forEach(function (value) {
-                value.src = id;
-              });
-              idToSrc[name][id] = src;
-            }
-
-            buildMap[name] = jsObject;
-          } else {
-            for (src in map) {
-              var obj = arguments[sources.indexOf(src)];
-              map[src].forEach(function (value) {
-                value.src = obj;
-              });
-            }
-          }
-          onLoad(jsObject);
-        });
-      }
-
-      var paths = {
-        //DOMParser: 'templating/DOMParser',
-        Coder: 'templating/Coder'
-      };
-
-      if (masterConfig.isBuild) {
-        //var DOMParser = require.nodeRequire(require.toUrl(paths.DOMParser));
-        var Coder = require.nodeRequire(require.toUrl(paths.Coder));
-
-        masterConfig.templateCoders.forEach(function (coder) {
-          Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
-        });
-        handler(Coder);
-      } else {
-        require([paths.Coder].concat(masterConfig.templateCoders), handler);
-      }
-    },
-
-    load: function load(name, req, onLoad, config) {
-
-      masterConfig.isBuild = config && config.isBuild;
-      if (config) {
-        masterConfig.templateCoders = config.templateCoders || [];
-        masterConfig.templateDecoders = config.templateDecoders || [];
-      }
-
-      //Name has format: some.module.filext
-      var parsed = template.parseName(name);
-      var nonStripName = parsed.moduleName + (parsed.ext ? '.' + parsed.ext : '');
-      var url = req.toUrl(nonStripName);
-
-      // Do not load if it is an empty: url
-      if (url.indexOf('empty:') === 0) {
-        onLoad();
-        return;
-      }
-
-      //Load the template
-      template.get(url, function (content) {
-        req(masterConfig.templateDecoders, function () {
-          template.finishLoad(name, content, onLoad, req);
-        });
-      }, function (err) {
-        if (onLoad.error) {
-          onLoad.error(err);
-        }
-      });
-    },
-
-    write: function write(pluginName, moduleName, _write, config) {
-      if (buildMap.hasOwnProperty(moduleName)) {
-        var content = JSON.stringify(buildMap[moduleName]);
-
-        var map = idToSrc[moduleName];
-        var ids = Object.keys(map);
-        var sources = [];
-        ids.forEach(function (id, i) {
-          var re = new RegExp(id, 'g');
-          content = content.replace(re, 'arguments[' + i + ']');
-          sources.push(map[id]);
-        });
-        var dependencies = sources.concat(masterConfig.templateDecoders);
-
-        _write.asModule(pluginName + '!' + moduleName, "define(" + JSON.stringify(dependencies) + ", function () { return " + content + ";});\n");
+        modName = temp;
       }
     }
 
-  };
+    return {
+      moduleName: modName,
+      ext: ext
+    };
+  }
+
+  function finishLoad(Coder, content, name, onLoad, req) {
+    var coder = new Coder(content),
+        jsObject = buildMap[name] = coder.run(req.toUrl('./')),
+        map = srcMap[name] = sourceMap(jsObject),
+        sources = Object.keys(map);
+
+    req(sources, function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      if (masterConfig.isBuild) {
+        idToSrc[name] = {};
+        sources.forEach(function (src) {
+          var id = Math.random();
+          map[src].forEach(function (value) {
+            value.src = id;
+          });
+
+          idToSrc[name][id] = src;
+        });
+      } else {
+        sources.forEach(function (src, index) {
+          var obj = args[index];
+          map[src].forEach(function (value) {
+            value.src = obj;
+          });
+        });
+      }
+      onLoad(jsObject);
+    });
+  }
 
   if (masterConfig.env === 'node' || !masterConfig.env && typeof process !== 'undefined' && process.versions && !!process.versions.node && !process.versions['node-webkit']) {
-    //Using special require.nodeRequire, something added by r.js.
-    fs = require.nodeRequire('fs');
+    (function () {
+      //Using special require.nodeRequire, something added by r.js.
+      var fs = require.nodeRequire('fs');
 
-    template.get = function (url, callback, errback) {
-      try {
-        var file = fs.readFileSync(url, 'utf8');
-        //Remove BOM (Byte Mark Order) from utf8 files if it is there.
-        if (file.indexOf('﻿') === 0) {
-          file = file.substring(1);
+      loadDependencies = function loadDependencies(url, callback, errback) {
+        try {
+          var file = fs.readFileSync(url, 'utf8');
+          //Remove BOM (Byte Mark Order) from utf8 files if it is there.
+          if (file.indexOf('﻿') === 0) {
+            file = file.substring(1);
+          }
+          callback(file);
+        } catch (e) {
+          if (errback) {
+            errback(e);
+          }
         }
-        callback(file);
-      } catch (e) {
-        if (errback) {
-          errback(e);
-        }
-      }
-    };
+      };
+    })();
   } else if (masterConfig.env === 'xhr' || !masterConfig.env) {
-    template.get = function (url, callback, errback, headers) {
-      var xhr = new XMLHttpRequest();
-      var header;
-
+    loadDependencies = function loadDependencies(url, callback, errback, headers) {
+      var xhr = new XMLHttpRequest(),
+          header = undefined;
       xhr.open('GET', url, true);
 
       //Allow plugins direct access to xhr headers
@@ -245,7 +176,69 @@ define('templating/parser', ['module'], function (module) {
     };
   }
 
-  return template;
+  return {
+    load: function load(name, req, onLoad, config) {
+      masterConfig.isBuild = config && config.isBuild;
+      if (config) {
+        masterConfig.templateCoders = config.templateCoders || [];
+        masterConfig.templateDecoders = config.templateDecoders || [];
+      }
+
+      //Name has format: some.module.filext
+      var paths = {
+        Coder: 'templating/Coder'
+      },
+          parsed = parseName(name),
+          nonStripName = parsed.moduleName + (parsed.ext ? '.' + parsed.ext : ''),
+          url = req.toUrl(nonStripName);
+
+      // Do not load if it is an empty: url
+      if (url.indexOf('empty:') === 0) {
+        onLoad();
+        return;
+      }
+
+      loadDependencies(url, function (content) {
+        if (masterConfig.isBuild) {
+          (function () {
+            var Coder = require.nodeRequire(require.toUrl(paths.Coder));
+            masterConfig.templateCoders.forEach(function (coder) {
+              Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
+            });
+            finishLoad(Coder, content, name, onLoad, req);
+          })();
+        } else {
+          req([paths.Coder].concat(_toConsumableArray(masterConfig.templateCoders), _toConsumableArray(masterConfig.templateDecoders)), function (Coder) {
+            finishLoad(Coder, content, name, onLoad, req);
+          });
+        }
+      }, function (err) {
+        if (onLoad.error) {
+          onLoad.error(err);
+        }
+      });
+    },
+    write: function write(pluginName, moduleName, _write) {
+
+      if (buildMap.hasOwnProperty(moduleName)) {
+        (function () {
+          var content = JSON.stringify(buildMap[moduleName]),
+              map = idToSrc[moduleName],
+              ids = Object.keys(map),
+              sources = [];
+          ids.forEach(function (id, i) {
+            var re = new RegExp(id, 'g');
+            content = content.replace(re, 'arguments[' + i + ']');
+            sources.push(map[id]);
+          });
+
+          var dependencies = sources.concat(masterConfig.templateDecoders);
+
+          _write.asModule(pluginName + '!' + moduleName, "define(" + JSON.stringify(dependencies) + ", function () { return " + content + ";});\n");
+        })();
+      }
+    }
+  };
 });
 (function (f) {
   if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === "object" && typeof module !== "undefined") {
@@ -8638,8 +8631,8 @@ define('templating/dom', [], function () {
     //      @param {Object} context
     //      @return {Object} { remove() }
     on: function on(element, ev, cb, context) {
-      for (var _len = arguments.length, args = Array(_len > 4 ? _len - 4 : 0), _key = 4; _key < _len; _key++) {
-        args[_key - 4] = arguments[_key];
+      for (var _len2 = arguments.length, args = Array(_len2 > 4 ? _len2 - 4 : 0), _key2 = 4; _key2 < _len2; _key2++) {
+        args[_key2 - 4] = arguments[_key2];
       }
 
       var _this5 = this;

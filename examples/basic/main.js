@@ -28,7 +28,9 @@ require({
     cb(function run() {
         require(['App'], function (App) {
         })
-    }, ['Map', 'Set', 'Symbol'])
+    },
+        //Add there list of es6 feature you yse, for checking if need polyfill.
+        ['Map', 'Set', 'Symbol'])
 
 
 });

@@ -174,28 +174,31 @@ module.exports = function (grunt) {
                         'templating/less': '../../node_modules/less/dist/less'
 
                     },
-                    exclude:          [
-                        'coders/component/cpCoder',
-                        'coders/component/cpDecoder',
-                        'coders/placeholders/plCoder',
-                        'coders/placeholders/plDecoder',
-                        'coders/databind/bdDecoder',
-                        'coders/databind/bdCoder',
-                        'coders/style/styleCoder',
-                        'coders/style/styleDecoder',
-                        'coders/router/routerCoder',
-                        'coders/router/routerDecoder',
-                        'templating/Coder',
-                        'templating/Decoder'
-
-                    ],
                     dir:              'target/es6/basic',
                     modules:          [
                         {
-                            name: 'App'
+                            name:    'App',
+                            exclude: [
+                                'coders/component/cpCoder',
+                                'coders/component/cpDecoder',
+                                'coders/placeholders/plCoder',
+                                'coders/placeholders/plDecoder',
+                                'coders/databind/bdDecoder',
+                                'coders/databind/bdCoder',
+                                'coders/style/styleCoder',
+                                'coders/style/styleDecoder',
+                                'coders/router/routerCoder',
+                                'coders/router/routerDecoder',
+                                'templating/Coder',
+                                'templating/Decoder'
+
+                            ]
                         },
                         {
                             name: 'main'
+                        },
+                        {
+                            name: 'template'
                         },
                         {
                             name: 'babel/polyfill'
@@ -342,9 +345,10 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-exec');
     grunt.loadNpmTasks('grunt-bump');
 
+    grunt.registerTask('test', ['connect', 'mocha_phantomjs']);
     grunt.registerTask('basic', ['requirejs:example', 'clean:basic', 'copy:basicProd', 'babel:basic']);//, 'connect', 'mocha_phantomjs']);
     grunt.registerTask('reqTemplate', ['requirejs:dev', 'requirejs:prod']);
-    grunt.registerTask('default', ['clean:all', 'exec:browserify', 'reqTemplate', 'copy:es6', 'babel:dev', 'babel:prod', 'copy:es5', 'basic', 'uglify']);
+    grunt.registerTask('default', ['clean:all', 'exec:browserify', 'reqTemplate', 'copy:es6', 'babel:dev', 'babel:prod', 'copy:es5', 'basic', 'uglify', 'test']);
     grunt.registerTask('publish', ['default', 'bump', 'exec:publish']);
 
 };

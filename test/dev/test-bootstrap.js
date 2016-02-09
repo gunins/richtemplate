@@ -34,11 +34,42 @@ if (Function.prototype.bind === undefined) {
         }
     })();
 }
+
+function testGlobal(method) {
+    return this[method] === undefined;
+}
+function testEs6(done, methods) {
+    var global = this;
+    if (methods.filter(testGlobal.bind(global)).length > 0) {
+        require(['babel/polyfill'], function () {
+            done();
+        });
+    } else {
+        done();
+    }
+};
+
+var check = function () {
+    'use strict';
+
+    if (typeof Symbol == 'undefined') return false;
+    try {
+        eval('class Foo {}');
+        eval('var bar = (x) => x+1');
+    } catch (e) {
+        return false;
+    }
+
+    return true;
+}();
+
+var target = check ? 'es6' : 'es5'
 require.config({
-    baseUrl: '../../dist/dev',
-    templateCoders: [
+    baseUrl:          '../../dist/' + target + '/dev/',
+    templateCoders:   [
         'coders/component/CpCoder',
         'coders/placeholders/plCoder',
+        'coders/databind/bdCoder',
         'coders/router/RouterCoder',
         'coders/style/styleCoder'
 
@@ -46,27 +77,31 @@ require.config({
     templateDecoders: [
         'coders/component/CpDecoder',
         'coders/placeholders/plDecoder',
+        'coders/databind/bdDecoder',
         'coders/router/RouterDecoder',
         'coders/style/styleDecoder'
     ],
-    paths: {
-        test: '../../test/dev',
-        examples: '../../examples',
-        chai: "../../node_modules/chai/chai"
+    paths:            {
+        test:  '../../../test/dev',
+        template: '../../../target/'+target+'/basic/template',
+        'babel/polyfill':'../../../target/'+target+'/basic/babel/polyfill',
+        chai:  "../../../node_modules/chai/chai"
     }
 });
-
 mocha.ui('bdd');
+testEs6(function run() {
+        require([
+            'test/templateTest'
+        ], function () {
 
-require([
-    'test/templateTest'
-], function () {
+            if (window.mochaPhantomJS) {
+                window.mochaPhantomJS.run();
+            }
+            else {
+                mocha.run();
+            }
 
-    if (window.mochaPhantomJS) {
-        window.mochaPhantomJS.run();
-    }
-    else {
-        mocha.run();
-    }
-
-});
+        });
+    },
+    //Add there list of es6 feature you yse, for checking if need polyfill.
+    ['Map', 'Set', 'Symbol'])
