@@ -1,7 +1,6 @@
 define('templating/parser',['module'], function (module) {
     'use strict';
 
-    var template;
     var buildMap = {};
     var srcMap = {};
     var idToSrc = {};
@@ -18,7 +17,7 @@ define('templating/parser',['module'], function (module) {
     }
 
     function sourceMap(jsObject) {
-        var map = {}
+        let map = {}
         traverse(jsObject, function (key, value) {
             if (key == 'data' && value.src) {
                 map[value.src] = map[value.src] || [];
@@ -35,7 +34,7 @@ define('templating/parser',['module'], function (module) {
      * @returns {Object} with properties "moduleName", "ext".
      */
     function parseName(name) {
-        var modName, ext, temp,
+        let modName, ext, temp,
             index = name.indexOf('.'),
             isRelative = name.indexOf('./') === 0 ||
                 name.indexOf('../') === 0;
@@ -65,7 +64,7 @@ define('templating/parser',['module'], function (module) {
     }
 
     function finishLoad(Coder, content, name, onLoad, req) {
-        var coder = new Coder(content),
+        let coder = new Coder(content),
             jsObject = buildMap[name] = coder.run(req.toUrl('./')),
             map = srcMap[name] = sourceMap(jsObject),
             sources = Object.keys(map);
@@ -134,7 +133,7 @@ define('templating/parser',['module'], function (module) {
             }
 
             xhr.onreadystatechange = function () {
-                var status, err;
+                let status, err;
                 //Do not explicitly handle errors, those should be
                 //visible via console output in the browser.
                 if (xhr.readyState === 4) {
@@ -8310,7 +8309,7 @@ module.exports = {
 
     function setDataFromAttributes(attributes) {
         //TODO: rename dataset tu camel case
-        var dataset = {},
+        var data = {},
             tplSet = {},
             attribs = {};
 
@@ -8318,18 +8317,18 @@ module.exports = {
             let subKeys = key.split('-'),
                 attrib = attributes[key];
             if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
-                let data = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
+                let attr = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
                 if (subKeys[0] === 'data') {
-                    dataset[subKeys[1]] = data;
+                    data[subKeys[1]] = attr;
                 } else {
-                    tplSet[subKeys[1]] = data;
+                    tplSet[subKeys[1]] = attr;
                 }
             } else {
                 attribs[key] = attrib;
             }
         });
         return {
-            dataset, tplSet, attribs
+            data, tplSet, attribs
         }
 
     }
@@ -8462,7 +8461,6 @@ module.exports = {
             var nodeContext = this._prepareChild(el),
                 context = [],
                 childEl = nodeContext.getChildrenElements();
-
             if (childEl && childEl.length > 0) {
                 childEl.forEach((child) => {
                     let children = this._parseChildren(child);
@@ -8640,8 +8638,8 @@ define('templating/dom',[],function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
-                    this.dataset = data.dataset;
+                if (data.data) {
+                    this.data = data.data;
                 }
             }
         };
@@ -8728,7 +8726,8 @@ define('templating/dom',[],function () {
         remove() {
             dom.remove(this);
         };
-    };
+    }
+    ;
 
     var dom = {
         //Removing element from DOM
@@ -8946,13 +8945,14 @@ define('templating/dom',[],function () {
         //      @param {function} context
         onDOMAttached:   function (el) {
             let handlers = [],
-                attached = false;
+                attached = false,
+                step;
 
             if (el.el !== undefined) {
-                var step = () => {
+                step = () => {
                     if (attached) {
                         while (handlers.length > 0) {
-                           handlers.shift()();
+                            handlers.shift()();
                         }
                     } else {
                         window.requestAnimationFrame(step);

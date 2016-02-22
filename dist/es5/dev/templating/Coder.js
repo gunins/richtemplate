@@ -74,7 +74,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 var nodeContext = this._prepareChild(el),
                     context = [],
                     childEl = nodeContext.getChildrenElements();
-
                 if (childEl && childEl.length > 0) {
                     childEl.forEach(function (child) {
                         var children = _this._parseChildren(child);

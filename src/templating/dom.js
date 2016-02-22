@@ -30,8 +30,8 @@ define(function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
-                    this.dataset = data.dataset;
+                if (data.data) {
+                    this.data = data.data;
                 }
             }
         };

@@ -13,7 +13,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 define('templating/parser', ['module'], function (module) {
   'use strict';
 
-  var template;
   var buildMap = {};
   var srcMap = {};
   var idToSrc = {};
@@ -47,9 +46,9 @@ define('templating/parser', ['module'], function (module) {
    * @returns {Object} with properties "moduleName", "ext".
    */
   function parseName(name) {
-    var modName,
-        ext,
-        temp,
+    var modName = undefined,
+        ext = undefined,
+        temp = undefined,
         index = name.indexOf('.'),
         isRelative = name.indexOf('./') === 0 || name.indexOf('../') === 0;
 
@@ -151,7 +150,8 @@ define('templating/parser', ['module'], function (module) {
       }
 
       xhr.onreadystatechange = function () {
-        var status, err;
+        var status = undefined,
+            err = undefined;
         //Do not explicitly handle errors, those should be
         //visible via console output in the browser.
         if (xhr.readyState === 4) {
@@ -7955,7 +7955,7 @@ define('templating/parser', ['module'], function (module) {
 
   function setDataFromAttributes(attributes) {
     //TODO: rename dataset tu camel case
-    var dataset = {},
+    var data = {},
         tplSet = {},
         attribs = {};
 
@@ -7963,18 +7963,18 @@ define('templating/parser', ['module'], function (module) {
       var subKeys = key.split('-'),
           attrib = attributes[key];
       if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
-        var data = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
+        var attr = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
         if (subKeys[0] === 'data') {
-          dataset[subKeys[1]] = data;
+          data[subKeys[1]] = attr;
         } else {
-          tplSet[subKeys[1]] = data;
+          tplSet[subKeys[1]] = attr;
         }
       } else {
         attribs[key] = attrib;
       }
     });
     return {
-      dataset: dataset, tplSet: tplSet, attribs: attribs
+      data: data, tplSet: tplSet, attribs: attribs
     };
   }
 
@@ -8117,7 +8117,6 @@ define('templating/parser', ['module'], function (module) {
         var nodeContext = this._prepareChild(el),
             context = [],
             childEl = nodeContext.getChildrenElements();
-
         if (childEl && childEl.length > 0) {
           childEl.forEach(function (child) {
             var children = _this3._parseChildren(child);
@@ -8330,8 +8329,8 @@ define('templating/dom', [], function () {
         if (data.bind) {
           this.bind = data.bind;
         }
-        if (data.dataset) {
-          this.dataset = data.dataset;
+        if (data.data) {
+          this.data = data.data;
         }
       }
     }
@@ -8684,16 +8683,17 @@ define('templating/dom', [], function () {
       var _this6 = this;
 
       var handlers = [],
-          attached = false;
+          attached = false,
+          _step = undefined;
 
       if (el.el !== undefined) {
-        var step = function step() {
+        _step = function step() {
           if (attached) {
             while (handlers.length > 0) {
               handlers.shift()();
             }
           } else {
-            window.requestAnimationFrame(step);
+            window.requestAnimationFrame(_step);
             if (document.body.contains(el.el)) {
               attached = true;
             }
@@ -8703,7 +8703,7 @@ define('templating/dom', [], function () {
       return {
         then: function then(cb, context) {
           handlers.push(cb.bind(context || _this6));
-          window.requestAnimationFrame(step);
+          window.requestAnimationFrame(_step);
         }
       };
     },

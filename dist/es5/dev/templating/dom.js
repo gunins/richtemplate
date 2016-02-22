@@ -41,8 +41,8 @@ define(function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
-                    this.dataset = data.dataset;
+                if (data.data) {
+                    this.data = data.data;
                 }
             }
         }
@@ -395,16 +395,17 @@ define(function () {
             var _this2 = this;
 
             var handlers = [],
-                attached = false;
+                attached = false,
+                _step = undefined;
 
             if (el.el !== undefined) {
-                var step = function step() {
+                _step = function step() {
                     if (attached) {
                         while (handlers.length > 0) {
                             handlers.shift()();
                         }
                     } else {
-                        window.requestAnimationFrame(step);
+                        window.requestAnimationFrame(_step);
                         if (document.body.contains(el.el)) {
                             attached = true;
                         }
@@ -414,7 +415,7 @@ define(function () {
             return {
                 then: function then(cb, context) {
                     handlers.push(cb.bind(context || _this2));
-                    window.requestAnimationFrame(step);
+                    window.requestAnimationFrame(_step);
                 }
             };
         },

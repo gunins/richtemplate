@@ -53,7 +53,6 @@
             var nodeContext = this._prepareChild(el),
                 context = [],
                 childEl = nodeContext.getChildrenElements();
-
             if (childEl && childEl.length > 0) {
                 childEl.forEach((child) => {
                     let children = this._parseChildren(child);

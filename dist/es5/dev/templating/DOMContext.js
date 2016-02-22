@@ -22,7 +22,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
     function setDataFromAttributes(attributes) {
         //TODO: rename dataset tu camel case
-        var dataset = {},
+        var data = {},
             tplSet = {},
             attribs = {};
 
@@ -30,18 +30,18 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             var subKeys = key.split('-'),
                 attrib = attributes[key];
             if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
-                var data = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
+                var attr = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
                 if (subKeys[0] === 'data') {
-                    dataset[subKeys[1]] = data;
+                    data[subKeys[1]] = attr;
                 } else {
-                    tplSet[subKeys[1]] = data;
+                    tplSet[subKeys[1]] = attr;
                 }
             } else {
                 attribs[key] = attrib;
             }
         });
         return {
-            dataset: dataset, tplSet: tplSet, attribs: attribs
+            data: data, tplSet: tplSet, attribs: attribs
         };
     }
 

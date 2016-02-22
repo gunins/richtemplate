@@ -104,8 +104,8 @@ define('templating/dom',[],function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
-                    this.dataset = data.dataset;
+                if (data.data) {
+                    this.data = data.data;
                 }
             }
         };
@@ -192,7 +192,8 @@ define('templating/dom',[],function () {
         remove() {
             dom.remove(this);
         };
-    };
+    }
+    ;
 
     var dom = {
         //Removing element from DOM
@@ -410,13 +411,14 @@ define('templating/dom',[],function () {
         //      @param {function} context
         onDOMAttached:   function (el) {
             let handlers = [],
-                attached = false;
+                attached = false,
+                step;
 
             if (el.el !== undefined) {
-                var step = () => {
+                step = () => {
                     if (attached) {
                         while (handlers.length > 0) {
-                           handlers.shift()();
+                            handlers.shift()();
                         }
                     } else {
                         window.requestAnimationFrame(step);
@@ -720,13 +722,13 @@ define('templating/dom',[],function () {
                 name:    data.name,
                 replace: true,
                 tmpEl:   function (placeholder, obj, children, node) {
-                    var instance = new data.src(data.dataset, children, obj, node);
+                    var instance = new data.src(data.data, children, obj, node);
                     return instance;
                 },
                 data:    data || {}
             };
-            if (data.dataset.bind !== undefined) {
-                response.bind = data.dataset.bind;
+            if (data.data.bind !== undefined) {
+                response.bind = data.data.bind;
             }
             return response;
         }

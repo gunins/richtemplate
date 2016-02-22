@@ -22,13 +22,13 @@
                 name:    data.name,
                 replace: true,
                 tmpEl:   function (placeholder, obj, children, node) {
-                    var instance = new data.src(data.dataset, children, obj, node);
+                    var instance = new data.src(data.data, children, obj, node);
                     return instance;
                 },
                 data:    data || {}
             };
-            if (data.dataset.bind !== undefined) {
-                response.bind = data.dataset.bind;
+            if (data.data.bind !== undefined) {
+                response.bind = data.data.bind;
             }
             return response;
         }

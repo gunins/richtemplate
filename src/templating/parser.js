@@ -1,7 +1,6 @@
 define(['module'], function (module) {
     'use strict';
 
-    var template;
     var buildMap = {};
     var srcMap = {};
     var idToSrc = {};
@@ -18,7 +17,7 @@ define(['module'], function (module) {
     }
 
     function sourceMap(jsObject) {
-        var map = {}
+        let map = {}
         traverse(jsObject, function (key, value) {
             if (key == 'data' && value.src) {
                 map[value.src] = map[value.src] || [];
@@ -35,7 +34,7 @@ define(['module'], function (module) {
      * @returns {Object} with properties "moduleName", "ext".
      */
     function parseName(name) {
-        var modName, ext, temp,
+        let modName, ext, temp,
             index = name.indexOf('.'),
             isRelative = name.indexOf('./') === 0 ||
                 name.indexOf('../') === 0;
@@ -65,7 +64,7 @@ define(['module'], function (module) {
     }
 
     function finishLoad(Coder, content, name, onLoad, req) {
-        var coder = new Coder(content),
+        let coder = new Coder(content),
             jsObject = buildMap[name] = coder.run(req.toUrl('./')),
             map = srcMap[name] = sourceMap(jsObject),
             sources = Object.keys(map);
@@ -134,7 +133,7 @@ define(['module'], function (module) {
             }
 
             xhr.onreadystatechange = function () {
-                var status, err;
+                let status, err;
                 //Do not explicitly handle errors, those should be
                 //visible via console output in the browser.
                 if (xhr.readyState === 4) {

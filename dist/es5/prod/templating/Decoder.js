@@ -141,8 +141,8 @@ define('templating/dom', [], function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
-                    this.dataset = data.dataset;
+                if (data.data) {
+                    this.data = data.data;
                 }
             }
         }
@@ -495,16 +495,17 @@ define('templating/dom', [], function () {
             var _this3 = this;
 
             var handlers = [],
-                attached = false;
+                attached = false,
+                _step = undefined;
 
             if (el.el !== undefined) {
-                var step = function step() {
+                _step = function step() {
                     if (attached) {
                         while (handlers.length > 0) {
                             handlers.shift()();
                         }
                     } else {
-                        window.requestAnimationFrame(step);
+                        window.requestAnimationFrame(_step);
                         if (document.body.contains(el.el)) {
                             attached = true;
                         }
@@ -514,7 +515,7 @@ define('templating/dom', [], function () {
             return {
                 then: function then(cb, context) {
                     handlers.push(cb.bind(context || _this3));
-                    window.requestAnimationFrame(step);
+                    window.requestAnimationFrame(_step);
                 }
             };
         },
@@ -827,13 +828,13 @@ define('templating/dom', [], function () {
                 name: data.name,
                 replace: true,
                 tmpEl: function tmpEl(placeholder, obj, children, node) {
-                    var instance = new data.src(data.dataset, children, obj, node);
+                    var instance = new data.src(data.data, children, obj, node);
                     return instance;
                 },
                 data: data || {}
             };
-            if (data.dataset.bind !== undefined) {
-                response.bind = data.dataset.bind;
+            if (data.data.bind !== undefined) {
+                response.bind = data.data.bind;
             }
             return response;
         }
