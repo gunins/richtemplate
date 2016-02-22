@@ -8928,8 +8928,7 @@ define('templating/dom',[],function () {
         //      @param {dom.Element}
         remove:          function (el) {
             while (el._events.length > 0) {
-                el._events[0].remove();
-                el._events.shift();
+                el._events.shift().remove();
             }
             if (el.el !== undefined) {
                 if (el.el.remove) {
@@ -8953,9 +8952,7 @@ define('templating/dom',[],function () {
                 var step = () => {
                     if (attached) {
                         while (handlers.length > 0) {
-                            let handler = handlers[0];
-                            handler();
-                            handlers.shift()
+                           handlers.shift()();
                         }
                     } else {
                         window.requestAnimationFrame(step);

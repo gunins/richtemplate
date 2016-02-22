@@ -118,7 +118,8 @@ define(function () {
         remove() {
             dom.remove(this);
         };
-    };
+    }
+    ;
 
     var dom = {
         //Removing element from DOM
@@ -318,8 +319,7 @@ define(function () {
         //      @param {dom.Element}
         remove:          function (el) {
             while (el._events.length > 0) {
-                el._events[0].remove();
-                el._events.shift();
+                el._events.shift().remove();
             }
             if (el.el !== undefined) {
                 if (el.el.remove) {
@@ -337,15 +337,14 @@ define(function () {
         //      @param {function} context
         onDOMAttached:   function (el) {
             let handlers = [],
-                attached = false;
+                attached = false,
+                step;
 
             if (el.el !== undefined) {
-                var step = () => {
+                step = () => {
                     if (attached) {
                         while (handlers.length > 0) {
-                            let handler = handlers[0];
-                            handler();
-                            handlers.shift()
+                            handlers.shift()();
                         }
                     } else {
                         window.requestAnimationFrame(step);
