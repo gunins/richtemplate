@@ -79,9 +79,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         var children = _this._parseChildren(child);
                         if (children.parsed) {
                             context.push(children.parsed);
-                            if (!children.parsed.tagName) {
-                                context = [].concat(_toConsumableArray(context), _toConsumableArray(children.context));
-                            }
+                        }
+                        if (!children.parsed || !children.parsed.tagName) {
+                            context = [].concat(_toConsumableArray(context), _toConsumableArray(children.context));
                         }
                     });
                 }
@@ -90,7 +90,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 if (parsed && parsed.tagName) {
                     parsed.children = context;
                 }
-
                 return { context: context, parsed: parsed };
             }
         }, {

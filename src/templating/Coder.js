@@ -58,9 +58,9 @@
                     let children = this._parseChildren(child);
                     if (children.parsed) {
                         context.push(children.parsed);
-                        if (!children.parsed.tagName) {
-                            context = [...context, ...children.context];
-                        }
+                    }
+                    if (!children.parsed || !children.parsed.tagName) {
+                        context = [...context, ...children.context];
                     }
                 });
             }
@@ -69,7 +69,6 @@
             if (parsed && parsed.tagName) {
                 parsed.children = context;
             }
-
             return {context, parsed};
         }
 

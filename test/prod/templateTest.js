@@ -29,18 +29,19 @@ define([
 
             it('third children should be a Component', function () {
                 var children = template.children[3];
+
                 expect(children.data.type).to.equal('cp');
                 expect(children.data.src).to.be.a('function');
                 expect(children.children.length).to.equal(2);
-                expect(children.data.dataset.test).to.equal('test');
+                expect(children.data.data.test).to.equal('test');
             });
             it('Seventh children should be a placeHolder', function () {
                 var children = template.children[6];
                 var data = children.data;
                 expect(data.name).to.equal('footer');
                 expect(data.type).to.equal('pl');
-                expect(data.dataset.size).to.equal('34');
-                expect(data.dataset.item).to.equal('test item');
+                expect(data.data.size).to.equal('34');
+                expect(data.data.item).to.equal('test item');
 
             });
         });
@@ -49,7 +50,7 @@ define([
             it('If Decoder is parsed correctly', function () {
                 var root = decoder._root,
                     templateId = root.templateId,
-                    template = '<div class=\"'+templateId+'\">\n    \n    <h2 class=\"'+templateId+' header\" id=\"e21\">RootElement <span class=\"'+templateId+' label\" id=\"e20\">Label</span></h2>\n    \n\n\n    <div id=\"e24\"></div>\n    \n    <div id=\"e30\"></div>\n    <div id=\"e31\"></div>\n</div>';
+                    template = '<div class=\"'+templateId+'\">\n    \n    <h2 class=\"'+templateId+' header\" id=\"e21\">RootElement <span class=\"'+templateId+' label\" id=\"e20\">Label</span></h2>\n    \n\n    <div class=\"'+templateId+'\"><div id=\"e24\"></div></div>\n\n    \n    <div id=\"e30\"></div>\n    <div id=\"e31\"></div>\n</div>';
                 expect(root.template).to.equal(template);
                 expect(root.children.length).to.equal(7);
             });
@@ -59,7 +60,7 @@ define([
                     footer = children.footer.elGroup.getValueByIndex(0),
                     testthing = children.testthing.elGroup.getValueByIndex(0);
 
-                expect(footer.dataset).to.deep.equal({item: 'test item', size: '34'});
+                expect(footer.data).to.deep.equal({item: 'test item', size: '34'});
                 expect(footer._node.data.type).to.equal('pl');
                 expect(footer.el).to.be.instanceof(HTMLElement);
 
@@ -73,8 +74,8 @@ define([
                     footer = context.children.footer.elGroup.getValueByIndex(0),
                     templateId = decoder._root.templateId,
                     els = Array.prototype.slice.call(context.fragment.querySelectorAll('.' + templateId));
-                expect(els.length).to.equal(3);
-                expect(els.indexOf(footer.el)).to.equal(2);
+                expect(els.length).to.equal(4);
+                expect(els.indexOf(footer.el)).to.equal(3);
             });
             it('if multiple templates are rendered and they not use same elements', function () {
                 var templateId = template.templateId,
@@ -85,8 +86,8 @@ define([
 
                 expect(contextA).not.to.equal(context);
                 expect(els.length).to.equal(elsA.length);
-                expect(els.length).to.equal(3);
-                expect(elsA.length).to.equal(3);
+                expect(els.length).to.equal(4);
+                expect(elsA.length).to.equal(4);
                 els.forEach(function (el) {
                     expect(elsA.indexOf(el)).to.equal(-1);
                 })

@@ -66,14 +66,6 @@ var check = function () {
 var target = check ? 'es6' : 'es5'
 require.config({
     baseUrl:          '../../dist/' + target + '/prod/',
-    templateCoders:   [
-        'coders/component/CpCoder',
-        'coders/placeholders/plCoder',
-        'coders/databind/bdCoder',
-        'coders/router/RouterCoder',
-        'coders/style/styleCoder'
-
-    ],
     templateDecoders: [
         'coders/component/CpDecoder',
         'coders/placeholders/plDecoder',
@@ -82,10 +74,15 @@ require.config({
         'coders/style/styleDecoder'
     ],
     paths:            {
-        test:  '../../../test/dev',
-        template: '../../../target/'+target+'/basic/template',
-        'babel/polyfill':'../../../target/'+target+'/basic/babel/polyfill',
-        chai:  "../../../node_modules/chai/chai"
+        test:             '../../../test/prod',
+        template:         '../../../target/' + target + '/basic/template',
+        'babel/polyfill': '../../../target/' + target + '/basic/babel/polyfill',
+        chai:             "../../../node_modules/chai/chai"
+    },
+    shim:             {
+        'template': {
+            deps: ['templating/Decoder']
+        }
     }
 });
 mocha.ui('bdd');

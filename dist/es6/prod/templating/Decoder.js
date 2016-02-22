@@ -95,11 +95,11 @@ define('templating/dom',[],function () {
     //     @param {Object} node
     class Element {
         constructor(el, node) {
-            let data = node.data;
+            this.el = el;
             this._events = [];
             this._node = node;
-            this.el = el;
             this.name = node.name;
+            let data = node.data;
             if (data) {
                 if (data.bind) {
                     this.bind = data.bind;

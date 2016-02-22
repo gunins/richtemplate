@@ -32,11 +32,11 @@ define(function () {
         function Element(el, node) {
             _classCallCheck(this, Element);
 
-            var data = node.data;
+            this.el = el;
             this._events = [];
             this._node = node;
-            this.el = el;
             this.name = node.name;
+            var data = node.data;
             if (data) {
                 if (data.bind) {
                     this.bind = data.bind;

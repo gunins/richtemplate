@@ -18,7 +18,7 @@ define([
             it('first children should be a Style', function () {
                 var children = template.children[0],
                     templateId = template.templateId,
-                    testStyle = 'div.'+templateId+'{margin:5px;padding:15px;border:2px solid green}.header.'+templateId+'{color:green}.header.'+templateId+':hover{color:#8b0000}table.'+templateId+'{width:100%}table td.'+templateId+'{padding:5px 10px;border:1px solid #ccc}.label.'+templateId+'{background:#ccc;border-radius:5px;font-size:.7em;color:#fff;padding:3px 10px;display:inline-block}';
+                    testStyle = 'div.' + templateId + '{margin:5px;padding:15px;border:2px solid green}.header.' + templateId + '{color:green}.header.' + templateId + ':hover{color:#8b0000}table.' + templateId + '{width:100%}table td.' + templateId + '{padding:5px 10px;border:1px solid #ccc}.label.' + templateId + '{background:#ccc;border-radius:5px;font-size:.7em;color:#fff;padding:3px 10px;display:inline-block}';
                 expect(children.data.style).to.equal(testStyle);
             });
             it('Second children should be a just selected element', function () {
@@ -49,7 +49,7 @@ define([
             it('If Decoder is parsed correctly', function () {
                 var root = decoder._root,
                     templateId = root.templateId,
-                    template = '<div class=\"'+templateId+'\">\n    \n    <h2 class=\"'+templateId+' header\" id=\"e21\">RootElement <span class=\"'+templateId+' label\" id=\"e20\">Label</span></h2>\n    \n\n\n    <div id=\"e24\"></div>\n    \n    <div id=\"e30\"></div>\n    <div id=\"e31\"></div>\n</div>';
+                    template = '<div class=\"'+templateId+'\">\n    \n    <h2 class=\"'+templateId+' header\" id=\"e21\">RootElement <span class=\"'+templateId+' label\" id=\"e20\">Label</span></h2>\n    \n\n    <div class=\"'+templateId+'\"><div id=\"e24\"></div></div>\n\n    \n    <div id=\"e30\"></div>\n    <div id=\"e31\"></div>\n</div>';
                 expect(root.template).to.equal(template);
                 expect(root.children.length).to.equal(7);
             });
@@ -73,8 +73,8 @@ define([
                     footer = context.children.footer.elGroup.getValueByIndex(0),
                     templateId = decoder._root.templateId,
                     els = Array.prototype.slice.call(context.fragment.querySelectorAll('.' + templateId));
-                expect(els.length).to.equal(3);
-                expect(els.indexOf(footer.el)).to.equal(2);
+                expect(els.length).to.equal(4);
+                expect(els.indexOf(footer.el)).to.equal(3);
             });
             it('if multiple templates are rendered and they not use same elements', function () {
                 var templateId = template.templateId,
@@ -85,8 +85,8 @@ define([
 
                 expect(contextA).not.to.equal(context);
                 expect(els.length).to.equal(elsA.length);
-                expect(els.length).to.equal(3);
-                expect(elsA.length).to.equal(3);
+                expect(els.length).to.equal(4);
+                expect(elsA.length).to.equal(4);
                 els.forEach(function (el) {
                     expect(elsA.indexOf(el)).to.equal(-1);
                 })
