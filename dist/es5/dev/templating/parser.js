@@ -7955,7 +7955,7 @@ define('templating/parser', ['module'], function (module) {
 
   function setDataFromAttributes(attributes) {
     //TODO: rename dataset tu camel case
-    var data = {},
+    var dataset = {},
         tplSet = {},
         attribs = {};
 
@@ -7965,7 +7965,7 @@ define('templating/parser', ['module'], function (module) {
       if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
         var attr = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
         if (subKeys[0] === 'data') {
-          data[subKeys[1]] = attr;
+          dataset[subKeys[1]] = attr;
         } else {
           tplSet[subKeys[1]] = attr;
         }
@@ -7974,7 +7974,7 @@ define('templating/parser', ['module'], function (module) {
       }
     });
     return {
-      data: data, tplSet: tplSet, attribs: attribs
+      dataset: dataset, tplSet: tplSet, attribs: attribs
     };
   }
 
@@ -8328,8 +8328,8 @@ define('templating/dom', [], function () {
         if (data.bind) {
           this.bind = data.bind;
         }
-        if (data.data) {
-          this.data = data.data;
+        if (data.dataset) {
+          this.dataset = data.dataset;
         }
       }
     }

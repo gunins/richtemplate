@@ -24,13 +24,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 name: data.name,
                 replace: true,
                 tmpEl: function tmpEl(placeholder, obj, children, node) {
-                    var instance = new data.src(data.data, children, obj, node);
+                    var instance = new data.src(data.dataset, children, obj, node);
                     return instance;
                 },
                 data: data || {}
             };
-            if (data.data.bind !== undefined) {
-                response.bind = data.data.bind;
+            if (data.dataset.bind !== undefined) {
+                response.bind = data.dataset.bind;
             }
             return response;
         }

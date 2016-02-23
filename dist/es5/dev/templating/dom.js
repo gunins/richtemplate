@@ -41,8 +41,8 @@ define(function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.data) {
-                    this.data = data.data;
+                if (data.dataset) {
+                    this.dataset = data.dataset;
                 }
             }
         }

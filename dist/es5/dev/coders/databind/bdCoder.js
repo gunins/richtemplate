@@ -14,7 +14,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var bindingsCoder = {
         tagName: 'bd',
         code: function code(nodeContext, data) {
-            data.bind = data.data.bind || data.name;
+            data.bind = data.dataset.bind || data.name;
             return data;
         }
     };

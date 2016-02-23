@@ -27,13 +27,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             var response = {
                 name: data.name,
                 tmpEl: function tmpEl(tag, obj, scope) {
-                    response.data.instance = new data.src(data.data, children, obj, scope);
+                    response.data.instance = new data.src(data.dataset, children, obj, scope);
                     return data.instance['el'];
                 },
                 data: data || {}
             };
-            if (data.data.bind !== undefined) {
-                response.bind = data.data.bind;
+            if (data.dataset.bind !== undefined) {
+                response.bind = data.dataset.bind;
             }
             return response;
         }

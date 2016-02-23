@@ -141,8 +141,8 @@ define('templating/dom', [], function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.data) {
-                    this.data = data.data;
+                if (data.dataset) {
+                    this.dataset = data.dataset;
                 }
             }
         }
@@ -828,13 +828,13 @@ define('templating/dom', [], function () {
                 name: data.name,
                 replace: true,
                 tmpEl: function tmpEl(placeholder, obj, children, node) {
-                    var instance = new data.src(data.data, children, obj, node);
+                    var instance = new data.src(data.dataset, children, obj, node);
                     return instance;
                 },
                 data: data || {}
             };
-            if (data.data.bind !== undefined) {
-                response.bind = data.data.bind;
+            if (data.dataset.bind !== undefined) {
+                response.bind = data.dataset.bind;
             }
             return response;
         }

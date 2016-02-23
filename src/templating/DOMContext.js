@@ -16,7 +16,7 @@
 
     function setDataFromAttributes(attributes) {
         //TODO: rename dataset tu camel case
-        var data = {},
+        var dataset = {},
             tplSet = {},
             attribs = {};
 
@@ -26,7 +26,7 @@
             if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
                 let attr = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
                 if (subKeys[0] === 'data') {
-                    data[subKeys[1]] = attr;
+                    dataset[subKeys[1]] = attr;
                 } else {
                     tplSet[subKeys[1]] = attr;
                 }
@@ -35,7 +35,7 @@
             }
         });
         return {
-            data, tplSet, attribs
+            dataset, tplSet, attribs
         }
 
     }
