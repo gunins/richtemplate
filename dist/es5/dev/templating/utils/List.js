@@ -55,6 +55,11 @@ define(function () {
                 return this._map.get(this._indexes[index]);
             }
         }, {
+            key: 'getFirst',
+            value: function getFirst() {
+                return this.getValueByIndex(0);
+            }
+        }, {
             key: 'getKeyByIndex',
             value: function getKeyByIndex(index) {
                 return this._indexes[index];

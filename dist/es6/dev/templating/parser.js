@@ -8306,6 +8306,15 @@ module.exports = {
     }
 }(this, function () {
     'use strict';
+    function applyAttr(dataset, subKeys, attrib) {
+        let attr = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
+        if (subKeys.length > 2) {
+            dataset[subKeys[1]] = dataset[subKeys[1]] || {};
+            Object.assign(dataset[subKeys[1]], attr);
+        } else {
+            dataset[subKeys[1]] = attr
+        }
+    }
 
     function setDataFromAttributes(attributes) {
         //TODO: rename dataset tu camel case
@@ -8317,11 +8326,11 @@ module.exports = {
             let subKeys = key.split('-'),
                 attrib = attributes[key];
             if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
-                let attr = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
+
                 if (subKeys[0] === 'data') {
-                    dataset[subKeys[1]] = attr;
+                    applyAttr(dataset, subKeys, attrib)
                 } else {
-                    tplSet[subKeys[1]] = attr;
+                    applyAttr(tplSet, subKeys, attrib)
                 }
             } else {
                 attribs[key] = attrib;
@@ -8337,15 +8346,12 @@ module.exports = {
         var domParser = compiler._domParser,
             data = setDataFromAttributes(element.attribs);
         data.name = element.name.split('-')[1] || data.tplSet.name;
-        data.tag = data.tplSet.tag || 'div';
         data.type = data.tplSet.type || element.name.split('-')[0];
 
 
         return {
             setTag(coderName){
-                if (!data.tplSet.tag) {
-                    data.tag = (data.type !== coderName) ? element.name : data.tag;
-                }
+                data.tag = (element.name.split('-')[0] !== coderName) ? element.name : data.tplSet.tag || 'div';
             },
             outerTemplate(){
                 var children = domParser.getChildren(element),
@@ -8382,21 +8388,21 @@ module.exports = {
                     }.bind(this));
                 }
             },
-                     get type() {
-                         return data.type;
-                     },
-                     get tag() {
-                         return data.tag;
-                     },
-                     get templateId() {
-                         return compiler.templateId;
-                     },
-                     get url() {
-                         return compiler.url;
-                     },
-                     get data() {
-                         return data;
-                     },
+            get type() {
+                return data.type;
+            },
+            get tag() {
+                return data.tag;
+            },
+            get templateId() {
+                return compiler.templateId;
+            },
+            get url() {
+                return compiler.url;
+            },
+            get data() {
+                return data;
+            },
             getAttributeValue(name) {
                 return domParser.getAttributeValue(element, name);
             },
@@ -8567,13 +8573,18 @@ define('templating/utils/List',[],function () {
         getValueByIndex(index) {
             return this._map.get(this._indexes[index]);
         };
+
+        getFirst() {
+            return this.getValueByIndex(0);
+        };
+
         getKeyByIndex(index) {
             return this._indexes[index];
         };
 
         set(key, value, index) {
             this._map.set(key, value);
-            if (index!==undefined) {
+            if (index !== undefined) {
                 this._indexes.splice(index, 0, key);
             } else {
                 this._indexes.push(key);
@@ -8608,7 +8619,7 @@ define('templating/utils/List',[],function () {
 /**
  * Created by guntars on 10/10/2014.
  */
-    //## widget/dom Class for dom manipulation
+    //## templating/dom Class for dom manipulation
 define('templating/dom',[],function () {
     'use strict';
 
@@ -8630,16 +8641,16 @@ define('templating/dom',[],function () {
         constructor(el, node) {
             this.el = el;
             this._events = [];
-            this._node = node;
+            //this._node = node;
             this.name = node.name;
-            let data = node.data;
+            let data = this.data = node.data;
             if (data) {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
+               /* if (data.dataset) {
                     this.dataset = data.dataset;
-                }
+                }*/
             }
         };
 
@@ -8734,7 +8745,7 @@ define('templating/dom',[],function () {
         //      @method detach
         //      @param {dom.Element}
 
-        detach:          function (node) {
+        detach: function (node) {
             if (node.placeholder instanceof HTMLElement === false) {
                 node.placeholder = createPlaceholder(node._node.data.tag || node.el.tagName);
             }
@@ -8746,11 +8757,12 @@ define('templating/dom',[],function () {
         //
         //      @method attach
         //      @param {dom.Element}
-        attach:          function (node) {
+        attach: function (node) {
             if (node && node.el && node.placeholder && node.placeholder.parentNode) {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder)
             }
         },
+
         // Adding text in to node
         //
         //      @method text
@@ -9155,18 +9167,19 @@ define('templating/dom',[],function () {
             return context;
         };
 
-        renderTemplate(children, fragment, obj) {
+        renderTemplate(childNodes, fragment, obj) {
             let resp = {},
                 _runAll = [];
-            Object.keys(children).forEach((name) => {
-                let child = children[name],
+            Object.keys(childNodes).forEach((name) => {
+                let child = childNodes[name],
+                    children = child.children,
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
                         let childNodes;
                         if (!child.noAttach || force) {
-                            if (child.children) {
-                                childNodes = this.renderTemplate(child.children, fragment, obj);
+                            if (children) {
+                                childNodes = this.renderTemplate(children, fragment, obj);
                             }
 
                             if (force instanceof HTMLElement === true) {
@@ -9188,8 +9201,9 @@ define('templating/dom',[],function () {
                     }
                     _runAll.push(run);
                     resp[name] = {
-                        run,
-                        elGroup
+                        data: child.data,
+                              run,
+                              elGroup
                     };
 
                 } else {

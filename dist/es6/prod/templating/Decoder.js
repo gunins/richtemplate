@@ -34,13 +34,18 @@ define('templating/utils/List',[],function () {
         getValueByIndex(index) {
             return this._map.get(this._indexes[index]);
         };
+
+        getFirst() {
+            return this.getValueByIndex(0);
+        };
+
         getKeyByIndex(index) {
             return this._indexes[index];
         };
 
         set(key, value, index) {
             this._map.set(key, value);
-            if (index!==undefined) {
+            if (index !== undefined) {
                 this._indexes.splice(index, 0, key);
             } else {
                 this._indexes.push(key);
@@ -75,7 +80,7 @@ define('templating/utils/List',[],function () {
 /**
  * Created by guntars on 10/10/2014.
  */
-    //## widget/dom Class for dom manipulation
+    //## templating/dom Class for dom manipulation
 define('templating/dom',[],function () {
     'use strict';
 
@@ -97,16 +102,16 @@ define('templating/dom',[],function () {
         constructor(el, node) {
             this.el = el;
             this._events = [];
-            this._node = node;
+            //this._node = node;
             this.name = node.name;
-            let data = node.data;
+            let data = this.data = node.data;
             if (data) {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
+               /* if (data.dataset) {
                     this.dataset = data.dataset;
-                }
+                }*/
             }
         };
 
@@ -201,7 +206,7 @@ define('templating/dom',[],function () {
         //      @method detach
         //      @param {dom.Element}
 
-        detach:          function (node) {
+        detach: function (node) {
             if (node.placeholder instanceof HTMLElement === false) {
                 node.placeholder = createPlaceholder(node._node.data.tag || node.el.tagName);
             }
@@ -213,11 +218,12 @@ define('templating/dom',[],function () {
         //
         //      @method attach
         //      @param {dom.Element}
-        attach:          function (node) {
+        attach: function (node) {
             if (node && node.el && node.placeholder && node.placeholder.parentNode) {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder)
             }
         },
+
         // Adding text in to node
         //
         //      @method text
@@ -622,18 +628,19 @@ define('templating/dom',[],function () {
             return context;
         };
 
-        renderTemplate(children, fragment, obj) {
+        renderTemplate(childNodes, fragment, obj) {
             let resp = {},
                 _runAll = [];
-            Object.keys(children).forEach((name) => {
-                let child = children[name],
+            Object.keys(childNodes).forEach((name) => {
+                let child = childNodes[name],
+                    children = child.children,
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
                         let childNodes;
                         if (!child.noAttach || force) {
-                            if (child.children) {
-                                childNodes = this.renderTemplate(child.children, fragment, obj);
+                            if (children) {
+                                childNodes = this.renderTemplate(children, fragment, obj);
                             }
 
                             if (force instanceof HTMLElement === true) {
@@ -655,8 +662,9 @@ define('templating/dom',[],function () {
                     }
                     _runAll.push(run);
                     resp[name] = {
-                        run,
-                        elGroup
+                        data: child.data,
+                              run,
+                              elGroup
                     };
 
                 } else {

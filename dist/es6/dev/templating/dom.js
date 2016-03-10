@@ -1,7 +1,7 @@
 /**
  * Created by guntars on 10/10/2014.
  */
-    //## widget/dom Class for dom manipulation
+    //## templating/dom Class for dom manipulation
 define(function () {
     'use strict';
 
@@ -23,16 +23,16 @@ define(function () {
         constructor(el, node) {
             this.el = el;
             this._events = [];
-            this._node = node;
+            //this._node = node;
             this.name = node.name;
-            let data = node.data;
+            let data = this.data = node.data;
             if (data) {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
+               /* if (data.dataset) {
                     this.dataset = data.dataset;
-                }
+                }*/
             }
         };
 
@@ -127,7 +127,7 @@ define(function () {
         //      @method detach
         //      @param {dom.Element}
 
-        detach:          function (node) {
+        detach: function (node) {
             if (node.placeholder instanceof HTMLElement === false) {
                 node.placeholder = createPlaceholder(node._node.data.tag || node.el.tagName);
             }
@@ -139,11 +139,12 @@ define(function () {
         //
         //      @method attach
         //      @param {dom.Element}
-        attach:          function (node) {
+        attach: function (node) {
             if (node && node.el && node.placeholder && node.placeholder.parentNode) {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder)
             }
         },
+
         // Adding text in to node
         //
         //      @method text

@@ -57,6 +57,11 @@ define('templating/utils/List', [], function () {
                 return this._map.get(this._indexes[index]);
             }
         }, {
+            key: 'getFirst',
+            value: function getFirst() {
+                return this.getValueByIndex(0);
+            }
+        }, {
             key: 'getKeyByIndex',
             value: function getKeyByIndex(index) {
                 return this._indexes[index];
@@ -109,7 +114,7 @@ define('templating/utils/List', [], function () {
 /**
  * Created by guntars on 10/10/2014.
  */
-//## widget/dom Class for dom manipulation
+//## templating/dom Class for dom manipulation
 define('templating/dom', [], function () {
     'use strict';
 
@@ -134,16 +139,16 @@ define('templating/dom', [], function () {
 
             this.el = el;
             this._events = [];
-            this._node = node;
+            //this._node = node;
             this.name = node.name;
-            var data = node.data;
+            var data = this.data = node.data;
             if (data) {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
-                    this.dataset = data.dataset;
-                }
+                /* if (data.dataset) {
+                     this.dataset = data.dataset;
+                 }*/
             }
         }
 
@@ -292,6 +297,7 @@ define('templating/dom', [], function () {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder);
             }
         },
+
         // Adding text in to node
         //
         //      @method text
@@ -724,21 +730,22 @@ define('templating/dom', [], function () {
             }
         }, {
             key: 'renderTemplate',
-            value: function renderTemplate(children, fragment, obj) {
+            value: function renderTemplate(childNodes, fragment, obj) {
                 var _this5 = this;
 
                 var resp = {},
                     _runAll = [];
-                Object.keys(children).forEach(function (name) {
-                    var child = children[name],
+                Object.keys(childNodes).forEach(function (name) {
+                    var child = childNodes[name],
+                        children = child.children,
                         elGroup = new List();
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
                                 var childNodes = undefined;
                                 if (!child.noAttach || force) {
-                                    if (child.children) {
-                                        childNodes = _this5.renderTemplate(child.children, fragment, obj);
+                                    if (children) {
+                                        childNodes = _this5.renderTemplate(children, fragment, obj);
                                     }
 
                                     if (force instanceof HTMLElement === true) {
@@ -759,6 +766,7 @@ define('templating/dom', [], function () {
                             };
                             _runAll.push(run);
                             resp[name] = {
+                                data: child.data,
                                 run: run,
                                 elGroup: elGroup
                             };

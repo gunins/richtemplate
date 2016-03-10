@@ -95,21 +95,22 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
         }, {
             key: 'renderTemplate',
-            value: function renderTemplate(children, fragment, obj) {
+            value: function renderTemplate(childNodes, fragment, obj) {
                 var _this2 = this;
 
                 var resp = {},
                     _runAll = [];
-                Object.keys(children).forEach(function (name) {
-                    var child = children[name],
+                Object.keys(childNodes).forEach(function (name) {
+                    var child = childNodes[name],
+                        children = child.children,
                         elGroup = new List();
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
                                 var childNodes = undefined;
                                 if (!child.noAttach || force) {
-                                    if (child.children) {
-                                        childNodes = _this2.renderTemplate(child.children, fragment, obj);
+                                    if (children) {
+                                        childNodes = _this2.renderTemplate(children, fragment, obj);
                                     }
 
                                     if (force instanceof HTMLElement === true) {
@@ -130,6 +131,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                             };
                             _runAll.push(run);
                             resp[name] = {
+                                data: child.data,
                                 run: run,
                                 elGroup: elGroup
                             };

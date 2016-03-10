@@ -7953,6 +7953,16 @@ define('templating/parser', ['module'], function (module) {
 })(undefined, function () {
   'use strict';
 
+  function applyAttr(dataset, subKeys, attrib) {
+    var attr = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
+    if (subKeys.length > 2) {
+      dataset[subKeys[1]] = dataset[subKeys[1]] || {};
+      Object.assign(dataset[subKeys[1]], attr);
+    } else {
+      dataset[subKeys[1]] = attr;
+    }
+  }
+
   function setDataFromAttributes(attributes) {
     //TODO: rename dataset tu camel case
     var dataset = {},
@@ -7963,11 +7973,11 @@ define('templating/parser', ['module'], function (module) {
       var subKeys = key.split('-'),
           attrib = attributes[key];
       if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
-        var attr = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
+
         if (subKeys[0] === 'data') {
-          dataset[subKeys[1]] = attr;
+          applyAttr(dataset, subKeys, attrib);
         } else {
-          tplSet[subKeys[1]] = attr;
+          applyAttr(tplSet, subKeys, attrib);
         }
       } else {
         attribs[key] = attrib;
@@ -7982,14 +7992,11 @@ define('templating/parser', ['module'], function (module) {
     var domParser = compiler._domParser,
         data = setDataFromAttributes(element.attribs);
     data.name = element.name.split('-')[1] || data.tplSet.name;
-    data.tag = data.tplSet.tag || 'div';
     data.type = data.tplSet.type || element.name.split('-')[0];
 
     return {
       setTag: function setTag(coderName) {
-        if (!data.tplSet.tag) {
-          data.tag = data.type !== coderName ? element.name : data.tag;
-        }
+        data.tag = element.name.split('-')[0] !== coderName ? element.name : data.tplSet.tag || 'div';
       },
       outerTemplate: function outerTemplate() {
         var children = domParser.getChildren(element),
@@ -8244,6 +8251,11 @@ define('templating/utils/List', [], function () {
         return this._map.get(this._indexes[index]);
       }
     }, {
+      key: 'getFirst',
+      value: function getFirst() {
+        return this.getValueByIndex(0);
+      }
+    }, {
       key: 'getKeyByIndex',
       value: function getKeyByIndex(index) {
         return this._indexes[index];
@@ -8296,7 +8308,7 @@ define('templating/utils/List', [], function () {
 /**
  * Created by guntars on 10/10/2014.
  */
-//## widget/dom Class for dom manipulation
+//## templating/dom Class for dom manipulation
 define('templating/dom', [], function () {
   'use strict';
 
@@ -8321,16 +8333,16 @@ define('templating/dom', [], function () {
 
       this.el = el;
       this._events = [];
-      this._node = node;
+      //this._node = node;
       this.name = node.name;
-      var data = node.data;
+      var data = this.data = node.data;
       if (data) {
         if (data.bind) {
           this.bind = data.bind;
         }
-        if (data.dataset) {
-          this.dataset = data.dataset;
-        }
+        /* if (data.dataset) {
+             this.dataset = data.dataset;
+         }*/
       }
     }
 
@@ -8479,6 +8491,7 @@ define('templating/dom', [], function () {
         node.placeholder.parentNode.replaceChild(node.el, node.placeholder);
       }
     },
+
     // Adding text in to node
     //
     //      @method text
@@ -8911,21 +8924,22 @@ define('templating/dom', [], function () {
       }
     }, {
       key: 'renderTemplate',
-      value: function renderTemplate(children, fragment, obj) {
+      value: function renderTemplate(childNodes, fragment, obj) {
         var _this8 = this;
 
         var resp = {},
             _runAll = [];
-        Object.keys(children).forEach(function (name) {
-          var child = children[name],
+        Object.keys(childNodes).forEach(function (name) {
+          var child = childNodes[name],
+              children = child.children,
               elGroup = new List();
           if (child.template) {
             (function () {
               var run = function run(force, index) {
                 var childNodes = undefined;
                 if (!child.noAttach || force) {
-                  if (child.children) {
-                    childNodes = _this8.renderTemplate(child.children, fragment, obj);
+                  if (children) {
+                    childNodes = _this8.renderTemplate(children, fragment, obj);
                   }
 
                   if (force instanceof HTMLElement === true) {
@@ -8946,6 +8960,7 @@ define('templating/dom', [], function () {
               };
               _runAll.push(run);
               resp[name] = {
+                data: child.data,
                 run: run,
                 elGroup: elGroup
               };

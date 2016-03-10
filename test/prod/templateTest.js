@@ -57,10 +57,10 @@ define([
             it('Decoder Rendering items correctly', function () {
                 var context = decoder.render(template),
                     children = context.children,
-                    footer = children.footer.elGroup.getValueByIndex(0),
-                    testthing = children.testthing.elGroup.getValueByIndex(0);
-                expect(footer.dataset).to.deep.equal({item: 'test item', size: '34'});
-                expect(footer._node.data.type).to.equal('pl');
+                    footer = children.footer.elGroup.getFirst(),
+                    testthing = children.testthing.elGroup.getFirst();
+                expect(footer.data.dataset).to.deep.equal({item: 'test item', size: '34'});
+                expect(footer.data.type).to.equal('pl');
                 expect(footer.el).to.be.instanceof(HTMLElement);
 
                 expect(testthing.el).to.be.instanceof(HTMLElement);
@@ -70,7 +70,7 @@ define([
         describe('Checking parsed DOM', function () {
             it('if templateId is generated, and generated elements are attached to Node', function () {
                 var context = decoder.render(template),
-                    footer = context.children.footer.elGroup.getValueByIndex(0),
+                    footer = context.children.footer.elGroup.getFirst(),
                     templateId = decoder._root.templateId,
                     els = Array.prototype.slice.call(context.fragment.querySelectorAll('.' + templateId));
                 expect(els.length).to.equal(4);

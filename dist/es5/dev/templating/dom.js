@@ -9,7 +9,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Created by guntars on 10/10/2014.
  */
-//## widget/dom Class for dom manipulation
+//## templating/dom Class for dom manipulation
 define(function () {
     'use strict';
 
@@ -34,16 +34,16 @@ define(function () {
 
             this.el = el;
             this._events = [];
-            this._node = node;
+            //this._node = node;
             this.name = node.name;
-            var data = node.data;
+            var data = this.data = node.data;
             if (data) {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-                if (data.dataset) {
-                    this.dataset = data.dataset;
-                }
+                /* if (data.dataset) {
+                     this.dataset = data.dataset;
+                 }*/
             }
         }
 
@@ -192,6 +192,7 @@ define(function () {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder);
             }
         },
+
         // Adding text in to node
         //
         //      @method text

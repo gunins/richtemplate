@@ -76,18 +76,19 @@
             return context;
         };
 
-        renderTemplate(children, fragment, obj) {
+        renderTemplate(childNodes, fragment, obj) {
             let resp = {},
                 _runAll = [];
-            Object.keys(children).forEach((name) => {
-                let child = children[name],
+            Object.keys(childNodes).forEach((name) => {
+                let child = childNodes[name],
+                    children = child.children,
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
                         let childNodes;
                         if (!child.noAttach || force) {
-                            if (child.children) {
-                                childNodes = this.renderTemplate(child.children, fragment, obj);
+                            if (children) {
+                                childNodes = this.renderTemplate(children, fragment, obj);
                             }
 
                             if (force instanceof HTMLElement === true) {
@@ -109,8 +110,9 @@
                     }
                     _runAll.push(run);
                     resp[name] = {
-                        run,
-                        elGroup
+                        data: child.data,
+                              run,
+                              elGroup
                     };
 
                 } else {

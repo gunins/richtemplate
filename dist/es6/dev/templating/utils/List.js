@@ -34,13 +34,18 @@ define(function () {
         getValueByIndex(index) {
             return this._map.get(this._indexes[index]);
         };
+
+        getFirst() {
+            return this.getValueByIndex(0);
+        };
+
         getKeyByIndex(index) {
             return this._indexes[index];
         };
 
         set(key, value, index) {
             this._map.set(key, value);
-            if (index!==undefined) {
+            if (index !== undefined) {
                 this._indexes.splice(index, 0, key);
             } else {
                 this._indexes.push(key);

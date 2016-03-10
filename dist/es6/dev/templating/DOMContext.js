@@ -13,6 +13,15 @@
     }
 }(this, function () {
     'use strict';
+    function applyAttr(dataset, subKeys, attrib) {
+        let attr = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
+        if (subKeys.length > 2) {
+            dataset[subKeys[1]] = dataset[subKeys[1]] || {};
+            Object.assign(dataset[subKeys[1]], attr);
+        } else {
+            dataset[subKeys[1]] = attr
+        }
+    }
 
     function setDataFromAttributes(attributes) {
         //TODO: rename dataset tu camel case
@@ -24,11 +33,11 @@
             let subKeys = key.split('-'),
                 attrib = attributes[key];
             if (['data', 'tp'].indexOf(subKeys[0]) !== -1 && subKeys.length > 1) {
-                let attr = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
+
                 if (subKeys[0] === 'data') {
-                    dataset[subKeys[1]] = attr;
+                    applyAttr(dataset, subKeys, attrib)
                 } else {
-                    tplSet[subKeys[1]] = attr;
+                    applyAttr(tplSet, subKeys, attrib)
                 }
             } else {
                 attribs[key] = attrib;
@@ -44,15 +53,12 @@
         var domParser = compiler._domParser,
             data = setDataFromAttributes(element.attribs);
         data.name = element.name.split('-')[1] || data.tplSet.name;
-        data.tag = data.tplSet.tag || 'div';
         data.type = data.tplSet.type || element.name.split('-')[0];
 
 
         return {
             setTag(coderName){
-                if (!data.tplSet.tag) {
-                    data.tag = (data.type !== coderName) ? element.name : data.tag;
-                }
+                data.tag = (element.name.split('-')[0] !== coderName) ? element.name : data.tplSet.tag || 'div';
             },
             outerTemplate(){
                 var children = domParser.getChildren(element),
@@ -89,21 +95,21 @@
                     }.bind(this));
                 }
             },
-                     get type() {
-                         return data.type;
-                     },
-                     get tag() {
-                         return data.tag;
-                     },
-                     get templateId() {
-                         return compiler.templateId;
-                     },
-                     get url() {
-                         return compiler.url;
-                     },
-                     get data() {
-                         return data;
-                     },
+            get type() {
+                return data.type;
+            },
+            get tag() {
+                return data.tag;
+            },
+            get templateId() {
+                return compiler.templateId;
+            },
+            get url() {
+                return compiler.url;
+            },
+            get data() {
+                return data;
+            },
             getAttributeValue(name) {
                 return domParser.getAttributeValue(element, name);
             },
