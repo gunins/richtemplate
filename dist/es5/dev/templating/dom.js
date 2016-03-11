@@ -42,7 +42,7 @@ define(function () {
                     this.bind = data.bind;
                 }
                 /* if (data.dataset) {
-                     this.dataset = data.dataset;
+                 this.dataset = data.dataset;
                  }*/
             }
         }
@@ -377,6 +377,9 @@ define(function () {
         remove: function remove(el) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
+            }
+            if (el.elGroup !== undefined) {
+                el.elGroup.delete(el.el);
             }
             if (el.el !== undefined) {
                 if (el.el.remove) {

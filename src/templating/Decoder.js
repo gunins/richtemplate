@@ -13,6 +13,14 @@
     'use strict';
     var _decoders = {};
 
+    function isObject(obj) {
+        return obj === Object(obj);
+    }
+
+    function isArray(obj) {
+        return (Array.isArray) ? Array.isArray(obj) : toString.call(obj) === '[object Array]';
+    }
+
 
     /**
      *
@@ -85,10 +93,11 @@
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
-                        let childNodes;
+                        let childNodes,
+                            data = (isObject(force) || isArray(force)) ? force : obj;
                         if (!child.noAttach || force) {
                             if (children) {
-                                childNodes = this.renderTemplate(children, fragment, obj);
+                                childNodes = this.renderTemplate(children, fragment, data);
                             }
 
                             if (force instanceof HTMLElement === true) {
@@ -96,7 +105,7 @@
                             }
                             let placeholder = fragment.querySelector('#' + child.id) || fragment;
 
-                            let element = new DomFragment(child, placeholder, childNodes, elGroup, index, obj);
+                            let element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
 
                             if (childNodes) {
                                 element.children = childNodes;

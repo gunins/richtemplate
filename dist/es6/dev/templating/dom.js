@@ -30,9 +30,9 @@ define(function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-               /* if (data.dataset) {
-                    this.dataset = data.dataset;
-                }*/
+                /* if (data.dataset) {
+                 this.dataset = data.dataset;
+                 }*/
             }
         };
 
@@ -321,6 +321,9 @@ define(function () {
         remove:          function (el) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
+            }
+            if (el.elGroup !== undefined) {
+                el.elGroup.delete(el.el);
             }
             if (el.el !== undefined) {
                 if (el.el.remove) {

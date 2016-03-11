@@ -8648,9 +8648,9 @@ define('templating/dom',[],function () {
                 if (data.bind) {
                     this.bind = data.bind;
                 }
-               /* if (data.dataset) {
-                    this.dataset = data.dataset;
-                }*/
+                /* if (data.dataset) {
+                 this.dataset = data.dataset;
+                 }*/
             }
         };
 
@@ -8940,6 +8940,9 @@ define('templating/dom',[],function () {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+            if (el.elGroup !== undefined) {
+                el.elGroup.delete(el.el);
+            }
             if (el.el !== undefined) {
                 if (el.el.remove) {
                     el.el.remove();
@@ -9104,6 +9107,14 @@ define('templating/dom',[],function () {
     'use strict';
     var _decoders = {};
 
+    function isObject(obj) {
+        return obj === Object(obj);
+    }
+
+    function isArray(obj) {
+        return (Array.isArray) ? Array.isArray(obj) : toString.call(obj) === '[object Array]';
+    }
+
 
     /**
      *
@@ -9176,10 +9187,11 @@ define('templating/dom',[],function () {
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
-                        let childNodes;
+                        let childNodes,
+                            data = (isObject(force) || isArray(force)) ? force : obj;
                         if (!child.noAttach || force) {
                             if (children) {
-                                childNodes = this.renderTemplate(children, fragment, obj);
+                                childNodes = this.renderTemplate(children, fragment, data);
                             }
 
                             if (force instanceof HTMLElement === true) {
@@ -9187,7 +9199,7 @@ define('templating/dom',[],function () {
                             }
                             let placeholder = fragment.querySelector('#' + child.id) || fragment;
 
-                            let element = new DomFragment(child, placeholder, childNodes, elGroup, index, obj);
+                            let element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
 
                             if (childNodes) {
                                 element.children = childNodes;

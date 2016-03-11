@@ -22,6 +22,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     var _decoders = {};
 
+    function isObject(obj) {
+        return obj === Object(obj);
+    }
+
+    function isArray(obj) {
+        return Array.isArray ? Array.isArray(obj) : toString.call(obj) === '[object Array]';
+    }
+
     /**
      *
      * @constructor
@@ -107,10 +115,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
-                                var childNodes = undefined;
+                                var childNodes = undefined,
+                                    data = isObject(force) || isArray(force) ? force : obj;
                                 if (!child.noAttach || force) {
                                     if (children) {
-                                        childNodes = _this2.renderTemplate(children, fragment, obj);
+                                        childNodes = _this2.renderTemplate(children, fragment, data);
                                     }
 
                                     if (force instanceof HTMLElement === true) {
@@ -118,7 +127,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                                     }
                                     var placeholder = fragment.querySelector('#' + child.id) || fragment;
 
-                                    var element = new DomFragment(child, placeholder, childNodes, elGroup, index, obj);
+                                    var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
 
                                     if (childNodes) {
                                         element.children = childNodes;

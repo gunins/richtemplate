@@ -8341,7 +8341,7 @@ define('templating/dom', [], function () {
           this.bind = data.bind;
         }
         /* if (data.dataset) {
-             this.dataset = data.dataset;
+         this.dataset = data.dataset;
          }*/
       }
     }
@@ -8677,6 +8677,9 @@ define('templating/dom', [], function () {
       while (el._events.length > 0) {
         el._events.shift().remove();
       }
+      if (el.elGroup !== undefined) {
+        el.elGroup.delete(el.el);
+      }
       if (el.el !== undefined) {
         if (el.el.remove) {
           el.el.remove();
@@ -8851,6 +8854,14 @@ define('templating/dom', [], function () {
 
   var _decoders = {};
 
+  function isObject(obj) {
+    return obj === Object(obj);
+  }
+
+  function isArray(obj) {
+    return Array.isArray ? Array.isArray(obj) : toString.call(obj) === '[object Array]';
+  }
+
   /**
    *
    * @constructor
@@ -8936,10 +8947,11 @@ define('templating/dom', [], function () {
           if (child.template) {
             (function () {
               var run = function run(force, index) {
-                var childNodes = undefined;
+                var childNodes = undefined,
+                    data = isObject(force) || isArray(force) ? force : obj;
                 if (!child.noAttach || force) {
                   if (children) {
-                    childNodes = _this8.renderTemplate(children, fragment, obj);
+                    childNodes = _this8.renderTemplate(children, fragment, data);
                   }
 
                   if (force instanceof HTMLElement === true) {
@@ -8947,7 +8959,7 @@ define('templating/dom', [], function () {
                   }
                   var placeholder = fragment.querySelector('#' + child.id) || fragment;
 
-                  var element = new DomFragment(child, placeholder, childNodes, elGroup, index, obj);
+                  var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
 
                   if (childNodes) {
                     element.children = childNodes;
