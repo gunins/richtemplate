@@ -70,9 +70,17 @@ define(function () {
                 dom.attach(this);
             }
         }, {
-            key: 'setAttribute',
+            key: 'changePosition',
+
+            // Shortcut to - `dom.changePosition`
+            value: function changePosition(index) {
+                dom.changePosition(this, index);
+            }
 
             // Shortcut to - `dom.setAttribute`
+
+        }, {
+            key: 'setAttribute',
             value: function setAttribute(prop, value) {
                 dom.setAttribute(this, prop, value);
             }
@@ -167,8 +175,6 @@ define(function () {
         return Element;
     }();
 
-    ;
-
     var dom = {
         //Removing element from DOM
         //
@@ -183,6 +189,7 @@ define(function () {
                 node.el.parentNode.replaceChild(node.placeholder, node.el);
             }
         },
+
         //Adding element back to DOM
         //
         //      @method attach
@@ -190,6 +197,35 @@ define(function () {
         attach: function attach(node) {
             if (node && node.el && node.placeholder && node.placeholder.parentNode) {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder);
+            }
+        },
+
+        // Changing position in nodeList
+        //
+        //      @method changePosition
+        //      @param {dom.Element}
+        //      @param {Int} index
+        changePosition: function changePosition(el, index) {
+
+            var HTMLElement = el.el;
+            if (HTMLElement && HTMLElement.parentNode) {
+
+                var parentNode = HTMLElement.parentNode,
+                    elGroup = el.elGroup,
+                    size = elGroup.size,
+                    target = elGroup.getKeyByIndex(index) || elGroup.getLast();
+
+                if (target !== HTMLElement) {
+                    if (size - 1 >= index) {
+                        parentNode.insertBefore(HTMLElement, target);
+                    } else if (target.nextSibling !== null) {
+                        parentNode.insertBefore(HTMLElement, target.nextSibling);
+                    } else {
+                        parentNode.appendChild(HTMLElement);
+                    }
+
+                    el.elGroup.changeIndex(HTMLElement, index);
+                }
             }
         },
 
@@ -203,6 +239,7 @@ define(function () {
                 node.el.innerHTML = _text2;
             }
         },
+
         // Setting Attribute in to node
         //
         //      @method setAttribute
@@ -214,12 +251,13 @@ define(function () {
                 if (isObject(prop)) {
                     Object.keys(prop).forEach(function (key) {
                         node.el.setAttribute(key, prop[key]);
-                    }.bind(this));
+                    });
                 } else {
                     node.el.setAttribute(prop, value);
                 }
             }
         },
+
         // Getting Attribute in to node
         //
         //      @method getAttribute
@@ -233,6 +271,7 @@ define(function () {
                 return undefined;
             }
         },
+
         // Removing Attribute from node
         //
         //      @method removeAttribute
@@ -243,6 +282,7 @@ define(function () {
                 node.el.removeAttribute(prop);
             }
         },
+
         // Setting css style in to node
         //
         //      @method setStyle
@@ -254,12 +294,13 @@ define(function () {
                 if (isObject(prop)) {
                     Object.keys(prop).forEach(function (key) {
                         node.el.style[key] = prop[key];
-                    }.bind(this));
+                    });
                 } else {
                     node.el.style[prop] = value;
                 }
             }
         },
+
         // Getting css style from node
         //
         //      @method getStyle
@@ -275,6 +316,7 @@ define(function () {
                 }
             }
         },
+
         // Removing css style from node
         //
         //      @method removeAttribute
@@ -285,6 +327,7 @@ define(function () {
                 node.el.style[prop] = '';
             }
         },
+
         // Adding class in to node
         //
         //      @method addClass
@@ -295,6 +338,7 @@ define(function () {
                 node.el.classList.add(className);
             }
         },
+
         // checking if className exists in node
         //
         //      @method hasClass
@@ -308,6 +352,7 @@ define(function () {
                 return false;
             }
         },
+
         // Remove class from node
         //
         //      @method removeClass
@@ -318,6 +363,7 @@ define(function () {
                 node.el.classList.remove(className);
             }
         },
+
         // Setting, Getting value to input element
         //
         //      @method val
@@ -334,6 +380,7 @@ define(function () {
                 }
             }
         },
+
         // Adding DOM Event in to Element
         //
         //      @method on
@@ -370,6 +417,7 @@ define(function () {
             element._events.push(evt);
             return evt;
         },
+
         // Remove Dom Element from Dom
         //
         //      @method remove
@@ -389,6 +437,7 @@ define(function () {
                 }
             }
         },
+
         // executes when element attached to Dom
         //
         //      @method onDOMAttached
@@ -423,6 +472,7 @@ define(function () {
                 }
             };
         },
+
         // Element
         Element: Element
     };

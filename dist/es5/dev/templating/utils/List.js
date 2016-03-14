@@ -50,6 +50,18 @@ define(function () {
                 return this._indexes.indexOf(key);
             }
         }, {
+            key: 'changeIndex',
+            value: function changeIndex(key, index) {
+                if (key) {
+                    var indexes = this._indexes,
+                        indexOf = indexes.indexOf(key);
+
+                    if (indexOf !== -1 && index !== indexOf) {
+                        this._indexes.splice(index, 0, this._indexes.splice(indexOf, 1)[0]);
+                    }
+                }
+            }
+        }, {
             key: 'getValueByIndex',
             value: function getValueByIndex(index) {
                 return this._map.get(this._indexes[index]);
@@ -58,6 +70,11 @@ define(function () {
             key: 'getFirst',
             value: function getFirst() {
                 return this.getValueByIndex(0);
+            }
+        }, {
+            key: 'getLast',
+            value: function getLast() {
+                return this.getValueByIndex(this._indexes.length - 1);
             }
         }, {
             key: 'getKeyByIndex',

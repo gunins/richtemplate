@@ -53,6 +53,11 @@ define(function () {
             dom.attach(this);
         };
 
+        // Shortcut to - `dom.changePosition`
+        changePosition(index) {
+            dom.changePosition(this, index);
+        }
+
         // Shortcut to - `dom.setAttribute`
         setAttribute(prop, value) {
             dom.setAttribute(this, prop, value);
@@ -119,7 +124,6 @@ define(function () {
             dom.remove(this);
         };
     }
-    ;
 
     var dom = {
         //Removing element from DOM
@@ -127,7 +131,7 @@ define(function () {
         //      @method detach
         //      @param {dom.Element}
 
-        detach: function (node) {
+        detach (node) {
             if (node.placeholder instanceof HTMLElement === false) {
                 node.placeholder = createPlaceholder(node._node.data.tag || node.el.tagName);
             }
@@ -139,18 +143,48 @@ define(function () {
         //
         //      @method attach
         //      @param {dom.Element}
-        attach: function (node) {
+        attach (node) {
             if (node && node.el && node.placeholder && node.placeholder.parentNode) {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder)
             }
         },
 
+
+        // Changing position in nodeList
+        //
+        //      @method changePosition
+        //      @param {dom.Element}
+        //      @param {Int} index
+        changePosition(el, index){
+
+            let HTMLElement = el.el;
+            if (HTMLElement && HTMLElement.parentNode) {
+
+                let parentNode = HTMLElement.parentNode,
+                    elGroup = el.elGroup,
+                    size = elGroup.size,
+                    target = elGroup.getKeyByIndex(index) || elGroup.getLast();
+
+
+                if (target !== HTMLElement) {
+                    if (size - 1 >= index) {
+                        parentNode.insertBefore(HTMLElement, target);
+                    } else if (target.nextSibling !== null) {
+                        parentNode.insertBefore(HTMLElement, target.nextSibling);
+                    } else {
+                        parentNode.appendChild(HTMLElement);
+                    }
+
+                    el.elGroup.changeIndex(HTMLElement, index);
+                }
+            }
+        },
         // Adding text in to node
         //
         //      @method text
         //      @param {dom.Element}
         //      @param {String} text
-        text:            function (node, text) {
+        text (node, text) {
             if (node && node.el) {
                 node.el.innerHTML = text;
             }
@@ -161,12 +195,12 @@ define(function () {
         //      @prop {dom.Element} node
         //      @prop {String||Object} prop
         //      @prop {String} value
-        setAttribute:    function (node, prop, value) {
+        setAttribute (node, prop, value) {
             if (node && node.el) {
                 if (isObject(prop)) {
-                    Object.keys(prop).forEach(function (key) {
+                    Object.keys(prop).forEach((key)=> {
                         node.el.setAttribute(key, prop[key]);
-                    }.bind(this));
+                    });
                 } else {
                     node.el.setAttribute(prop, value);
                 }
@@ -178,7 +212,7 @@ define(function () {
         //      @prop {dom.Element} node
         //      @prop {String||Object} prop
         //      @return {String} value
-        getAttribute:    function (node, prop) {
+        getAttribute (node, prop) {
             if (node && node.el) {
                 return node.el.getAttribute(prop);
             } else {
@@ -190,7 +224,7 @@ define(function () {
         //      @method removeAttribute
         //      @prop {dom.Element} node
         //      @prop {String} prop
-        removeAttribute: function (node, prop) {
+        removeAttribute (node, prop) {
             if (node && node.el) {
                 node.el.removeAttribute(prop);
             }
@@ -201,12 +235,12 @@ define(function () {
         //      @prop {dom.Element} node
         //      @prop {String||Object} prop
         //      @prop {String} value
-        setStyle:        function (node, prop, value) {
+        setStyle(node, prop, value) {
             if (node && node.el) {
                 if (isObject(prop)) {
-                    Object.keys(prop).forEach(function (key) {
+                    Object.keys(prop).forEach((key)=> {
                         node.el.style[key] = prop[key];
-                    }.bind(this));
+                    });
                 } else {
                     node.el.style[prop] = value;
                 }
@@ -218,7 +252,7 @@ define(function () {
         //      @prop {dom.Element} node
         //      @prop {String} prop
         //      @return {String} value
-        getStyle:        function (node, prop) {
+        getStyle(node, prop) {
             if (node && node.el) {
                 if (node.el !== undefined && node.el.style !== undefined) {
                     return node.el.style[prop];
@@ -232,7 +266,7 @@ define(function () {
         //      @method removeAttribute
         //      @prop {dom.Element} node
         //      @prop {String} prop
-        removeStyle:     function (node, prop) {
+        removeStyle(node, prop) {
             if (node && node.el) {
                 node.el.style[prop] = '';
             }
@@ -242,7 +276,7 @@ define(function () {
         //      @method addClass
         //      @param {dom.Element} node
         //      @param {String} className
-        addClass:        function (node, className) {
+        addClass(node, className) {
             if (node && node.el) {
                 node.el.classList.add(className);
             }
@@ -253,7 +287,7 @@ define(function () {
         //      @param {dom.Element} node
         //      @param {String} className
         //      @return boolean
-        hasClass:        function (node, className) {
+        hasClass(node, className) {
             if (node && node.el) {
                 return node.el.classList.contains(className);
             } else {
@@ -265,7 +299,7 @@ define(function () {
         //      @method removeClass
         //      @param {dom.Element} node
         //      @param {string} className
-        removeClass:     function (node, className) {
+        removeClass(node, className) {
             if (node && node.el) {
                 node.el.classList.remove(className);
             }
@@ -276,7 +310,7 @@ define(function () {
         //      @param {dom.Element} node
         //      @param? {String} val
         //      @return {String}
-        val:             function (node, val) {
+        val(node, val) {
             if (node && node.el) {
                 var el = node.el;
                 if (val !== undefined) {
@@ -294,14 +328,14 @@ define(function () {
         //      @param {Function} cb
         //      @param {Object} context
         //      @return {Object} { remove() }
-        on:              function (element, ev, cb, context, ...args) {
+        on(element, ev, cb, context, ...args) {
             var el = element.el,
                 events = ev.split(' '),
                 fn = (e) => {
                     cb.apply(context || this, [e, element].concat(args));
                 };
 
-            events.forEach(function (event) {
+            events.forEach((event)=> {
                 el.addEventListener(event, fn);
             });
             var evt = {
@@ -318,7 +352,7 @@ define(function () {
         //
         //      @method remove
         //      @param {dom.Element}
-        remove:          function (el) {
+        remove (el) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
@@ -339,7 +373,7 @@ define(function () {
         //      @param {dom.Element}
         //      @param {function} cb
         //      @param {function} context
-        onDOMAttached:   function (el) {
+        onDOMAttached(el) {
             let handlers = [],
                 attached = false,
                 step;
@@ -366,8 +400,8 @@ define(function () {
             }
         },
         // Element
-        Element:         Element
-    }
+        Element: Element
+    };
 
 
     return dom;

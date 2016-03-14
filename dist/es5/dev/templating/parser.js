@@ -8246,6 +8246,18 @@ define('templating/utils/List', [], function () {
         return this._indexes.indexOf(key);
       }
     }, {
+      key: 'changeIndex',
+      value: function changeIndex(key, index) {
+        if (key) {
+          var indexes = this._indexes,
+              indexOf = indexes.indexOf(key);
+
+          if (indexOf !== -1 && index !== indexOf) {
+            this._indexes.splice(index, 0, this._indexes.splice(indexOf, 1)[0]);
+          }
+        }
+      }
+    }, {
       key: 'getValueByIndex',
       value: function getValueByIndex(index) {
         return this._map.get(this._indexes[index]);
@@ -8254,6 +8266,11 @@ define('templating/utils/List', [], function () {
       key: 'getFirst',
       value: function getFirst() {
         return this.getValueByIndex(0);
+      }
+    }, {
+      key: 'getLast',
+      value: function getLast() {
+        return this.getValueByIndex(this._indexes.length - 1);
       }
     }, {
       key: 'getKeyByIndex',
@@ -8369,9 +8386,17 @@ define('templating/dom', [], function () {
         dom.attach(this);
       }
     }, {
-      key: 'setAttribute',
+      key: 'changePosition',
+
+      // Shortcut to - `dom.changePosition`
+      value: function changePosition(index) {
+        dom.changePosition(this, index);
+      }
 
       // Shortcut to - `dom.setAttribute`
+
+    }, {
+      key: 'setAttribute',
       value: function setAttribute(prop, value) {
         dom.setAttribute(this, prop, value);
       }
@@ -8466,8 +8491,6 @@ define('templating/dom', [], function () {
     return Element;
   }();
 
-  ;
-
   var dom = {
     //Removing element from DOM
     //
@@ -8482,6 +8505,7 @@ define('templating/dom', [], function () {
         node.el.parentNode.replaceChild(node.placeholder, node.el);
       }
     },
+
     //Adding element back to DOM
     //
     //      @method attach
@@ -8489,6 +8513,35 @@ define('templating/dom', [], function () {
     attach: function attach(node) {
       if (node && node.el && node.placeholder && node.placeholder.parentNode) {
         node.placeholder.parentNode.replaceChild(node.el, node.placeholder);
+      }
+    },
+
+    // Changing position in nodeList
+    //
+    //      @method changePosition
+    //      @param {dom.Element}
+    //      @param {Int} index
+    changePosition: function changePosition(el, index) {
+
+      var HTMLElement = el.el;
+      if (HTMLElement && HTMLElement.parentNode) {
+
+        var parentNode = HTMLElement.parentNode,
+            elGroup = el.elGroup,
+            size = elGroup.size,
+            target = elGroup.getKeyByIndex(index) || elGroup.getLast();
+
+        if (target !== HTMLElement) {
+          if (size - 1 >= index) {
+            parentNode.insertBefore(HTMLElement, target);
+          } else if (target.nextSibling !== null) {
+            parentNode.insertBefore(HTMLElement, target.nextSibling);
+          } else {
+            parentNode.appendChild(HTMLElement);
+          }
+
+          el.elGroup.changeIndex(HTMLElement, index);
+        }
       }
     },
 
@@ -8502,6 +8555,7 @@ define('templating/dom', [], function () {
         node.el.innerHTML = _text2;
       }
     },
+
     // Setting Attribute in to node
     //
     //      @method setAttribute
@@ -8513,12 +8567,13 @@ define('templating/dom', [], function () {
         if (isObject(prop)) {
           Object.keys(prop).forEach(function (key) {
             node.el.setAttribute(key, prop[key]);
-          }.bind(this));
+          });
         } else {
           node.el.setAttribute(prop, value);
         }
       }
     },
+
     // Getting Attribute in to node
     //
     //      @method getAttribute
@@ -8532,6 +8587,7 @@ define('templating/dom', [], function () {
         return undefined;
       }
     },
+
     // Removing Attribute from node
     //
     //      @method removeAttribute
@@ -8542,6 +8598,7 @@ define('templating/dom', [], function () {
         node.el.removeAttribute(prop);
       }
     },
+
     // Setting css style in to node
     //
     //      @method setStyle
@@ -8553,12 +8610,13 @@ define('templating/dom', [], function () {
         if (isObject(prop)) {
           Object.keys(prop).forEach(function (key) {
             node.el.style[key] = prop[key];
-          }.bind(this));
+          });
         } else {
           node.el.style[prop] = value;
         }
       }
     },
+
     // Getting css style from node
     //
     //      @method getStyle
@@ -8574,6 +8632,7 @@ define('templating/dom', [], function () {
         }
       }
     },
+
     // Removing css style from node
     //
     //      @method removeAttribute
@@ -8584,6 +8643,7 @@ define('templating/dom', [], function () {
         node.el.style[prop] = '';
       }
     },
+
     // Adding class in to node
     //
     //      @method addClass
@@ -8594,6 +8654,7 @@ define('templating/dom', [], function () {
         node.el.classList.add(className);
       }
     },
+
     // checking if className exists in node
     //
     //      @method hasClass
@@ -8607,6 +8668,7 @@ define('templating/dom', [], function () {
         return false;
       }
     },
+
     // Remove class from node
     //
     //      @method removeClass
@@ -8617,6 +8679,7 @@ define('templating/dom', [], function () {
         node.el.classList.remove(className);
       }
     },
+
     // Setting, Getting value to input element
     //
     //      @method val
@@ -8633,6 +8696,7 @@ define('templating/dom', [], function () {
         }
       }
     },
+
     // Adding DOM Event in to Element
     //
     //      @method on
@@ -8669,6 +8733,7 @@ define('templating/dom', [], function () {
       element._events.push(evt);
       return evt;
     },
+
     // Remove Dom Element from Dom
     //
     //      @method remove
@@ -8688,6 +8753,7 @@ define('templating/dom', [], function () {
         }
       }
     },
+
     // executes when element attached to Dom
     //
     //      @method onDOMAttached
@@ -8722,6 +8788,7 @@ define('templating/dom', [], function () {
         }
       };
     },
+
     // Element
     Element: Element
   };
@@ -8947,16 +9014,17 @@ define('templating/dom', [], function () {
           if (child.template) {
             (function () {
               var run = function run(force, index) {
+                if (force instanceof HTMLElement === true) {
+                  fragment = force;
+                }
+
                 var childNodes = undefined,
-                    data = isObject(force) || isArray(force) ? force : obj;
+                    data = fragment !== force && (isObject(force) || isArray(force)) ? force : obj;
                 if (!child.noAttach || force) {
                   if (children) {
                     childNodes = _this8.renderTemplate(children, fragment, data);
                   }
 
-                  if (force instanceof HTMLElement === true) {
-                    fragment = force;
-                  }
                   var placeholder = fragment.querySelector('#' + child.id) || fragment;
 
                   var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);

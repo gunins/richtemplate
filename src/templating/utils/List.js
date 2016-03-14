@@ -31,12 +31,27 @@ define(function () {
             return this._indexes.indexOf(key);
         };
 
+        changeIndex(key, index) {
+            if (key) {
+                let indexes = this._indexes,
+                    indexOf = indexes.indexOf(key);
+
+                if (indexOf !== -1 && index !== indexOf) {
+                    this._indexes.splice(index, 0, this._indexes.splice(indexOf, 1)[0]);
+                }
+            }
+        };
+
         getValueByIndex(index) {
             return this._map.get(this._indexes[index]);
         };
 
         getFirst() {
             return this.getValueByIndex(0);
+        };
+
+        getLast() {
+            return this.getValueByIndex(this._indexes.length - 1);
         };
 
         getKeyByIndex(index) {
@@ -59,7 +74,7 @@ define(function () {
         clear() {
             this._map.clear();
             this._indexes.splice(0, this._indexes.length);
-        }
+        };
 
         delete(key) {
             this._map.delete(key);
@@ -69,7 +84,7 @@ define(function () {
         deleteByIndex(index) {
             var key = this._indexes.splice(index, 1)[0];
             this._map.delete(key);
-        }
+        };
 
         get size() {
             return this._map.size

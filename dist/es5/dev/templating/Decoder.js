@@ -115,16 +115,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
+                                if (force instanceof HTMLElement === true) {
+                                    fragment = force;
+                                }
+
                                 var childNodes = undefined,
-                                    data = isObject(force) || isArray(force) ? force : obj;
+                                    data = fragment !== force && (isObject(force) || isArray(force)) ? force : obj;
                                 if (!child.noAttach || force) {
                                     if (children) {
                                         childNodes = _this2.renderTemplate(children, fragment, data);
                                     }
 
-                                    if (force instanceof HTMLElement === true) {
-                                        fragment = force;
-                                    }
                                     var placeholder = fragment.querySelector('#' + child.id) || fragment;
 
                                     var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);

@@ -93,16 +93,18 @@
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
+                        if (force instanceof HTMLElement === true) {
+                            fragment = force;
+                        }
+
                         let childNodes,
-                            data = (isObject(force) || isArray(force)) ? force : obj;
+                            data = (fragment !== force) && (isObject(force) || isArray(force)) ? force : obj;
                         if (!child.noAttach || force) {
                             if (children) {
                                 childNodes = this.renderTemplate(children, fragment, data);
                             }
 
-                            if (force instanceof HTMLElement === true) {
-                                fragment = force;
-                            }
+
                             let placeholder = fragment.querySelector('#' + child.id) || fragment;
 
                             let element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
