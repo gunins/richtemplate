@@ -835,7 +835,7 @@ define('templating/dom', [], function () {
 
                                     var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
 
-                                    if (childNodes) {
+                                    if (childNodes && !element.children) {
                                         element.children = childNodes;
                                     }
                                     element.elGroup = elGroup;

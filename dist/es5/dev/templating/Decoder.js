@@ -130,7 +130,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                                     var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
 
-                                    if (childNodes) {
+                                    if (childNodes && !element.children) {
                                         element.children = childNodes;
                                     }
                                     element.elGroup = elGroup;

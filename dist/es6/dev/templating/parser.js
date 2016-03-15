@@ -9252,7 +9252,7 @@ define('templating/dom',[],function () {
 
                             let element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
 
-                            if (childNodes) {
+                            if (childNodes && !element.children) {
                                 element.children = childNodes;
                             }
                             element.elGroup = elGroup;
