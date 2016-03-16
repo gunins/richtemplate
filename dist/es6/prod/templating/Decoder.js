@@ -14,7 +14,9 @@ define('templating/utils/List',[],function () {
         };
 
         values() {
-            return [...this._map.values()];
+            return this.entries().map((entry)=> {
+                return entry[1];
+            })
         };
 
         entries() {
@@ -25,6 +27,12 @@ define('templating/utils/List',[],function () {
 
         get(key) {
             return this._map.get(key);
+        };
+
+        forEach(fn) {
+            return this.values().forEach((value, index, ...args)=> {
+                return fn.apply(null, [value, index, ...args]);
+            })
         };
 
         getIndex(key) {
@@ -89,6 +97,7 @@ define('templating/utils/List',[],function () {
         get size() {
             return this._map.size
         };
+
     }
     return List;
 });
@@ -118,7 +127,7 @@ define('templating/dom',[],function () {
             this.el = el;
             this._events = [];
             //this._node = node;
-            this.name = node.name;
+            this.name = node.name || node.data.name;
             let data = this.data = node.data;
             if (data) {
                 if (data.bind) {
@@ -227,7 +236,7 @@ define('templating/dom',[],function () {
 
         detach (node) {
             if (node.placeholder instanceof HTMLElement === false) {
-                node.placeholder = createPlaceholder(node._node.data.tag || node.el.tagName);
+                node.placeholder = createPlaceholder(node.data.tag || node.el.tagName);
             }
             if (node && node.el && node.el.parentNode) {
                 node.el.parentNode.replaceChild(node.placeholder, node.el)
@@ -459,6 +468,7 @@ define('templating/dom',[],function () {
                 } else if (el.el.parentNode) {
                     el.el.parentNode.removeChild(el.el);
                 }
+                delete el.el;
             }
         },
         // executes when element attached to Dom
@@ -519,8 +529,8 @@ define('templating/dom',[],function () {
         constructor(_node, placeholder, childNodes, elGroup, index, obj) {
             Object.assign(this, {
                 _node,
-                childNodes,
                 placeholder,
+                childNodes,
                 elGroup,
                 index,
                 obj
@@ -592,9 +602,9 @@ define('templating/dom',[],function () {
 
             this.appendToBody(el);
 
-            if (this.childNodes && this.childNodes.runAll && node.parse) {
-                this.childNodes.runAll(el);
-            }
+            /* if (this.childNodes && this.childNodes.runAll && node.parse) {
+             this.childNodes.runAll();
+             }*/
 
             return instance;
 
@@ -688,7 +698,7 @@ define('templating/dom',[],function () {
             return context;
         };
 
-        renderTemplate(childNodes, fragment, obj) {
+        renderTemplate(childNodes, obj, fragment) {
             let resp = {},
                 _runAll = [];
             Object.keys(childNodes).forEach((name) => {
@@ -697,21 +707,29 @@ define('templating/dom',[],function () {
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
+                        let template = fragment();
                         if (force instanceof HTMLElement === true) {
-                            fragment = force;
+                            template = force;
                         }
 
                         let childNodes,
-                            data = (fragment !== force) && (isObject(force) || isArray(force)) ? force : obj;
+                            data = (template !== force) && (isObject(force) || isArray(force)) ? force : obj;
                         if (!child.noAttach || force) {
+                            let placeholder = template.querySelector('#' + child.id) || template;
+
                             if (children) {
-                                childNodes = this.renderTemplate(children, fragment, data);
+                                childNodes = this.renderTemplate(children, data, ()=> {
+                                    return template;
+                                });
                             }
-
-
-                            let placeholder = fragment.querySelector('#' + child.id) || fragment;
-
                             let element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
+
+                            template = element.el;
+
+
+                            if (childNodes && childNodes.runAll && child.parse) {
+                                childNodes.runAll();
+                            }
 
                             if (childNodes && !element.children) {
                                 element.children = childNodes;
@@ -731,7 +749,7 @@ define('templating/dom',[],function () {
                     };
 
                 } else {
-                    let element = new dom.Element(fragment.querySelector('#' + child.id), child);
+                    let element = new dom.Element(fragment().querySelector('#' + child.id), child);
                     element.removeAttribute('id');
                     element.elGroup = elGroup;
                     elGroup.set(element.el, element);
@@ -759,7 +777,9 @@ define('templating/dom',[],function () {
             var fragment = this.renderFragment(this._root.template);
             return {
                 fragment:   fragment,
-                children:   this.renderTemplate(this.children, fragment, obj || {}).runAll(),
+                children:   this.renderTemplate(this.children, obj || {}, ()=> {
+                    return fragment;
+                }).runAll(),
                 templateId: this._root.templateId
             };
         };

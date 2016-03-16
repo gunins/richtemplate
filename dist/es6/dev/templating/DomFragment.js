@@ -17,8 +17,8 @@
         constructor(_node, placeholder, childNodes, elGroup, index, obj) {
             Object.assign(this, {
                 _node,
-                childNodes,
                 placeholder,
+                childNodes,
                 elGroup,
                 index,
                 obj
@@ -90,9 +90,9 @@
 
             this.appendToBody(el);
 
-            if (this.childNodes && this.childNodes.runAll && node.parse) {
-                this.childNodes.runAll(el);
-            }
+            /* if (this.childNodes && this.childNodes.runAll && node.parse) {
+             this.childNodes.runAll();
+             }*/
 
             return instance;
 

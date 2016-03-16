@@ -84,7 +84,7 @@
             return context;
         };
 
-        renderTemplate(childNodes, fragment, obj) {
+        renderTemplate(childNodes, obj, fragment) {
             let resp = {},
                 _runAll = [];
             Object.keys(childNodes).forEach((name) => {
@@ -93,21 +93,29 @@
                     elGroup = new List();
                 if (child.template) {
                     let run = (force, index)=> {
+                        let template = fragment();
                         if (force instanceof HTMLElement === true) {
-                            fragment = force;
+                            template = force;
                         }
 
                         let childNodes,
-                            data = (fragment !== force) && (isObject(force) || isArray(force)) ? force : obj;
+                            data = (template !== force) && (isObject(force) || isArray(force)) ? force : obj;
                         if (!child.noAttach || force) {
+                            let placeholder = template.querySelector('#' + child.id) || template;
+
                             if (children) {
-                                childNodes = this.renderTemplate(children, fragment, data);
+                                childNodes = this.renderTemplate(children, data, ()=> {
+                                    return template;
+                                });
                             }
-
-
-                            let placeholder = fragment.querySelector('#' + child.id) || fragment;
-
                             let element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
+
+                            template = element.el;
+
+
+                            if (childNodes && childNodes.runAll && child.parse) {
+                                childNodes.runAll();
+                            }
 
                             if (childNodes && !element.children) {
                                 element.children = childNodes;
@@ -127,7 +135,7 @@
                     };
 
                 } else {
-                    let element = new dom.Element(fragment.querySelector('#' + child.id), child);
+                    let element = new dom.Element(fragment().querySelector('#' + child.id), child);
                     element.removeAttribute('id');
                     element.elGroup = elGroup;
                     elGroup.set(element.el, element);
@@ -155,7 +163,7 @@
             var fragment = this.renderFragment(this._root.template);
             return {
                 fragment:   fragment,
-                children:   this.renderTemplate(this.children, fragment, obj || {}).runAll(),
+                children:   this.renderTemplate(this.children, obj || {}, ()=> fragment).runAll(),
                 templateId: this._root.templateId
             };
         };

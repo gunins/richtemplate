@@ -28,8 +28,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
             Object.assign(this, {
                 _node: _node,
-                childNodes: childNodes,
                 placeholder: placeholder,
+                childNodes: childNodes,
                 elGroup: elGroup,
                 index: index,
                 obj: obj
@@ -103,9 +103,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 this.appendToBody(el);
 
-                if (this.childNodes && this.childNodes.runAll && node.parse) {
-                    this.childNodes.runAll(el);
-                }
+                /* if (this.childNodes && this.childNodes.runAll && node.parse) {
+                 this.childNodes.runAll();
+                 }*/
 
                 return instance;
             }

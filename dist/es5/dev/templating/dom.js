@@ -35,7 +35,7 @@ define(function () {
             this.el = el;
             this._events = [];
             //this._node = node;
-            this.name = node.name;
+            this.name = node.name || node.data.name;
             var data = this.data = node.data;
             if (data) {
                 if (data.bind) {
@@ -183,7 +183,7 @@ define(function () {
 
         detach: function detach(node) {
             if (node.placeholder instanceof HTMLElement === false) {
-                node.placeholder = createPlaceholder(node._node.data.tag || node.el.tagName);
+                node.placeholder = createPlaceholder(node.data.tag || node.el.tagName);
             }
             if (node && node.el && node.el.parentNode) {
                 node.el.parentNode.replaceChild(node.placeholder, node.el);
@@ -435,6 +435,7 @@ define(function () {
                 } else if (el.el.parentNode) {
                     el.el.parentNode.removeChild(el.el);
                 }
+                delete el.el;
             }
         },
 

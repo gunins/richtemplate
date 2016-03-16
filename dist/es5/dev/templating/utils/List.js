@@ -28,7 +28,9 @@ define(function () {
         }, {
             key: 'values',
             value: function values() {
-                return [].concat(_toConsumableArray(this._map.values()));
+                return this.entries().map(function (entry) {
+                    return entry[1];
+                });
             }
         }, {
             key: 'entries',
@@ -43,6 +45,17 @@ define(function () {
             key: 'get',
             value: function get(key) {
                 return this._map.get(key);
+            }
+        }, {
+            key: 'forEach',
+            value: function forEach(fn) {
+                return this.values().forEach(function (value, index) {
+                    for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+                        args[_key - 2] = arguments[_key];
+                    }
+
+                    return fn.apply(null, [value, index].concat(args));
+                });
             }
         }, {
             key: 'getIndex',

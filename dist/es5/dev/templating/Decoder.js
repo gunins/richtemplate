@@ -103,7 +103,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
         }, {
             key: 'renderTemplate',
-            value: function renderTemplate(childNodes, fragment, obj) {
+            value: function renderTemplate(childNodes, obj, fragment) {
                 var _this2 = this;
 
                 var resp = {},
@@ -115,20 +115,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
+                                var template = fragment();
                                 if (force instanceof HTMLElement === true) {
-                                    fragment = force;
+                                    template = force;
                                 }
 
                                 var childNodes = undefined,
-                                    data = fragment !== force && (isObject(force) || isArray(force)) ? force : obj;
+                                    data = template !== force && (isObject(force) || isArray(force)) ? force : obj;
                                 if (!child.noAttach || force) {
+                                    var placeholder = template.querySelector('#' + child.id) || template;
+
                                     if (children) {
-                                        childNodes = _this2.renderTemplate(children, fragment, data);
+                                        childNodes = _this2.renderTemplate(children, data, function () {
+                                            return template;
+                                        });
                                     }
-
-                                    var placeholder = fragment.querySelector('#' + child.id) || fragment;
-
                                     var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
+
+                                    template = element.el;
+
+                                    if (childNodes && childNodes.runAll && child.parse) {
+                                        childNodes.runAll();
+                                    }
 
                                     if (childNodes && !element.children) {
                                         element.children = childNodes;
@@ -147,7 +155,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                             };
                         })();
                     } else {
-                        var element = new dom.Element(fragment.querySelector('#' + child.id), child);
+                        var element = new dom.Element(fragment().querySelector('#' + child.id), child);
                         element.removeAttribute('id');
                         element.elGroup = elGroup;
                         elGroup.set(element.el, element);
@@ -178,7 +186,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 var fragment = this.renderFragment(this._root.template);
                 return {
                     fragment: fragment,
-                    children: this.renderTemplate(this.children, fragment, obj || {}).runAll(),
+                    children: this.renderTemplate(this.children, obj || {}, function () {
+                        return fragment;
+                    }).runAll(),
                     templateId: this._root.templateId
                 };
             }

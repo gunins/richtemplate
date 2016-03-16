@@ -14,7 +14,9 @@ define(function () {
         };
 
         values() {
-            return [...this._map.values()];
+            return this.entries().map((entry)=> {
+                return entry[1];
+            })
         };
 
         entries() {
@@ -25,6 +27,12 @@ define(function () {
 
         get(key) {
             return this._map.get(key);
+        };
+
+        forEach(fn) {
+            return this.values().forEach((value, index, ...args)=> {
+                return fn.apply(null, [value, index, ...args]);
+            })
         };
 
         getIndex(key) {
@@ -89,6 +97,7 @@ define(function () {
         get size() {
             return this._map.size
         };
+
     }
     return List;
 });
