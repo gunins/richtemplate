@@ -24,6 +24,24 @@ define(function () {
         return placeholder;
     }
 
+    function destroy(instance) {
+        var keys = Object.keys(instance);
+        if (keys.length > 0) {
+            keys.forEach(function (key) {
+                if (key !== 'root') {
+                    var children = instance[key];
+                    if (children.elGroup !== undefined && children.elGroup.size > 0) {
+                        children.elGroup.forEach(function (child) {
+                            if (child !== undefined && child.remove !== undefined) {
+                                child.remove(true);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
     // ## widget/dom.Element
     //     @method Element
     //     @param {Object} node
@@ -167,8 +185,8 @@ define(function () {
             key: 'remove',
 
             // Shortcut to - `dom.remove`
-            value: function remove() {
-                dom.remove(this);
+            value: function remove(force) {
+                dom.remove(this, force);
             }
         }]);
 
@@ -422,10 +440,14 @@ define(function () {
         //
         //      @method remove
         //      @param {dom.Element}
-        remove: function remove(el) {
+        remove: function remove(el, force) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+            if (el.children) {
+                destroy(el.children, force);
+            }
+
             if (el.elGroup !== undefined) {
                 el.elGroup.delete(el.el);
             }

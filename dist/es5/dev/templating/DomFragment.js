@@ -103,10 +103,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 this.appendToBody(el);
 
-                /* if (this.childNodes && this.childNodes.runAll && node.parse) {
-                 this.childNodes.runAll();
-                 }*/
-
                 return instance;
             }
         }]);

@@ -82,7 +82,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 } else {
                     var placeholder = domParser.createElement(data.tag);
                     domParser.setAttributeValue(placeholder, 'id', id);
-                    //domParser.setAttributeValue(placeholder, 'style', 'display:none');
+                    domParser.setAttributeValue(placeholder, 'style', 'display:none');
                     domParser.replaceElement(element, placeholder);
                 }
             },

@@ -111,7 +111,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 Object.keys(childNodes).forEach(function (name) {
                     var child = childNodes[name],
                         children = child.children,
-                        elGroup = new List();
+                        elGroup = new List(),
+                        placeholder = document.createElement(child.data.tplSet.tag || 'div');
+                    placeholder.setAttribute('style', 'display:none;');
+                    placeholder.id = child.id;
+                    elGroup.onDelete(function (key, size) {
+                        if (size === 0 && key.parentNode) {
+                            key.parentNode.replaceChild(placeholder, key);
+                            fragment = function fragment() {
+                                return placeholder;
+                            };
+                        }
+                    });
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
@@ -123,14 +134,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                                 var childNodes = undefined,
                                     data = template !== force && (isObject(force) || isArray(force)) ? force : obj;
                                 if (!child.noAttach || force) {
-                                    var placeholder = template.querySelector('#' + child.id) || template;
+                                    var _placeholder = template.querySelector('#' + child.id) || template;
 
                                     if (children) {
                                         childNodes = _this2.renderTemplate(children, data, function () {
                                             return template;
                                         });
                                     }
-                                    var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
+                                    var element = new DomFragment(child, _placeholder, childNodes, elGroup, index, data);
 
                                     template = element.el;
 

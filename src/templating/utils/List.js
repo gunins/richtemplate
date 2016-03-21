@@ -6,7 +6,8 @@ define(function () {
     class List {
         constructor(items) {
             this._map = new Map(items);
-            this._indexes = [...this._map.keys()]
+            this._indexes = [...this._map.keys()];
+            this._onDelete = [];
         };
 
         keys() {
@@ -84,14 +85,25 @@ define(function () {
             this._indexes.splice(0, this._indexes.length);
         };
 
+        onDelete(cb) {
+            let chunk = (...args)=>cb(...args);
+            this._onDelete.push(chunk);
+            return {
+                remove(){
+                    this._onDelete.splice(this._onDelete.indexOf(chunk, 1));
+                }
+            }
+        };
+
         delete(key) {
+            let item = this._map.get(key);
             this._map.delete(key);
             this._indexes.splice(this._indexes.indexOf(key), 1);
+            this._onDelete.forEach(chunk=>chunk(key, this.size, item));
         };
 
         deleteByIndex(index) {
-            var key = this._indexes.splice(index, 1)[0];
-            this._map.delete(key);
+            this.delete(this._indexes[index]);
         };
 
         get size() {

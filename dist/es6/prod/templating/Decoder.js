@@ -6,7 +6,8 @@ define('templating/utils/List',[],function () {
     class List {
         constructor(items) {
             this._map = new Map(items);
-            this._indexes = [...this._map.keys()]
+            this._indexes = [...this._map.keys()];
+            this._onDelete = [];
         };
 
         keys() {
@@ -84,14 +85,25 @@ define('templating/utils/List',[],function () {
             this._indexes.splice(0, this._indexes.length);
         };
 
+        onDelete(cb) {
+            let chunk = (...args)=>cb(...args);
+            this._onDelete.push(chunk);
+            return {
+                remove(){
+                    this._onDelete.splice(this._onDelete.indexOf(chunk, 1));
+                }
+            }
+        };
+
         delete(key) {
+            let item = this._map.get(key);
             this._map.delete(key);
             this._indexes.splice(this._indexes.indexOf(key), 1);
+            this._onDelete.forEach(chunk=>chunk(key, this.size, item));
         };
 
         deleteByIndex(index) {
-            var key = this._indexes.splice(index, 1)[0];
-            this._map.delete(key);
+            this.delete(this._indexes[index]);
         };
 
         get size() {
@@ -104,7 +116,7 @@ define('templating/utils/List',[],function () {
 /**
  * Created by guntars on 10/10/2014.
  */
-    //## templating/dom Class for dom manipulation
+//## templating/dom Class for dom manipulation
 define('templating/dom',[],function () {
     'use strict';
 
@@ -117,6 +129,24 @@ define('templating/dom',[],function () {
         var placeholder = document.createElement(tag || 'div');
         placeholder.setAttribute('style', 'display:none;');
         return placeholder;
+    }
+
+    function destroy(instance) {
+        let keys = Object.keys(instance);
+        if (keys.length > 0) {
+            keys.forEach((key)=> {
+                if (key !== 'root') {
+                    let children = instance[key];
+                    if (children.elGroup !== undefined && children.elGroup.size > 0) {
+                        children.elGroup.forEach(child=> {
+                            if (child !== undefined && child.remove !== undefined) {
+                                child.remove(true);
+                            }
+                        })
+                    }
+                }
+            });
+        }
     }
 
     // ## widget/dom.Element
@@ -223,8 +253,8 @@ define('templating/dom',[],function () {
         };
 
         // Shortcut to - `dom.remove`
-        remove() {
-            dom.remove(this);
+        remove(force) {
+            dom.remove(this, force);
         };
     }
 
@@ -455,10 +485,14 @@ define('templating/dom',[],function () {
         //
         //      @method remove
         //      @param {dom.Element}
-        remove (el) {
+        remove (el, force) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+            if (el.children) {
+                destroy(el.children, force);
+            }
+
             if (el.elGroup !== undefined) {
                 el.elGroup.delete(el.el);
             }
@@ -602,10 +636,6 @@ define('templating/dom',[],function () {
 
             this.appendToBody(el);
 
-            /* if (this.childNodes && this.childNodes.runAll && node.parse) {
-             this.childNodes.runAll();
-             }*/
-
             return instance;
 
         }
@@ -704,7 +734,16 @@ define('templating/dom',[],function () {
             Object.keys(childNodes).forEach((name) => {
                 let child = childNodes[name],
                     children = child.children,
-                    elGroup = new List();
+                    elGroup = new List(),
+                    placeholder = document.createElement(child.data.tplSet.tag || 'div');
+                placeholder.setAttribute('style', 'display:none;');
+                placeholder.id = child.id;
+                elGroup.onDelete((key, size)=> {
+                    if (size === 0 && key.parentNode) {
+                        key.parentNode.replaceChild(placeholder, key);
+                        fragment = ()=>placeholder;
+                    }
+                })
                 if (child.template) {
                     let run = (force, index)=> {
                         let template = fragment();
@@ -777,9 +816,7 @@ define('templating/dom',[],function () {
             var fragment = this.renderFragment(this._root.template);
             return {
                 fragment:   fragment,
-                children:   this.renderTemplate(this.children, obj || {}, ()=> {
-                    return fragment;
-                }).runAll(),
+                children:   this.renderTemplate(this.children, obj || {}, ()=> fragment).runAll(),
                 templateId: this._root.templateId
             };
         };

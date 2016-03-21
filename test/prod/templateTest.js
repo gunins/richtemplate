@@ -50,7 +50,7 @@ define([
             it('If Decoder is parsed correctly', function () {
                 var root = decoder._root,
                     templateId = root.templateId,
-                    template = '<div class=\"'+templateId+'\">\n    \n    <h2 class=\"'+templateId+' header\" id=\"e21\">RootElement <span class=\"'+templateId+' label\" id=\"e20\">Label</span></h2>\n    \n\n    <div class=\"'+templateId+'\"><div id=\"e24\"></div></div>\n\n    \n    <div id=\"e30\"></div>\n    <div id=\"e31\"></div>\n</div>';
+                    template = '<div class=\"'+templateId+'\">\n    \n    <h2 class=\"'+templateId+' header\" id=\"e21\">RootElement <span class=\"'+templateId+' label\" id=\"e20\">Label</span></h2>\n    \n\n    <div class=\"'+templateId+'\"><div id=\"e24\" style=\"display:none\"></div></div>\n\n    \n    <div id=\"e30\" style=\"display:none\"></div>\n    <div id=\"e31\" style=\"display:none\"></div>\n</div>';
                 expect(root.template).to.equal(template);
                 expect(root.children.length).to.equal(7);
             });

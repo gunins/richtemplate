@@ -90,7 +90,16 @@
             Object.keys(childNodes).forEach((name) => {
                 let child = childNodes[name],
                     children = child.children,
-                    elGroup = new List();
+                    elGroup = new List(),
+                    placeholder = document.createElement(child.data.tplSet.tag || 'div');
+                placeholder.setAttribute('style', 'display:none;');
+                placeholder.id = child.id;
+                elGroup.onDelete((key, size)=> {
+                    if (size === 0 && key.parentNode) {
+                        key.parentNode.replaceChild(placeholder, key);
+                        fragment = ()=>placeholder;
+                    }
+                })
                 if (child.template) {
                     let run = (force, index)=> {
                         let template = fragment();
@@ -163,9 +172,7 @@
             var fragment = this.renderFragment(this._root.template);
             return {
                 fragment:   fragment,
-                children:   this.renderTemplate(this.children, obj || {}, ()=> {
-                    return fragment;
-                }).runAll(),
+                children:   this.renderTemplate(this.children, obj || {}, ()=> fragment).runAll(),
                 templateId: this._root.templateId
             };
         };

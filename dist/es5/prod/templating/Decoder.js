@@ -20,6 +20,7 @@ define('templating/utils/List', [], function () {
 
             this._map = new Map(items);
             this._indexes = [].concat(_toConsumableArray(this._map.keys()));
+            this._onDelete = [];
         }
 
         _createClass(List, [{
@@ -118,16 +119,34 @@ define('templating/utils/List', [], function () {
                 this._indexes.splice(0, this._indexes.length);
             }
         }, {
+            key: 'onDelete',
+            value: function onDelete(cb) {
+                var chunk = function chunk() {
+                    return cb.apply(undefined, arguments);
+                };
+                this._onDelete.push(chunk);
+                return {
+                    remove: function remove() {
+                        this._onDelete.splice(this._onDelete.indexOf(chunk, 1));
+                    }
+                };
+            }
+        }, {
             key: 'delete',
             value: function _delete(key) {
+                var _this2 = this;
+
+                var item = this._map.get(key);
                 this._map.delete(key);
                 this._indexes.splice(this._indexes.indexOf(key), 1);
+                this._onDelete.forEach(function (chunk) {
+                    return chunk(key, _this2.size, item);
+                });
             }
         }, {
             key: 'deleteByIndex',
             value: function deleteByIndex(index) {
-                var key = this._indexes.splice(index, 1)[0];
-                this._map.delete(key);
+                this.delete(this._indexes[index]);
             }
         }, {
             key: 'size',
@@ -157,6 +176,24 @@ define('templating/dom', [], function () {
         var placeholder = document.createElement(tag || 'div');
         placeholder.setAttribute('style', 'display:none;');
         return placeholder;
+    }
+
+    function destroy(instance) {
+        var keys = Object.keys(instance);
+        if (keys.length > 0) {
+            keys.forEach(function (key) {
+                if (key !== 'root') {
+                    var children = instance[key];
+                    if (children.elGroup !== undefined && children.elGroup.size > 0) {
+                        children.elGroup.forEach(function (child) {
+                            if (child !== undefined && child.remove !== undefined) {
+                                child.remove(true);
+                            }
+                        });
+                    }
+                }
+            });
+        }
     }
 
     // ## widget/dom.Element
@@ -302,8 +339,8 @@ define('templating/dom', [], function () {
             key: 'remove',
 
             // Shortcut to - `dom.remove`
-            value: function remove() {
-                dom.remove(this);
+            value: function remove(force) {
+                dom.remove(this, force);
             }
         }]);
 
@@ -529,12 +566,12 @@ define('templating/dom', [], function () {
                 args[_key2 - 4] = arguments[_key2];
             }
 
-            var _this2 = this;
+            var _this3 = this;
 
             var el = element.el,
                 events = ev.split(' '),
                 fn = function fn(e) {
-                cb.apply(context || _this2, [e, element].concat(args));
+                cb.apply(context || _this3, [e, element].concat(args));
             };
 
             events.forEach(function (event) {
@@ -557,10 +594,14 @@ define('templating/dom', [], function () {
         //
         //      @method remove
         //      @param {dom.Element}
-        remove: function remove(el) {
+        remove: function remove(el, force) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+            if (el.children) {
+                destroy(el.children, force);
+            }
+
             if (el.elGroup !== undefined) {
                 el.elGroup.delete(el.el);
             }
@@ -581,7 +622,7 @@ define('templating/dom', [], function () {
         //      @param {function} cb
         //      @param {function} context
         onDOMAttached: function onDOMAttached(el) {
-            var _this3 = this;
+            var _this4 = this;
 
             var handlers = [],
                 attached = false,
@@ -603,7 +644,7 @@ define('templating/dom', [], function () {
             }
             return {
                 then: function then(cb, context) {
-                    handlers.push(cb.bind(context || _this3));
+                    handlers.push(cb.bind(context || _this4));
                     window.requestAnimationFrame(_step);
                 }
             };
@@ -712,10 +753,6 @@ define('templating/dom', [], function () {
 
                 this.appendToBody(el);
 
-                /* if (this.childNodes && this.childNodes.runAll && node.parse) {
-                 this.childNodes.runAll();
-                 }*/
-
                 return instance;
             }
         }]);
@@ -784,7 +821,7 @@ define('templating/dom', [], function () {
         }, {
             key: '_parseElements',
             value: function _parseElements(nodeList) {
-                var _this4 = this;
+                var _this5 = this;
 
                 var context = {};
                 nodeList.forEach(function (node) {
@@ -801,12 +838,12 @@ define('templating/dom', [], function () {
                                 replace: decodedData.replace,
                                 id: node.id,
                                 template: function template() {
-                                    return _this4.renderFragment(node.template, node.data.tag);
+                                    return _this5.renderFragment(node.template, node.data.tag);
                                 },
                                 noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach
                             };
                             if (node.children && node.children.length > 0) {
-                                nodeParams.children = _this4._parseElements(node.children);
+                                nodeParams.children = _this5._parseElements(node.children);
                             }
                             context[name] = nodeParams;
                         }
@@ -823,14 +860,25 @@ define('templating/dom', [], function () {
         }, {
             key: 'renderTemplate',
             value: function renderTemplate(childNodes, obj, fragment) {
-                var _this5 = this;
+                var _this6 = this;
 
                 var resp = {},
                     _runAll = [];
                 Object.keys(childNodes).forEach(function (name) {
                     var child = childNodes[name],
                         children = child.children,
-                        elGroup = new List();
+                        elGroup = new List(),
+                        placeholder = document.createElement(child.data.tplSet.tag || 'div');
+                    placeholder.setAttribute('style', 'display:none;');
+                    placeholder.id = child.id;
+                    elGroup.onDelete(function (key, size) {
+                        if (size === 0 && key.parentNode) {
+                            key.parentNode.replaceChild(placeholder, key);
+                            fragment = function fragment() {
+                                return placeholder;
+                            };
+                        }
+                    });
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
@@ -842,14 +890,14 @@ define('templating/dom', [], function () {
                                 var childNodes = undefined,
                                     data = template !== force && (isObject(force) || isArray(force)) ? force : obj;
                                 if (!child.noAttach || force) {
-                                    var placeholder = template.querySelector('#' + child.id) || template;
+                                    var _placeholder = template.querySelector('#' + child.id) || template;
 
                                     if (children) {
-                                        childNodes = _this5.renderTemplate(children, data, function () {
+                                        childNodes = _this6.renderTemplate(children, data, function () {
                                             return template;
                                         });
                                     }
-                                    var element = new DomFragment(child, placeholder, childNodes, elGroup, index, data);
+                                    var element = new DomFragment(child, _placeholder, childNodes, elGroup, index, data);
 
                                     template = element.el;
 

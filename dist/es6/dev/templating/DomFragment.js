@@ -90,10 +90,6 @@
 
             this.appendToBody(el);
 
-            /* if (this.childNodes && this.childNodes.runAll && node.parse) {
-             this.childNodes.runAll();
-             }*/
-
             return instance;
 
         }

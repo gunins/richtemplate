@@ -18,6 +18,7 @@ define(function () {
 
             this._map = new Map(items);
             this._indexes = [].concat(_toConsumableArray(this._map.keys()));
+            this._onDelete = [];
         }
 
         _createClass(List, [{
@@ -116,16 +117,34 @@ define(function () {
                 this._indexes.splice(0, this._indexes.length);
             }
         }, {
+            key: 'onDelete',
+            value: function onDelete(cb) {
+                var chunk = function chunk() {
+                    return cb.apply(undefined, arguments);
+                };
+                this._onDelete.push(chunk);
+                return {
+                    remove: function remove() {
+                        this._onDelete.splice(this._onDelete.indexOf(chunk, 1));
+                    }
+                };
+            }
+        }, {
             key: 'delete',
             value: function _delete(key) {
+                var _this2 = this;
+
+                var item = this._map.get(key);
                 this._map.delete(key);
                 this._indexes.splice(this._indexes.indexOf(key), 1);
+                this._onDelete.forEach(function (chunk) {
+                    return chunk(key, _this2.size, item);
+                });
             }
         }, {
             key: 'deleteByIndex',
             value: function deleteByIndex(index) {
-                var key = this._indexes.splice(index, 1)[0];
-                this._map.delete(key);
+                this.delete(this._indexes[index]);
             }
         }, {
             key: 'size',

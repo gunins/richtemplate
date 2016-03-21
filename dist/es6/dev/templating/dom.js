@@ -1,7 +1,7 @@
 /**
  * Created by guntars on 10/10/2014.
  */
-    //## templating/dom Class for dom manipulation
+//## templating/dom Class for dom manipulation
 define(function () {
     'use strict';
 
@@ -14,6 +14,24 @@ define(function () {
         var placeholder = document.createElement(tag || 'div');
         placeholder.setAttribute('style', 'display:none;');
         return placeholder;
+    }
+
+    function destroy(instance) {
+        let keys = Object.keys(instance);
+        if (keys.length > 0) {
+            keys.forEach((key)=> {
+                if (key !== 'root') {
+                    let children = instance[key];
+                    if (children.elGroup !== undefined && children.elGroup.size > 0) {
+                        children.elGroup.forEach(child=> {
+                            if (child !== undefined && child.remove !== undefined) {
+                                child.remove(true);
+                            }
+                        })
+                    }
+                }
+            });
+        }
     }
 
     // ## widget/dom.Element
@@ -120,8 +138,8 @@ define(function () {
         };
 
         // Shortcut to - `dom.remove`
-        remove() {
-            dom.remove(this);
+        remove(force) {
+            dom.remove(this, force);
         };
     }
 
@@ -352,10 +370,14 @@ define(function () {
         //
         //      @method remove
         //      @param {dom.Element}
-        remove (el) {
+        remove (el, force) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+            if (el.children) {
+                destroy(el.children, force);
+            }
+
             if (el.elGroup !== undefined) {
                 el.elGroup.delete(el.el);
             }
