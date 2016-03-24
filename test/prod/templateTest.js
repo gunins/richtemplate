@@ -18,7 +18,7 @@ define([
             it('first children should be a Style', function() {
                 var children = template.children[0],
                     templateId = template.templateId,
-                    testStyle = 'div.' + templateId + '{margin:5px;padding:15px;border:2px solid green}.header.' + templateId + '{color:green}.header.' + templateId + ':hover{color:#8b0000}table.' + templateId + '{width:100%}table.' + templateId + ' tr.' + templateId + ' td.' + templateId + '{padding:5px 10px;border:1px solid #ccc}.label.' + templateId + '{background:#ccc;border-radius:5px;font-size:.7em;color:#fff;padding:3px 10px;display:inline-block}.test.' + templateId + ' span.' + templateId + '{padding:3px 5px;margin:5px;border:1px solid #ccc;border-radius:4px}';
+                    testStyle = 'div.'+templateId+'{margin:5px;padding:15px;border:2px solid green}.header.'+templateId+'{color:green}.header.'+templateId+':hover{color:#8b0000}table.'+templateId+'{width:100%}table.'+templateId+' tr.'+templateId+' td.'+templateId+'{padding:5px 10px;border:1px solid #ccc}.label.'+templateId+'{background:#ccc;border-radius:5px;font-size:.7em;color:#fff;padding:3px 10px;display:inline-block}.test.'+templateId+'>.'+templateId+'{padding:3px 5px;margin:5px;border:1px solid #ccc;border-radius:4px}';
                 expect(children.data.style).to.equal(testStyle);
             });
             it('Second children should be a just selected element', function() {

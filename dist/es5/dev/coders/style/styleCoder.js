@@ -37,18 +37,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     function setName(name, id) {
         var replace = '';
-        if (['/*', '', '*/'].indexOf(name) === -1) {
+        if (['/*', '', '*/', '>', '+', '*', '~', '>*'].indexOf(name) === -1) {
 
             if (name.indexOf(':') !== -1) {
                 var parts = name.split(':');
-
                 replace = parts.shift() + '.' + id + ':' + parts.join(':');
             } else {
                 replace = name + '.' + id;
             }
+        } else if (['*', '>*'].indexOf(name) !== -1) {
+            replace = name.replace('*', '.' + id);
         } else {
             replace = name;
         }
+
         return replace;
     }
 
