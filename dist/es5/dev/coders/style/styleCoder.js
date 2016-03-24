@@ -40,12 +40,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (['/*', '', '*/'].indexOf(name) === -1) {
 
             if (name.indexOf(':') !== -1) {
-                var parts = name.trim().split(':');
+                var parts = name.split(':');
 
                 replace = parts.shift() + '.' + id + ':' + parts.join(':');
             } else {
-                replace = name.trim() + '.' + id;
+                replace = name + '.' + id;
             }
+        } else {
+            replace = name;
         }
         return replace;
     }

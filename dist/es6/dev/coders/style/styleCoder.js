@@ -31,13 +31,15 @@
         if (['/*', '', '*/'].indexOf(name) === -1) {
 
             if (name.indexOf(':') !== -1) {
-                let parts = name.trim().split(':');
+                let parts = name.split(':');
 
                 replace = parts.shift() + '.' + id + ':' + parts.join(':');
 
             } else {
-                replace = name.trim() + '.' + id;
+                replace = name + '.' + id;
             }
+        } else {
+            replace = name;
         }
         return replace;
     }
