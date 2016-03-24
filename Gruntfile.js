@@ -1,4 +1,4 @@
-module.exports = function (grunt) {
+module.exports = function(grunt) {
     var coders = {
         templateCoders:   [
             'coders/component/cpCoder',
@@ -291,7 +291,7 @@ module.exports = function (grunt) {
                     dest:   'target/es5/prod'
                 }]
             },
-            polyfill: {src: ['target/es6/dev/babel/polyfill.js'], dest: 'target/es6/dist/babel/polyfill.js'},
+            polyfill: {src: ['target/es6/dev/babel/polyfill.js'], dest: 'target/es5/prod/babel/polyfill.js'},
             //main:     {src: ['target/es6/main.js'], dest: 'target/es6/main.js'}
 
         },
@@ -348,7 +348,7 @@ module.exports = function (grunt) {
     grunt.registerTask('test', ['connect', 'mocha_phantomjs']);
     grunt.registerTask('basic', ['requirejs:example', 'clean:basic', 'copy:basicProd', 'babel:basic']);//, 'connect', 'mocha_phantomjs']);
     grunt.registerTask('reqTemplate', ['requirejs:dev', 'requirejs:prod']);
-    grunt.registerTask('default', ['clean:all', 'exec:browserify', 'reqTemplate', 'copy:es6', 'babel:dev', 'babel:prod', 'copy:es5', 'basic', 'uglify', 'test']);
+    grunt.registerTask('default', ['clean:all', 'exec:browserify', 'reqTemplate', 'copy:es6', 'babel:dev', 'babel:prod', 'uglify', 'copy:es5', 'basic', 'test']);
     grunt.registerTask('publish', ['default', 'bump', 'exec:publish']);
 
 };
