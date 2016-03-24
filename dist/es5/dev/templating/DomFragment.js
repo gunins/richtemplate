@@ -76,9 +76,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         parentNode.appendChild(el);
                     }
                 } else {
-                    var parentNode = placeholder.parentNode;
-                    if (parentNode) {
-                        parentNode.replaceChild(el, placeholder);
+                    var _parentNode = placeholder.parentNode;
+                    if (_parentNode) {
+                        _parentNode.replaceChild(el, placeholder);
                     }
                 }
             }

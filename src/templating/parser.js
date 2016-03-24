@@ -1,11 +1,11 @@
-define(['module'], function (module) {
+define(['module'], function(module) {
     'use strict';
 
-    var buildMap = {};
-    var srcMap = {};
-    var idToSrc = {};
-    var masterConfig = (module.config && module.config()) || {};
-    var loadDependencies;
+    var buildMap = {},
+        srcMap = {},
+        idToSrc = {},
+        masterConfig = (module.config && module.config()) || {},
+        loadDependencies;
 
     function traverse(o, func) {
         for (var i in o) {
@@ -18,7 +18,7 @@ define(['module'], function (module) {
 
     function sourceMap(jsObject) {
         let map = {}
-        traverse(jsObject, function (key, value) {
+        traverse(jsObject, function(key, value) {
             if (key == 'data' && value.src) {
                 map[value.src] = map[value.src] || [];
                 map[value.src].push(value);
@@ -69,7 +69,7 @@ define(['module'], function (module) {
             map = srcMap[name] = sourceMap(jsObject),
             sources = Object.keys(map);
 
-        req(sources, function (...args) {
+        req(sources, function(...args) {
             if (masterConfig.isBuild) {
                 idToSrc[name] = {};
                 sources.forEach((src)=> {
@@ -84,7 +84,7 @@ define(['module'], function (module) {
             } else {
                 sources.forEach((src, index)=> {
                     var obj = args[index];
-                    map[src].forEach(function (value) {
+                    map[src].forEach(function(value) {
                         value.src = obj;
                     });
                 });
@@ -98,7 +98,7 @@ define(['module'], function (module) {
         //Using special require.nodeRequire, something added by r.js.
         let fs = require.nodeRequire('fs');
 
-        loadDependencies = function (url, callback, errback) {
+        loadDependencies = function(url, callback, errback) {
             try {
                 var file = fs.readFileSync(url, 'utf8');
                 //Remove BOM (Byte Mark Order) from utf8 files if it is there.
@@ -113,7 +113,7 @@ define(['module'], function (module) {
             }
         };
     } else if (masterConfig.env === 'xhr' || !masterConfig.env) {
-        loadDependencies = function (url, callback, errback, headers) {
+        loadDependencies = function(url, callback, errback, headers) {
             let xhr = new XMLHttpRequest(),
                 header;
             xhr.open('GET', url, true);
@@ -132,7 +132,7 @@ define(['module'], function (module) {
                 masterConfig.onXhr(xhr, url);
             }
 
-            xhr.onreadystatechange = function () {
+            xhr.onreadystatechange = function() {
                 let status, err;
                 //Do not explicitly handle errors, those should be
                 //visible via console output in the browser.
@@ -180,19 +180,19 @@ define(['module'], function (module) {
                 return;
             }
 
-            loadDependencies(url, function (content) {
+            loadDependencies(url, function(content) {
                 if (masterConfig.isBuild) {
                     let Coder = require.nodeRequire(require.toUrl(paths.Coder));
-                    masterConfig.templateCoders.forEach(function (coder) {
+                    masterConfig.templateCoders.forEach(function(coder) {
                         Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
                     });
                     finishLoad(Coder, content, name, onLoad, req);
                 } else {
-                    req([paths.Coder, ...masterConfig.templateCoders, ...masterConfig.templateDecoders], function (Coder) {
+                    req([paths.Coder, ...masterConfig.templateCoders, ...masterConfig.templateDecoders], function(Coder) {
                         finishLoad(Coder, content, name, onLoad, req);
                     });
                 }
-            }, function (err) {
+            }, function(err) {
                 if (onLoad.error) {
                     onLoad.error(err);
                 }
@@ -206,7 +206,7 @@ define(['module'], function (module) {
                     map = idToSrc[moduleName],
                     ids = Object.keys(map),
                     sources = [];
-                ids.forEach(function (id, i) {
+                ids.forEach(function(id, i) {
                     let re = new RegExp(id, 'g');
                     content = content.replace(re, 'arguments[' + i + ']');
                     sources.push(map[id]);

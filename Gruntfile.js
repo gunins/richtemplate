@@ -54,21 +54,7 @@ module.exports = function(grunt) {
                     dir:      'target/es6/dev',
                     modules:  [
                         {
-                            name:    'templating/parser',
-                            include: [
-                                'templating/DOMParser',
-                                'templating/Coder',
-                                'templating/Decoder'
-                            ],
-                            shim:    {
-                                templating: {
-                                    deps: [
-                                        'templating/DOMParser',
-                                        'templating/Coder',
-                                        'templating/Decoder'
-                                    ]
-                                }
-                            }
+                            name:    'templating/parser'
                         },
                         {
                             name:    'coders/style/styleCoder',
@@ -346,7 +332,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-bump');
 
     grunt.registerTask('test', ['connect', 'mocha_phantomjs']);
-    grunt.registerTask('basic', ['requirejs:example', 'clean:basic', 'copy:basicProd', 'babel:basic']);//, 'connect', 'mocha_phantomjs']);
+    grunt.registerTask('basic', ['requirejs:example', 'clean:basic', 'copy:basicProd', 'babel:basic']);
     grunt.registerTask('reqTemplate', ['requirejs:dev', 'requirejs:prod']);
     grunt.registerTask('default', ['clean:all', 'exec:browserify', 'reqTemplate', 'copy:es6', 'babel:dev', 'babel:prod', 'uglify', 'copy:es5', 'basic', 'test']);
     grunt.registerTask('publish', ['default', 'bump', 'exec:publish']);
