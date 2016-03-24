@@ -8594,11 +8594,11 @@ define('templating/utils/List',[],function () {
             return this._map.get(this._indexes[index]);
         };
 
-        getFirst() {
+        get first() {
             return this.getValueByIndex(0);
         };
 
-        getLast() {
+        get last() {
             return this.getValueByIndex(this._indexes.length - 1);
         };
 
@@ -8635,10 +8635,12 @@ define('templating/utils/List',[],function () {
         };
 
         delete(key) {
-            let item = this._map.get(key);
-            this._map.delete(key);
-            this._indexes.splice(this._indexes.indexOf(key), 1);
-            this._onDelete.forEach(chunk=>chunk(key, this.size, item));
+            if (this.has(key)) {
+                let item = this._map.get(key);
+                this._map.delete(key);
+                this._indexes.splice(this._indexes.indexOf(key), 1);
+                this._onDelete.forEach(chunk=>chunk(key, this.size, item));
+            }
         };
 
         deleteByIndex(index) {
@@ -8820,7 +8822,41 @@ define('templating/dom',[],function () {
                 node.placeholder.parentNode.replaceChild(node.el, node.placeholder)
             }
         },
+        // Insert element to the end of parent childs
+        //
+        //      @method append
+        //      @param {dom.Element} parent
+        //      @param {dom.Element} child
+        append(parent, child) {
+            if (parent.el !== undefined && child.el !== undefined) {
+                parent.el.appendChild(child.el);
+            }
 
+        },
+        // Insert element to the beginning of parent childs
+        //
+        //      @method prepend
+        //      @param {dom.Element} parent
+        //      @param {dom.Element} child
+        prepend(parent, child) {
+            dom.insertBefore(parent, child, 0);
+        },
+        // Insert element to the before of specific, child by index
+        //
+        //      @method insertBefore
+        //      @param {dom.Element} parent
+        //      @param {dom.Element} child
+        insertBefore(parent, child, index) {
+            let parentEl = parent.el,
+                childEl = child.el;
+            if (parentEl !== undefined && childEl !== undefined) {
+                if (parentEl.childNodes[index] !== undefined) {
+                    parentEl.insertBefore(childEl, parentEl.childNodes[index]);
+                } else {
+                    parentEl.appendChild(childEl);
+                }
+            }
+        },
 
         // Changing position in nodeList
         //
@@ -9024,17 +9060,18 @@ define('templating/dom',[],function () {
         //
         //      @method remove
         //      @param {dom.Element}
-        remove (el, force) {
+        remove (el) {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
             if (el.children) {
-                destroy(el.children, force);
+                destroy(el.children);
             }
 
             if (el.elGroup !== undefined) {
                 el.elGroup.delete(el.el);
             }
+
             if (el.el !== undefined) {
                 if (el.el.remove) {
                     el.el.remove();
@@ -9267,7 +9304,7 @@ define('templating/dom',[],function () {
             return context;
         };
 
-        renderTemplate(childNodes, obj, fragment) {
+        renderTemplate(childNodes = {}, obj = {}, fragment) {
             let resp = {},
                 _runAll = [];
             Object.keys(childNodes).forEach((name) => {
@@ -9355,7 +9392,7 @@ define('templating/dom',[],function () {
             var fragment = this.renderFragment(this._root.template);
             return {
                 fragment:   fragment,
-                children:   this.renderTemplate(this.children, obj || {}, ()=> fragment).runAll(),
+                children:   this.renderTemplate(this.children, obj, ()=> fragment).runAll(),
                 templateId: this._root.templateId
             };
         };

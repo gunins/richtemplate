@@ -8277,16 +8277,6 @@ define('templating/utils/List', [], function () {
         return this._map.get(this._indexes[index]);
       }
     }, {
-      key: 'getFirst',
-      value: function getFirst() {
-        return this.getValueByIndex(0);
-      }
-    }, {
-      key: 'getLast',
-      value: function getLast() {
-        return this.getValueByIndex(this._indexes.length - 1);
-      }
-    }, {
       key: 'getKeyByIndex',
       value: function getKeyByIndex(index) {
         return this._indexes[index];
@@ -8330,17 +8320,31 @@ define('templating/utils/List', [], function () {
       value: function _delete(key) {
         var _this5 = this;
 
-        var item = this._map.get(key);
-        this._map.delete(key);
-        this._indexes.splice(this._indexes.indexOf(key), 1);
-        this._onDelete.forEach(function (chunk) {
-          return chunk(key, _this5.size, item);
-        });
+        if (this.has(key)) {
+          (function () {
+            var item = _this5._map.get(key);
+            _this5._map.delete(key);
+            _this5._indexes.splice(_this5._indexes.indexOf(key), 1);
+            _this5._onDelete.forEach(function (chunk) {
+              return chunk(key, _this5.size, item);
+            });
+          })();
+        }
       }
     }, {
       key: 'deleteByIndex',
       value: function deleteByIndex(index) {
         this.delete(this._indexes[index]);
+      }
+    }, {
+      key: 'first',
+      get: function get() {
+        return this.getValueByIndex(0);
+      }
+    }, {
+      key: 'last',
+      get: function get() {
+        return this.getValueByIndex(this._indexes.length - 1);
       }
     }, {
       key: 'size',
@@ -8566,6 +8570,43 @@ define('templating/dom', [], function () {
       }
     },
 
+    // Insert element to the end of parent childs
+    //
+    //      @method append
+    //      @param {dom.Element} parent
+    //      @param {dom.Element} child
+    append: function append(parent, child) {
+      if (parent.el !== undefined && child.el !== undefined) {
+        parent.el.appendChild(child.el);
+      }
+    },
+
+    // Insert element to the beginning of parent childs
+    //
+    //      @method prepend
+    //      @param {dom.Element} parent
+    //      @param {dom.Element} child
+    prepend: function prepend(parent, child) {
+      dom.insertBefore(parent, child, 0);
+    },
+
+    // Insert element to the before of specific, child by index
+    //
+    //      @method insertBefore
+    //      @param {dom.Element} parent
+    //      @param {dom.Element} child
+    insertBefore: function insertBefore(parent, child, index) {
+      var parentEl = parent.el,
+          childEl = child.el;
+      if (parentEl !== undefined && childEl !== undefined) {
+        if (parentEl.childNodes[index] !== undefined) {
+          parentEl.insertBefore(childEl, parentEl.childNodes[index]);
+        } else {
+          parentEl.appendChild(childEl);
+        }
+      }
+    },
+
     // Changing position in nodeList
     //
     //      @method changePosition
@@ -8788,17 +8829,18 @@ define('templating/dom', [], function () {
     //
     //      @method remove
     //      @param {dom.Element}
-    remove: function remove(el, force) {
+    remove: function remove(el) {
       while (el._events.length > 0) {
         el._events.shift().remove();
       }
       if (el.children) {
-        destroy(el.children, force);
+        destroy(el.children);
       }
 
       if (el.elGroup !== undefined) {
         el.elGroup.delete(el.el);
       }
+
       if (el.el !== undefined) {
         if (el.el.remove) {
           el.el.remove();
@@ -9053,8 +9095,13 @@ define('templating/dom', [], function () {
       }
     }, {
       key: 'renderTemplate',
-      value: function renderTemplate(childNodes, obj, fragment) {
+      value: function renderTemplate() {
+        var childNodes = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
         var _this9 = this;
+
+        var obj = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var fragment = arguments[2];
 
         var resp = {},
             _runAll = [];
@@ -9147,7 +9194,7 @@ define('templating/dom', [], function () {
         var fragment = this.renderFragment(this._root.template);
         return {
           fragment: fragment,
-          children: this.renderTemplate(this.children, obj || {}, function () {
+          children: this.renderTemplate(this.children, obj, function () {
             return fragment;
           }).runAll(),
           templateId: this._root.templateId

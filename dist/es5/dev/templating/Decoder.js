@@ -103,8 +103,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
         }, {
             key: 'renderTemplate',
-            value: function renderTemplate(childNodes, obj, fragment) {
+            value: function renderTemplate() {
+                var childNodes = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
                 var _this2 = this;
+
+                var obj = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+                var fragment = arguments[2];
 
                 var resp = {},
                     _runAll = [];
@@ -197,7 +202,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 var fragment = this.renderFragment(this._root.template);
                 return {
                     fragment: fragment,
-                    children: this.renderTemplate(this.children, obj || {}, function () {
+                    children: this.renderTemplate(this.children, obj, function () {
                         return fragment;
                     }).runAll(),
                     templateId: this._root.templateId

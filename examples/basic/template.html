@@ -15,7 +15,7 @@
 
         table {
             width: 100%;
-            td {
+            tr td {
                 padding: 5px 10px;
                 border: solid 1px #cccccc;
             }
@@ -30,19 +30,29 @@
             display: inline-block;
         }
 
+        .test {
+            span {
+                padding: 3px 5px;
+                margin: 5px;
+                border: solid 1px #ccc;
+                border-radius: 4px;
+            }
+        }
     </style-less>
     <h2 tp-name="fake" class="header">RootElement <span class="label" tp-name="another">Label</span></h2>
     <!--Here is some Comment-->
 
-    <div><cp-testThing data-test="test" src="./button/button">
+    <div>
+        <cp-testThing data-test="test" src="./button/button">
             <pl-header>
                 Outer Some Header
             </pl-header>
             <pl-footer>
                 Outer Some Footer
             </pl-footer>
-        </cp-testThing></div>
-
+        </cp-testThing>
+    </div>
+    <div class="test"><span>This text has to be bordered</span></div>
     <style-less>
         .footer {
             background: #123456;
@@ -64,8 +74,10 @@
                 <td>Six</td>
             </tr>
         </table>
+        <p class="test">
         <span tp-name="extra" tp-type="bd">
         </span>
+        </p>
         <cp-testThing data-test="test" src="./buttonA/buttonA">
             <pl-header>
                 Outer Some Header other

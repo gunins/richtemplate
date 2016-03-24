@@ -1,37 +1,45 @@
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         define('coders/style/styleCoder',['templating/Coder', 'templating/less'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../../templating/Coder'), require('less'));
     }
-}(this, function (Coder, less) {
+}(this, function(Coder, less) {
     'use strict';
     function applyId(content, id) {
-        var classNames = getClassNames(content);
-        classNames.forEach(function (item) {
+        let classNames = getClassNames(content);
+        classNames.forEach((item)=> {
             if (item.trim().length > 0) {
-                var names = item.split(',');
-                names.forEach(function (name, index) {
-                    var bracket = false;
+                let names = item.split(',');
+                names.forEach((name, index)=> {
+                    let bracket = false;
                     if (name.indexOf('{') !== -1) {
                         name = name.replace('{', '');
                         bracket = true;
                     }
-                    var replace;
-                    if (name.indexOf(':') !== -1) {
-                        var parts = name.trim().split(':');
-
-                        replace = parts.shift() + '.' + id + ':' + parts.join(':');
-
-                    } else {
-                        replace = name.trim() + '.' + id;
-                    }
+                    let replace = name.trim().split(' ').map(chunk=> setName(chunk.trim(), id)).join(' ');
                     names[index] = '\n' + replace + ((bracket) ? ' {' : '');
                 });
                 content = content.replace(item, names.join(',')).trim() + '\n';
             }
         });
         return content;
+    }
+
+    function setName(name, id) {
+        let replace = '';
+        if (['/*', '', '*/'].indexOf(name) === -1) {
+
+            if (name.indexOf(':') !== -1) {
+                let parts = name.trim().split(':');
+
+                replace = parts.shift() + '.' + id + ':' + parts.join(':');
+
+            } else {
+                replace = name.trim() + '.' + id;
+            }
+        }
+        return replace;
     }
 
     function getClassNames(content) {
@@ -43,7 +51,7 @@
     }
 
     function getCSSFromMedia(content) {
-        var regexp = /(?:@media[^{]+\{)([\s\S]+?})(?:\s*)}/g.exec(content);
+        let regexp = /(?:@media[^{]+\{)([\s\S]+?})(?:\s*)}/g.exec(content);
 
         return (regexp && regexp[1]) ? regexp[1] : regexp;
     }
@@ -57,15 +65,13 @@
     }
 
     function removeItems(content, items) {
-        items.forEach(function (item) {
-            content = content.replace(item, '');
-        });
+        items.forEach((item)=> content = content.replace(item, ''));
         return content;
     }
 
     function parseMedia(media, id) {
-        media.forEach(function (item, index) {
-            var cssFromMedia = getCSSFromMedia(item);
+        media.forEach((item, index)=> {
+            let cssFromMedia = getCSSFromMedia(item);
             media[index] = item.replace(cssFromMedia, '\n' + applyId(cssFromMedia, id));
 
         });
@@ -73,12 +79,12 @@
     }
 
     function applyFrameNames(frameNames, content, id) {
-        frameNames.forEach(function (name) {
-            var regExp = new RegExp('(animation:(?:.+)?' + name + '(?:.+)?;)', 'g');
-            var match = content.match(regExp);
+        frameNames.forEach((name)=> {
+            let regExp = new RegExp('(animation:(?:.+)?' + name + '(?:.+)?;)', 'g'),
+                match = content.match(regExp);
             if (match && match.length > 0) {
-                match.forEach(function (inner) {
-                    var text = inner.replace('animation:', ':');
+                match.forEach((inner)=> {
+                    let text = inner.replace('animation:', ':');
                     text = 'animation' + text.replace(name, name + '_' + id);
                     content = content.replace(inner, text);
                 })
@@ -88,8 +94,8 @@
     }
 
     function parseFrames(frames, id, frameNames) {
-        frames.forEach(function (frame, index) {
-            var frameName = getframeName(frame);
+        frames.forEach((frame, index)=> {
+            let frameName = getframeName(frame);
             frames[index] = frame.replace(frameName, frameName + '_' + id);
             if (frameNames.indexOf(frameName) === -1) {
                 frameNames.push(frameName);
@@ -100,16 +106,16 @@
     }
 
     function parseCSS(content, id) {
-        var frameNames = [];
-        var parsedFrames;
-        var frames = getFrames(content);
+        let frameNames = [],
+            parsedFrames,
+            frames = getFrames(content);
 
         if (frames && frames.length > 0) {
             content = removeItems(content, frames);
             parsedFrames = parseFrames(frames, id, frameNames);
 
         }
-        var media = getMedia(content);
+        let media = getMedia(content);
         if (media && media.length > 0) {
             content = removeItems(content, media);
         }
@@ -129,11 +135,11 @@
     // media queries /@media[^{]+\{([\s\S]+?})\s*}/g
     // get frames   /(@(?:-webkit-|-moz-)?keyframes[^{]+\{[\s\S]+?}\s*})/g
     //get frame name /@(?:-webkit-|-moz-)?keyframes[^{](\w+)/g
-    var styleCoder = {
+    let styleCoder = {
         tagName: 'style',
         noTag:   true,
-        code:    function (nodeContext, data) {
-            var content = nodeContext.getInnerHTML(),
+        code:    function(nodeContext, data) {
+            let content = nodeContext.getInnerHTML(),
                 templateId = nodeContext.templateId,
                 currentUrl,
                 importUrl = '@import-url: "' + nodeContext.url + '";',
@@ -141,10 +147,10 @@
             nodeContext.removeChildren();
 
             if (typeof exports === 'object') {
-                var dirName = __dirname.split('/');
-                var curUrl = nodeContext.url.split('/');
-                var root = [];
-                curUrl.forEach(function (url, index) {
+                let dirName = __dirname.split('/'),
+                    curUrl = nodeContext.url.split('/'),
+                    root = [];
+                curUrl.forEach((url, index)=> {
                     if (url !== dirName[index]) {
                         root.push(url);
                     }
@@ -159,12 +165,12 @@
             less.render(importUrl + currentUrl + content, {
                 syncImport:   true,
                 relativeUrls: true
-            }, function (e, output) {
+            }, (e, output)=> {
                 //console.log('css', output.css);
 
                 let innerStyle = parseCSS(output.css, templateId);
                 if (typeof exports === 'object') {
-                    var CleanCSS = require('clean-css');
+                    let CleanCSS = require('clean-css');
                     style += new CleanCSS().minify(innerStyle).styles;
                 } else {
                     style += innerStyle;

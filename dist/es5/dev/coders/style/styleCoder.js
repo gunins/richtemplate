@@ -15,27 +15,39 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var classNames = getClassNames(content);
         classNames.forEach(function (item) {
             if (item.trim().length > 0) {
-                var names = item.split(',');
-                names.forEach(function (name, index) {
-                    var bracket = false;
-                    if (name.indexOf('{') !== -1) {
-                        name = name.replace('{', '');
-                        bracket = true;
-                    }
-                    var replace;
-                    if (name.indexOf(':') !== -1) {
-                        var parts = name.trim().split(':');
-
-                        replace = parts.shift() + '.' + id + ':' + parts.join(':');
-                    } else {
-                        replace = name.trim() + '.' + id;
-                    }
-                    names[index] = '\n' + replace + (bracket ? ' {' : '');
-                });
-                content = content.replace(item, names.join(',')).trim() + '\n';
+                (function () {
+                    var names = item.split(',');
+                    names.forEach(function (name, index) {
+                        var bracket = false;
+                        if (name.indexOf('{') !== -1) {
+                            name = name.replace('{', '');
+                            bracket = true;
+                        }
+                        var replace = name.trim().split(' ').map(function (chunk) {
+                            return setName(chunk.trim(), id);
+                        }).join(' ');
+                        names[index] = '\n' + replace + (bracket ? ' {' : '');
+                    });
+                    content = content.replace(item, names.join(',')).trim() + '\n';
+                })();
             }
         });
         return content;
+    }
+
+    function setName(name, id) {
+        var replace = '';
+        if (['/*', '', '*/'].indexOf(name) === -1) {
+
+            if (name.indexOf(':') !== -1) {
+                var parts = name.trim().split(':');
+
+                replace = parts.shift() + '.' + id + ':' + parts.join(':');
+            } else {
+                replace = name.trim() + '.' + id;
+            }
+        }
+        return replace;
     }
 
     function getClassNames(content) {
@@ -63,7 +75,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     function removeItems(content, items) {
         items.forEach(function (item) {
-            content = content.replace(item, '');
+            return content = content.replace(item, '');
         });
         return content;
     }
@@ -78,8 +90,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     function applyFrameNames(frameNames, content, id) {
         frameNames.forEach(function (name) {
-            var regExp = new RegExp('(animation:(?:.+)?' + name + '(?:.+)?;)', 'g');
-            var match = content.match(regExp);
+            var regExp = new RegExp('(animation:(?:.+)?' + name + '(?:.+)?;)', 'g'),
+                match = content.match(regExp);
             if (match && match.length > 0) {
                 match.forEach(function (inner) {
                     var text = inner.replace('animation:', ':');
@@ -103,9 +115,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }
 
     function parseCSS(content, id) {
-        var frameNames = [];
-        var parsedFrames;
-        var frames = getFrames(content);
+        var frameNames = [],
+            parsedFrames = undefined,
+            frames = getFrames(content);
 
         if (frames && frames.length > 0) {
             content = removeItems(content, frames);
@@ -137,22 +149,24 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         code: function code(nodeContext, data) {
             var content = nodeContext.getInnerHTML(),
                 templateId = nodeContext.templateId,
-                currentUrl,
+                currentUrl = undefined,
                 importUrl = '@import-url: "' + nodeContext.url + '";',
                 style = data.style || '';
             nodeContext.removeChildren();
 
             if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
-                var dirName = __dirname.split('/');
-                var curUrl = nodeContext.url.split('/');
-                var root = [];
-                curUrl.forEach(function (url, index) {
-                    if (url !== dirName[index]) {
-                        root.push(url);
-                    }
-                });
+                (function () {
+                    var dirName = __dirname.split('/'),
+                        curUrl = nodeContext.url.split('/'),
+                        root = [];
+                    curUrl.forEach(function (url, index) {
+                        if (url !== dirName[index]) {
+                            root.push(url);
+                        }
+                    });
 
-                currentUrl = '@current-url: "' + root.join('/') + '";';
+                    currentUrl = '@current-url: "' + root.join('/') + '";';
+                })();
             } else {
                 currentUrl = '@current-url: "' + nodeContext.url + '";';
             }

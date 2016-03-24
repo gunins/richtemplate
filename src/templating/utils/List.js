@@ -55,11 +55,11 @@ define(function () {
             return this._map.get(this._indexes[index]);
         };
 
-        getFirst() {
+        get first() {
             return this.getValueByIndex(0);
         };
 
-        getLast() {
+        get last() {
             return this.getValueByIndex(this._indexes.length - 1);
         };
 
@@ -96,10 +96,12 @@ define(function () {
         };
 
         delete(key) {
-            let item = this._map.get(key);
-            this._map.delete(key);
-            this._indexes.splice(this._indexes.indexOf(key), 1);
-            this._onDelete.forEach(chunk=>chunk(key, this.size, item));
+            if (this.has(key)) {
+                let item = this._map.get(key);
+                this._map.delete(key);
+                this._indexes.splice(this._indexes.indexOf(key), 1);
+                this._onDelete.forEach(chunk=>chunk(key, this.size, item));
+            }
         };
 
         deleteByIndex(index) {

@@ -81,16 +81,6 @@ define(function () {
                 return this._map.get(this._indexes[index]);
             }
         }, {
-            key: 'getFirst',
-            value: function getFirst() {
-                return this.getValueByIndex(0);
-            }
-        }, {
-            key: 'getLast',
-            value: function getLast() {
-                return this.getValueByIndex(this._indexes.length - 1);
-            }
-        }, {
             key: 'getKeyByIndex',
             value: function getKeyByIndex(index) {
                 return this._indexes[index];
@@ -134,17 +124,31 @@ define(function () {
             value: function _delete(key) {
                 var _this2 = this;
 
-                var item = this._map.get(key);
-                this._map.delete(key);
-                this._indexes.splice(this._indexes.indexOf(key), 1);
-                this._onDelete.forEach(function (chunk) {
-                    return chunk(key, _this2.size, item);
-                });
+                if (this.has(key)) {
+                    (function () {
+                        var item = _this2._map.get(key);
+                        _this2._map.delete(key);
+                        _this2._indexes.splice(_this2._indexes.indexOf(key), 1);
+                        _this2._onDelete.forEach(function (chunk) {
+                            return chunk(key, _this2.size, item);
+                        });
+                    })();
+                }
             }
         }, {
             key: 'deleteByIndex',
             value: function deleteByIndex(index) {
                 this.delete(this._indexes[index]);
+            }
+        }, {
+            key: 'first',
+            get: function get() {
+                return this.getValueByIndex(0);
+            }
+        }, {
+            key: 'last',
+            get: function get() {
+                return this.getValueByIndex(this._indexes.length - 1);
             }
         }, {
             key: 'size',

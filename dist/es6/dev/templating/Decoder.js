@@ -84,7 +84,7 @@
             return context;
         };
 
-        renderTemplate(childNodes, obj, fragment) {
+        renderTemplate(childNodes = {}, obj = {}, fragment) {
             let resp = {},
                 _runAll = [];
             Object.keys(childNodes).forEach((name) => {
@@ -172,7 +172,7 @@
             var fragment = this.renderFragment(this._root.template);
             return {
                 fragment:   fragment,
-                children:   this.renderTemplate(this.children, obj || {}, ()=> fragment).runAll(),
+                children:   this.renderTemplate(this.children, obj, ()=> fragment).runAll(),
                 templateId: this._root.templateId
             };
         };
