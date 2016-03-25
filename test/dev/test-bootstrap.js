@@ -67,18 +67,18 @@ var target = check ? 'es6' : 'es5'
 require.config({
     baseUrl:          '../../dist/' + target + '/dev/',
     templateCoders:   [
-        'coders/component/CpCoder',
+        'coders/component/cpCoder',
         'coders/placeholders/plCoder',
         'coders/databind/bdCoder',
-        'coders/router/RouterCoder',
+        'coders/router/routerCoder',
         'coders/style/styleCoder'
 
     ],
     templateDecoders: [
-        'coders/component/CpDecoder',
+        'coders/component/cpDecoder',
         'coders/placeholders/plDecoder',
         'coders/databind/bdDecoder',
-        'coders/router/RouterDecoder',
+        'coders/router/routerDecoder',
         'coders/style/styleDecoder'
     ],
     paths:            {
