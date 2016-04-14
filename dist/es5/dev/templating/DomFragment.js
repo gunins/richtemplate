@@ -22,6 +22,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 })(undefined, function () {
     'use strict';
 
+    function createPlaceholder(tag) {
+        var placeholder = document.createElement(tag || 'div');
+        placeholder.setAttribute('style', 'display:none;');
+        return placeholder;
+    }
+
     var DomFragment = function () {
         function DomFragment(_node, placeholder, childNodes, elGroup, index, obj) {
             _classCallCheck(this, DomFragment);
@@ -89,7 +95,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     node = this._node,
                     keep = !placeholder.id && this.elGroup.size === 0,
                     instance = node.tmpEl(keep ? placeholder : false, this.obj, this.childNodes, node),
-                    el = instance.el;
+                    el = instance.el || createPlaceholder(node.data.tag);
 
                 if (!keep && !node.replace) {
                     this.applyAttributes(el);
@@ -102,6 +108,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 }
 
                 this.appendToBody(el);
+
+                if (instance.ready) {
+                    instance.ready(el);
+                }
 
                 return instance;
             }

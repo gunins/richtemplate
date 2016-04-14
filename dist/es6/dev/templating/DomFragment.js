@@ -1,7 +1,7 @@
 /**
  * Created by guntars on 22/01/2016.
  */
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(factory);
@@ -11,8 +11,14 @@
         // like Node.
         module.exports = factory();
     }
-}(this, function () {
+}(this, function() {
     'use strict';
+    function createPlaceholder(tag) {
+        var placeholder = document.createElement(tag || 'div');
+        placeholder.setAttribute('style', 'display:none;');
+        return placeholder;
+    }
+
     class DomFragment {
         constructor(_node, placeholder, childNodes, elGroup, index, obj) {
             Object.assign(this, {
@@ -28,7 +34,7 @@
 
         applyAttributes(el) {
             let attributes = this._node.data.attribs;
-            Object.keys(attributes).forEach(function (key) {
+            Object.keys(attributes).forEach(function(key) {
                 el.setAttribute(key, attributes[key]);
             });
         };
@@ -76,7 +82,7 @@
                 node = this._node,
                 keep = (!placeholder.id && this.elGroup.size === 0),
                 instance = node.tmpEl((keep) ? placeholder : false, this.obj, this.childNodes, node),
-                el = instance.el;
+                el = instance.el || createPlaceholder(node.data.tag);
 
             if (!keep && !node.replace) {
                 this.applyAttributes(el);
@@ -89,6 +95,10 @@
             }
 
             this.appendToBody(el);
+
+            if (instance.ready) {
+                instance.ready(el);
+            }
 
             return instance;
 

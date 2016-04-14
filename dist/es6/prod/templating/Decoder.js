@@ -119,7 +119,7 @@ define('templating/utils/List',[],function () {
  * Created by guntars on 10/10/2014.
  */
 //## templating/dom Class for dom manipulation
-define('templating/dom',[],function () {
+define('templating/dom',[],function() {
     'use strict';
 
     function isObject(obj) {
@@ -525,6 +525,7 @@ define('templating/dom',[],function () {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+
             if (el.children) {
                 destroy(el.children);
             }
@@ -584,7 +585,7 @@ define('templating/dom',[],function () {
 /**
  * Created by guntars on 22/01/2016.
  */
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define('templating/DomFragment',factory);
@@ -594,8 +595,14 @@ define('templating/dom',[],function () {
         // like Node.
         module.exports = factory();
     }
-}(this, function () {
+}(this, function() {
     'use strict';
+    function createPlaceholder(tag) {
+        var placeholder = document.createElement(tag || 'div');
+        placeholder.setAttribute('style', 'display:none;');
+        return placeholder;
+    }
+
     class DomFragment {
         constructor(_node, placeholder, childNodes, elGroup, index, obj) {
             Object.assign(this, {
@@ -611,7 +618,7 @@ define('templating/dom',[],function () {
 
         applyAttributes(el) {
             let attributes = this._node.data.attribs;
-            Object.keys(attributes).forEach(function (key) {
+            Object.keys(attributes).forEach(function(key) {
                 el.setAttribute(key, attributes[key]);
             });
         };
@@ -659,7 +666,7 @@ define('templating/dom',[],function () {
                 node = this._node,
                 keep = (!placeholder.id && this.elGroup.size === 0),
                 instance = node.tmpEl((keep) ? placeholder : false, this.obj, this.childNodes, node),
-                el = instance.el;
+                el = instance.el || createPlaceholder(node.data.tag);
 
             if (!keep && !node.replace) {
                 this.applyAttributes(el);
@@ -672,6 +679,10 @@ define('templating/dom',[],function () {
             }
 
             this.appendToBody(el);
+
+            if (instance.ready) {
+                instance.ready(el);
+            }
 
             return instance;
 

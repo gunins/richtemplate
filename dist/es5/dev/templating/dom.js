@@ -481,6 +481,7 @@ define(function () {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+
             if (el.children) {
                 destroy(el.children);
             }

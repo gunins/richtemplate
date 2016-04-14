@@ -2,7 +2,7 @@
  * Created by guntars on 10/10/2014.
  */
 //## templating/dom Class for dom manipulation
-define(function () {
+define(function() {
     'use strict';
 
     function isObject(obj) {
@@ -408,6 +408,7 @@ define(function () {
             while (el._events.length > 0) {
                 el._events.shift().remove();
             }
+
             if (el.children) {
                 destroy(el.children);
             }
