@@ -114,7 +114,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 var resp = {},
                     _runAll = [];
                 Object.keys(childNodes).forEach(function (name) {
-                    var child = childNodes[name],
+                    var childFragment = fragment,
+                        child = childNodes[name],
                         children = child.children,
                         elGroup = new List(),
                         placeholder = document.createElement(child.data.tplSet.tag || 'div');
@@ -123,7 +124,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     elGroup.onDelete(function (key, size) {
                         if (size === 0 && key.parentNode) {
                             key.parentNode.replaceChild(placeholder, key);
-                            fragment = function fragment() {
+                            childFragment = function childFragment() {
                                 return placeholder;
                             };
                         }
@@ -131,7 +132,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     if (child.template) {
                         (function () {
                             var run = function run(force, index) {
-                                var template = fragment();
+                                var template = childFragment();
                                 if (force instanceof HTMLElement === true) {
                                     template = force;
                                 }
@@ -171,7 +172,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                             };
                         })();
                     } else {
-                        var element = new dom.Element(fragment().querySelector('#' + child.id), child);
+                        var element = new dom.Element(childFragment().querySelector('#' + child.id), child);
                         element.removeAttribute('id');
                         element.elGroup = elGroup;
                         elGroup.set(element.el, element);

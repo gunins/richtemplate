@@ -1,5 +1,9 @@
 # Javascript templating engine. [![Build Status](https://travis-ci.org/gunins/richtemplate.svg?branch=master)](https://travis-ci.org/gunins/richtemplate)
 
+***New Major Version Released!***
+
+Rewritten in es6, and also perfomance improvements.
+
 Require module for parsing html files to plain Javascript. There is two environments, one Development another production.
 
 ## Installation

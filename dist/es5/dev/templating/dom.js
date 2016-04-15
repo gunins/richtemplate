@@ -485,7 +485,6 @@ define(function () {
             if (el.children) {
                 destroy(el.children);
             }
-
             if (el.elGroup !== undefined) {
                 el.elGroup.delete(el.el);
             }

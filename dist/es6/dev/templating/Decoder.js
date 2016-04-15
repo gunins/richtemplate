@@ -1,4 +1,4 @@
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         // AMD. Register as an anonymous module.
@@ -9,7 +9,7 @@
         // like Node.
         module.exports = factory(require('./utils/List'), require('./dom'), require('./DomFragment'));
     }
-}(this, function (List, dom, DomFragment) {
+}(this, function(List, dom, DomFragment) {
     'use strict';
     var _decoders = {};
 
@@ -88,7 +88,8 @@
             let resp = {},
                 _runAll = [];
             Object.keys(childNodes).forEach((name) => {
-                let child = childNodes[name],
+                let childFragment = fragment,
+                    child = childNodes[name],
                     children = child.children,
                     elGroup = new List(),
                     placeholder = document.createElement(child.data.tplSet.tag || 'div');
@@ -97,12 +98,12 @@
                 elGroup.onDelete((key, size)=> {
                     if (size === 0 && key.parentNode) {
                         key.parentNode.replaceChild(placeholder, key);
-                        fragment = ()=>placeholder;
+                        childFragment = ()=>placeholder;
                     }
                 })
                 if (child.template) {
                     let run = (force, index)=> {
-                        let template = fragment();
+                        let template = childFragment();
                         if (force instanceof HTMLElement === true) {
                             template = force;
                         }
@@ -144,7 +145,7 @@
                     };
 
                 } else {
-                    let element = new dom.Element(fragment().querySelector('#' + child.id), child);
+                    let element = new dom.Element(childFragment().querySelector('#' + child.id), child);
                     element.removeAttribute('id');
                     element.elGroup = elGroup;
                     elGroup.set(element.el, element);
