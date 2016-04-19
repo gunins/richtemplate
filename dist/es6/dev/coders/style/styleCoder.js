@@ -1,5 +1,8 @@
 (function(root, factory) {
     if (typeof define === 'function' && define.amd) {
+        window.less = {
+            async: true
+        }
         define('coders/style/styleCoder',['templating/Coder', 'templating/less'], factory);
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../../templating/Coder'), require('less'));
@@ -146,8 +149,7 @@
             let content = nodeContext.getInnerHTML(),
                 templateId = nodeContext.templateId,
                 currentUrl,
-                importUrl = '@import-url: "' + nodeContext.url + '";',
-                style = data.style || '';
+                importUrl = '@import-url: "' + nodeContext.url + '";';
             nodeContext.removeChildren();
 
             if (typeof exports === 'object') {
@@ -165,22 +167,30 @@
             } else {
                 currentUrl = '@current-url: "' + nodeContext.url + '";';
             }
+            ;
+            if (typeof exports !== 'object') {
 
-            less.render(importUrl + currentUrl + content, {
-                syncImport:   true,
-                relativeUrls: true
-            }, (e, output)=> {
-                //console.log('css', output.css);
-
-                let innerStyle = parseCSS(output.css, templateId);
-                if (typeof exports === 'object') {
+                let render = less.render(importUrl + currentUrl + content, {
+                    syncImport:   true,
+                    relativeUrls: true
+                }).then((output)=> {
+                    let innerStyle = parseCSS(output.css, templateId);
+                    return innerStyle;
+                });
+                return {style: render}
+            } else {
+                let innerStyle;
+                less.render(importUrl + currentUrl + content, {
+                    syncImport:   true,
+                    relativeUrls: true
+                }, (e, output)=> {
+                    innerStyle = parseCSS(output.css, templateId);
                     let CleanCSS = require('clean-css');
-                    style += new CleanCSS().minify(innerStyle).styles;
-                } else {
-                    style += innerStyle;
-                }
-            });
-            return {style}
+                    innerStyle = new CleanCSS().minify(innerStyle).styles;
+                });
+                return {style: innerStyle}
+            }
+
         }
     };
 

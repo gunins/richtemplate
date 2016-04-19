@@ -21,9 +21,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         decode: function decode(node) {
             if (node.data.styleAttached === undefined) {
                 node.data.styleAttached = true;
-                var style = document.createElement('style');
-                style.innerHTML = node.data.style;
-                document.head.appendChild(style);
+                var style = node.data.style,
+                    addStyle = function addStyle(style) {
+                    var tag = document.createElement('style');
+                    tag.innerHTML = style;
+                    document.head.appendChild(tag);
+                };
+                if (typeof style === 'string') {
+                    addStyle(style);
+                } else {
+                    style.then(addStyle);
+                }
             }
         }
     };

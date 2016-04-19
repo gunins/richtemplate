@@ -3,15 +3,15 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 /*!
- * Less - Leaner CSS v2.5.1
+ * Less - Leaner CSS v2.6.1
  * http://lesscss.org
  *
- * Copyright (c) 2009-2015, Alexis Sellier <self@cloudhead.net>
- * Licensed under the Apache v2 License.
+ * Copyright (c) 2009-2016, Alexis Sellier <self@cloudhead.net>
+ * Licensed under the  License.
  *
  */
 
-/** * @license Apache v2
+/** * @license 
 */
 
 (function (f) {
@@ -83,13 +83,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     options.onReady = true;
                 }
             };
-        }, { "./browser": 3, "./utils": 9 }], 2: [function (require, module, exports) {
+        }, { "./browser": 3, "./utils": 10 }], 2: [function (require, module, exports) {
             /**
              * Kicks off less and compiles any stylesheets
              * used in the browser distributed version of less
              * to kick-start less using the browser api
              */
-            /*global window */
+            /*global window, document */
 
             // shim Promise if required
             require('promise/polyfill.js');
@@ -101,15 +101,41 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             window.less = less;
 
+            var css, head, style;
+
+            // Always restore page visibility
+            function resolveOrReject(data) {
+                if (data.filename) {
+                    console.warn(data);
+                }
+                if (!options.async) {
+                    head.removeChild(style);
+                }
+            }
+
             if (options.onReady) {
                 if (/!watch/.test(window.location.hash)) {
                     less.watch();
                 }
+                // Simulate synchronous stylesheet loading by blocking page rendering
+                if (!options.async) {
+                    css = 'body { display: none !important }';
+                    head = document.head || document.getElementsByTagName('head')[0];
+                    style = document.createElement('style');
 
+                    style.type = 'text/css';
+                    if (style.styleSheet) {
+                        style.styleSheet.cssText = css;
+                    } else {
+                        style.appendChild(document.createTextNode(css));
+                    }
+
+                    head.appendChild(style);
+                }
                 less.registerStylesheetsImmediately();
-                less.pageLoadFinished = less.refresh(less.env === 'development');
+                less.pageLoadFinished = less.refresh(less.env === 'development').then(resolveOrReject, resolveOrReject);
             }
-        }, { "./add-default-options": 1, "./index": 7, "promise/polyfill.js": 94 }], 3: [function (require, module, exports) {
+        }, { "./add-default-options": 1, "./index": 8, "promise/polyfill.js": 97 }], 3: [function (require, module, exports) {
             var utils = require("./utils");
             module.exports = {
                 createCSS: function createCSS(document, styles, sheet) {
@@ -173,7 +199,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }();
                 }
             };
-        }, { "./utils": 9 }], 4: [function (require, module, exports) {
+        }, { "./utils": 10 }], 4: [function (require, module, exports) {
             // Cache system is a bit outdated and could do with work
 
             module.exports = function (window, options, logger) {
@@ -184,23 +210,29 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     } catch (_) {}
                 }
                 return {
-                    setCSS: function setCSS(path, lastModified, styles) {
+                    setCSS: function setCSS(path, lastModified, modifyVars, styles) {
                         if (cache) {
                             logger.info('saving ' + path + ' to cache.');
                             try {
                                 cache.setItem(path, styles);
                                 cache.setItem(path + ':timestamp', lastModified);
+                                if (modifyVars) {
+                                    cache.setItem(path + ':vars', JSON.stringify(modifyVars));
+                                }
                             } catch (e) {
                                 //TODO - could do with adding more robust error handling
                                 logger.error('failed to save "' + path + '" to local storage for caching.');
                             }
                         }
                     },
-                    getCSS: function getCSS(path, webInfo) {
+                    getCSS: function getCSS(path, webInfo, modifyVars) {
                         var css = cache && cache.getItem(path),
-                            timestamp = cache && cache.getItem(path + ':timestamp');
+                            timestamp = cache && cache.getItem(path + ':timestamp'),
+                            vars = cache && cache.getItem(path + ':vars');
 
-                        if (timestamp && webInfo.lastModified && new Date(webInfo.lastModified).valueOf() === new Date(timestamp).valueOf()) {
+                        modifyVars = modifyVars || {};
+
+                        if (timestamp && webInfo.lastModified && new Date(webInfo.lastModified).valueOf() === new Date(timestamp).valueOf() && (!modifyVars && !vars || JSON.stringify(modifyVars) === vars)) {
                             // Use local copy
                             return css;
                         }
@@ -266,16 +298,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }
                 }
 
-                function error(e, rootHref) {
-                    if (!options.errorReporting || options.errorReporting === "html") {
-                        errorHTML(e, rootHref);
-                    } else if (options.errorReporting === "console") {
-                        errorConsole(e, rootHref);
-                    } else if (typeof options.errorReporting === 'function') {
-                        options.errorReporting("add", e, rootHref);
-                    }
-                }
-
                 function removeErrorHTML(path) {
                     var node = window.document.getElementById('less-error-message:' + utils.extractId(path));
                     if (node) {
@@ -321,12 +343,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     less.logger.error(content);
                 }
 
+                function error(e, rootHref) {
+                    if (!options.errorReporting || options.errorReporting === "html") {
+                        errorHTML(e, rootHref);
+                    } else if (options.errorReporting === "console") {
+                        errorConsole(e, rootHref);
+                    } else if (typeof options.errorReporting === 'function') {
+                        options.errorReporting("add", e, rootHref);
+                    }
+                }
+
                 return {
                     add: error,
                     remove: removeError
                 };
             };
-        }, { "./browser": 3, "./utils": 9 }], 6: [function (require, module, exports) {
+        }, { "./browser": 3, "./utils": 10 }], 6: [function (require, module, exports) {
             /*global window, XMLHttpRequest */
 
             module.exports = function (options, logger) {
@@ -367,7 +399,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 FileManager.prototype.doXHR = function doXHR(url, type, callback, errback) {
 
                     var xhr = getXMLHttpRequest();
-                    var async = options.isFileProtocol ? options.fileAsync : options.async;
+                    var async = options.isFileProtocol ? options.fileAsync : true;
 
                     if (typeof xhr.overrideMimeType === 'function') {
                         xhr.overrideMimeType('text/css');
@@ -444,7 +476,36 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return FileManager;
             };
-        }, { "../less/environment/abstract-file-manager.js": 14 }], 7: [function (require, module, exports) {
+        }, { "../less/environment/abstract-file-manager.js": 15 }], 7: [function (require, module, exports) {
+            module.exports = function () {
+
+                var functionRegistry = require("./../less/functions/function-registry");
+
+                function _imageSize() {
+                    throw {
+                        type: "Runtime",
+                        message: "Image size functions are not supported in browser version of less"
+                    };
+                }
+
+                var imageFunctions = {
+                    "image-size": function imageSize(filePathNode) {
+                        _imageSize(this, filePathNode);
+                        return -1;
+                    },
+                    "image-width": function imageWidth(filePathNode) {
+                        _imageSize(this, filePathNode);
+                        return -1;
+                    },
+                    "image-height": function imageHeight(filePathNode) {
+                        _imageSize(this, filePathNode);
+                        return -1;
+                    }
+                };
+
+                functionRegistry.addMultiple(imageFunctions);
+            };
+        }, { "./../less/functions/function-registry": 22 }], 8: [function (require, module, exports) {
             //
             // index.js
             // Should expose the additional browser functions on to the less object
@@ -455,6 +516,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             module.exports = function (window, options) {
                 var document = window.document;
                 var less = require('../less')();
+
                 //module.exports = less;
                 less.options = options;
                 var environment = less.environment,
@@ -466,6 +528,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 require("./log-listener")(less, options);
                 var errors = require("./error-reporting")(window, less, options);
                 var cache = less.cache = options.cache || require("./cache")(window, options, less.logger);
+                require('./image-size')(less.environment);
 
                 //Setup user functions
                 if (options.functions) {
@@ -559,13 +622,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         if (webInfo) {
                             webInfo.remaining = remaining;
 
-                            if (!instanceOptions.modifyVars) {
-                                var css = cache.getCSS(path, webInfo);
-                                if (!reload && css) {
-                                    webInfo.local = true;
-                                    callback(null, css, data, sheet, webInfo, path);
-                                    return;
-                                }
+                            var css = cache.getCSS(path, webInfo, instanceOptions.modifyVars);
+                            if (!reload && css) {
+                                webInfo.local = true;
+                                callback(null, css, data, sheet, webInfo, path);
+                                return;
                             }
                         }
 
@@ -579,9 +640,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 callback(e);
                             } else {
                                 result.css = postProcessCSS(result.css);
-                                if (!instanceOptions.modifyVars) {
-                                    cache.setCSS(sheet.href, webInfo.lastModified, result.css);
-                                }
+                                cache.setCSS(sheet.href, webInfo.lastModified, instanceOptions.modifyVars, result.css);
                                 callback(null, result.css, data, sheet, webInfo, path);
                             }
                         });
@@ -710,7 +769,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 less.refreshStyles = loadStyles;
                 return less;
             };
-        }, { "../less": 29, "./browser": 3, "./cache": 4, "./error-reporting": 5, "./file-manager": 6, "./log-listener": 8, "./utils": 9 }], 8: [function (require, module, exports) {
+        }, { "../less": 31, "./browser": 3, "./cache": 4, "./error-reporting": 5, "./file-manager": 6, "./image-size": 7, "./log-listener": 9, "./utils": 10 }], 9: [function (require, module, exports) {
             module.exports = function (less, options) {
 
                 var logLevel_debug = 4,
@@ -754,7 +813,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     less.logger.addListener(options.loggers[i]);
                 }
             };
-        }, {}], 9: [function (require, module, exports) {
+        }, {}], 10: [function (require, module, exports) {
             module.exports = {
                 extractId: function extractId(href) {
                     return href.replace(/^[a-z-]+:\/+?[^\/]+/, '') // Remove protocol & domain
@@ -778,7 +837,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }
                 }
             };
-        }, {}], 10: [function (require, module, exports) {
+        }, {}], 11: [function (require, module, exports) {
             var contexts = {};
             module.exports = contexts;
 
@@ -813,7 +872,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             // context
             'processImports', // option & context - whether to process imports. if false then imports will not be imported.
             // Used by the import manager to stop multiple import visitors being created.
-            'reference', // Used to indicate that the contents are imported by reference
             'pluginManager' // Used as the plugin manager for the session
             ];
 
@@ -895,7 +953,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             //todo - do the same for the toCSS ?
-        }, {}], 11: [function (require, module, exports) {
+        }, {}], 12: [function (require, module, exports) {
             module.exports = {
                 'aliceblue': '#f0f8ff',
                 'antiquewhite': '#faebd7',
@@ -1046,12 +1104,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 'yellow': '#ffff00',
                 'yellowgreen': '#9acd32'
             };
-        }, {}], 12: [function (require, module, exports) {
+        }, {}], 13: [function (require, module, exports) {
             module.exports = {
                 colors: require("./colors"),
                 unitConversions: require("./unit-conversions")
             };
-        }, { "./colors": 11, "./unit-conversions": 13 }], 13: [function (require, module, exports) {
+        }, { "./colors": 12, "./unit-conversions": 14 }], 14: [function (require, module, exports) {
             module.exports = {
                 length: {
                     'm': 1,
@@ -1073,7 +1131,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     'turn': 1
                 }
             };
-        }, {}], 14: [function (require, module, exports) {
+        }, {}], 15: [function (require, module, exports) {
             var abstractFileManager = function abstractFileManager() {};
 
             abstractFileManager.prototype.getPath = function (filename) {
@@ -1207,7 +1265,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = abstractFileManager;
-        }, {}], 15: [function (require, module, exports) {
+        }, {}], 16: [function (require, module, exports) {
             var logger = require("../logger");
             var environment = function environment(externalEnvironment, fileManagers) {
                 this.fileManagers = fileManagers || [];
@@ -1259,7 +1317,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = environment;
-        }, { "../logger": 31 }], 16: [function (require, module, exports) {
+        }, { "../logger": 33 }], 17: [function (require, module, exports) {
             var Color = require("../tree/color"),
                 functionRegistry = require("./function-registry");
 
@@ -1337,7 +1395,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
 
             functionRegistry.addMultiple(colorBlend);
-        }, { "../tree/color": 48, "./function-registry": 21 }], 17: [function (require, module, exports) {
+        }, { "../tree/color": 50, "./function-registry": 22 }], 18: [function (require, module, exports) {
             var Dimension = require("../tree/dimension"),
                 Color = require("../tree/color"),
                 Quoted = require("../tree/quoted"),
@@ -1385,6 +1443,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return colorFunctions.hsla(h, s, l, 1.0);
                 },
                 hsla: function hsla(h, s, l, a) {
+
+                    var m1, m2;
+
                     function hue(h) {
                         h = h < 0 ? h + 1 : h > 1 ? h - 1 : h;
                         if (h * 6 < 1) {
@@ -1401,8 +1462,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     h = number(h) % 360 / 360;
                     s = clamp(number(s));l = clamp(number(l));a = clamp(number(a));
 
-                    var m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
-                    var m1 = l * 2 - m2;
+                    m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
+                    m1 = l * 2 - m2;
 
                     return colorFunctions.rgba(hue(h + 1 / 3) * 255, hue(h) * 255, hue(h - 1 / 3) * 255, a);
                 },
@@ -1630,7 +1691,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             functionRegistry.addMultiple(colorFunctions);
-        }, { "../tree/anonymous": 44, "../tree/color": 48, "../tree/dimension": 54, "../tree/quoted": 71, "./function-registry": 21 }], 18: [function (require, module, exports) {
+        }, { "../tree/anonymous": 46, "../tree/color": 50, "../tree/dimension": 56, "../tree/quoted": 73, "./function-registry": 22 }], 19: [function (require, module, exports) {
             module.exports = function (environment) {
                 var Quoted = require("../tree/quoted"),
                     URL = require("../tree/url"),
@@ -1715,7 +1776,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return new URL(new Quoted('"' + uri + '"', uri, false, this.index, this.currentFileInfo), this.index, this.currentFileInfo);
                 });
             };
-        }, { "../logger": 31, "../tree/quoted": 71, "../tree/url": 78, "./function-registry": 21 }], 19: [function (require, module, exports) {
+        }, { "../logger": 33, "../tree/quoted": 73, "../tree/url": 80, "./function-registry": 22 }], 20: [function (require, module, exports) {
             var Keyword = require("../tree/keyword"),
                 functionRegistry = require("./function-registry");
 
@@ -1744,7 +1805,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             functionRegistry.add("default", defaultFunc.eval.bind(defaultFunc));
 
             module.exports = defaultFunc;
-        }, { "../tree/keyword": 63, "./function-registry": 21 }], 20: [function (require, module, exports) {
+        }, { "../tree/keyword": 65, "./function-registry": 22 }], 21: [function (require, module, exports) {
             var Expression = require("../tree/expression");
 
             var functionCaller = function functionCaller(name, context, index, currentFileInfo) {
@@ -1790,7 +1851,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = functionCaller;
-        }, { "../tree/expression": 57 }], 21: [function (require, module, exports) {
+        }, { "../tree/expression": 59 }], 22: [function (require, module, exports) {
             function makeRegistry(base) {
                 return {
                     _data: {},
@@ -1819,7 +1880,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
 
             module.exports = makeRegistry(null);
-        }, {}], 22: [function (require, module, exports) {
+        }, {}], 23: [function (require, module, exports) {
             module.exports = function (environment) {
                 var functions = {
                     functionRegistry: require("./function-registry"),
@@ -1839,9 +1900,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return functions;
             };
-        }, { "./color": 17, "./color-blending": 16, "./data-uri": 18, "./default": 19, "./function-caller": 20, "./function-registry": 21, "./math": 23, "./number": 24, "./string": 25, "./svg": 26, "./types": 27 }], 23: [function (require, module, exports) {
-            var Dimension = require("../tree/dimension"),
-                functionRegistry = require("./function-registry");
+        }, { "./color": 18, "./color-blending": 17, "./data-uri": 19, "./default": 20, "./function-caller": 21, "./function-registry": 22, "./math": 25, "./number": 26, "./string": 27, "./svg": 28, "./types": 29 }], 24: [function (require, module, exports) {
+            var Dimension = require("../tree/dimension");
+
+            var MathHelper = function MathHelper() {};
+            MathHelper._math = function (fn, unit, n) {
+                if (!(n instanceof Dimension)) {
+                    throw { type: "Argument", message: "argument must be a number" };
+                }
+                if (unit == null) {
+                    unit = n.unit;
+                } else {
+                    n = n.unify();
+                }
+                return new Dimension(fn(parseFloat(n.value)), unit);
+            };
+            module.exports = MathHelper;
+        }, { "../tree/dimension": 56 }], 25: [function (require, module, exports) {
+            var functionRegistry = require("./function-registry"),
+                mathHelper = require("./math-helper.js");
 
             var mathFunctions = {
                 // name,  unit
@@ -1857,36 +1934,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 acos: "rad"
             };
 
-            function _math(fn, unit, n) {
-                if (!(n instanceof Dimension)) {
-                    throw { type: "Argument", message: "argument must be a number" };
-                }
-                if (unit == null) {
-                    unit = n.unit;
-                } else {
-                    n = n.unify();
-                }
-                return new Dimension(fn(parseFloat(n.value)), unit);
-            }
-
             for (var f in mathFunctions) {
                 if (mathFunctions.hasOwnProperty(f)) {
-                    mathFunctions[f] = _math.bind(null, Math[f], mathFunctions[f]);
+                    mathFunctions[f] = mathHelper._math.bind(null, Math[f], mathFunctions[f]);
                 }
             }
 
             mathFunctions.round = function (n, f) {
                 var fraction = typeof f === "undefined" ? 0 : f.value;
-                return _math(function (num) {
+                return mathHelper._math(function (num) {
                     return num.toFixed(fraction);
                 }, null, n);
             };
 
             functionRegistry.addMultiple(mathFunctions);
-        }, { "../tree/dimension": 54, "./function-registry": 21 }], 24: [function (require, module, exports) {
+        }, { "./function-registry": 22, "./math-helper.js": 24 }], 26: [function (require, module, exports) {
             var Dimension = require("../tree/dimension"),
                 Anonymous = require("../tree/anonymous"),
-                functionRegistry = require("./function-registry");
+                functionRegistry = require("./function-registry"),
+                mathHelper = require("./math-helper.js");
 
             var minMax = function minMax(isMin, args) {
                 args = Array.prototype.slice.call(args);
@@ -1967,10 +2033,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return new Dimension(Math.pow(x.value, y.value), x.unit);
                 },
                 percentage: function percentage(n) {
-                    return new Dimension(n.value * 100, '%');
+                    var result = mathHelper._math(function (num) {
+                        return num * 100;
+                    }, '%', n);
+
+                    return result;
                 }
             });
-        }, { "../tree/anonymous": 44, "../tree/dimension": 54, "./function-registry": 21 }], 25: [function (require, module, exports) {
+        }, { "../tree/anonymous": 46, "../tree/dimension": 56, "./function-registry": 22, "./math-helper.js": 24 }], 27: [function (require, module, exports) {
             var Quoted = require("../tree/quoted"),
                 Anonymous = require("../tree/anonymous"),
                 JavaScript = require("../tree/javascript"),
@@ -2004,7 +2074,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return new Quoted(string.quote || '', result, string.escaped);
                 }
             });
-        }, { "../tree/anonymous": 44, "../tree/javascript": 61, "../tree/quoted": 71, "./function-registry": 21 }], 26: [function (require, module, exports) {
+        }, { "../tree/anonymous": 46, "../tree/javascript": 63, "../tree/quoted": 73, "./function-registry": 22 }], 28: [function (require, module, exports) {
             module.exports = function (environment) {
                 var Dimension = require("../tree/dimension"),
                     Color = require("../tree/color"),
@@ -2092,7 +2162,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return new URL(new Quoted("'" + returner + "'", returner, false, this.index, this.currentFileInfo), this.index, this.currentFileInfo);
                 });
             };
-        }, { "../tree/color": 48, "../tree/dimension": 54, "../tree/expression": 57, "../tree/quoted": 71, "../tree/url": 78, "./function-registry": 21 }], 27: [function (require, module, exports) {
+        }, { "../tree/color": 50, "../tree/dimension": 56, "../tree/expression": 59, "../tree/quoted": 73, "../tree/url": 80, "./function-registry": 22 }], 29: [function (require, module, exports) {
             var Keyword = require("../tree/keyword"),
                 DetachedRuleset = require("../tree/detached-ruleset"),
                 Dimension = require("../tree/dimension"),
@@ -2180,7 +2250,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return new Dimension(getItemsFromNode(values).length);
                 }
             });
-        }, { "../tree/anonymous": 44, "../tree/color": 48, "../tree/detached-ruleset": 53, "../tree/dimension": 54, "../tree/keyword": 63, "../tree/operation": 69, "../tree/quoted": 71, "../tree/url": 78, "./function-registry": 21 }], 28: [function (require, module, exports) {
+        }, { "../tree/anonymous": 46, "../tree/color": 50, "../tree/detached-ruleset": 55, "../tree/dimension": 56, "../tree/keyword": 65, "../tree/operation": 71, "../tree/quoted": 73, "../tree/url": 80, "./function-registry": 22 }], 30: [function (require, module, exports) {
             var contexts = require("./contexts"),
                 Parser = require('./parser/parser'),
                 FunctionImporter = require('./plugins/function-importer');
@@ -2310,12 +2380,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 };
                 return ImportManager;
             };
-        }, { "./contexts": 10, "./parser/parser": 36, "./plugins/function-importer": 38 }], 29: [function (require, module, exports) {
+        }, { "./contexts": 11, "./parser/parser": 38, "./plugins/function-importer": 40 }], 31: [function (require, module, exports) {
             module.exports = function (environment, fileManagers) {
                 var SourceMapOutput, SourceMapBuilder, ParseTree, ImportManager, Environment;
 
                 var less = {
-                    version: [2, 5, 1],
+                    version: [2, 6, 1],
                     data: require('./data'),
                     tree: require('./tree'),
                     Environment: Environment = require("./environment/environment"),
@@ -2340,7 +2410,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return less;
             };
-        }, { "./contexts": 10, "./data": 12, "./environment/abstract-file-manager": 14, "./environment/environment": 15, "./functions": 22, "./import-manager": 28, "./less-error": 30, "./logger": 31, "./parse": 33, "./parse-tree": 32, "./parser/parser": 36, "./plugin-manager": 37, "./render": 39, "./source-map-builder": 40, "./source-map-output": 41, "./transform-tree": 42, "./tree": 60, "./utils": 81, "./visitors": 85 }], 30: [function (require, module, exports) {
+        }, { "./contexts": 11, "./data": 13, "./environment/abstract-file-manager": 15, "./environment/environment": 16, "./functions": 23, "./import-manager": 30, "./less-error": 32, "./logger": 33, "./parse": 35, "./parse-tree": 34, "./parser/parser": 38, "./plugin-manager": 39, "./render": 41, "./source-map-builder": 42, "./source-map-output": 43, "./transform-tree": 44, "./tree": 62, "./utils": 83, "./visitors": 87 }], 32: [function (require, module, exports) {
             var utils = require("./utils");
 
             var LessError = module.exports = function LessError(e, importManager, currentFilename) {
@@ -2379,7 +2449,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
 
             LessError.prototype.constructor = LessError;
-        }, { "./utils": 81 }], 31: [function (require, module, exports) {
+        }, { "./utils": 83 }], 33: [function (require, module, exports) {
             module.exports = {
                 error: function error(msg) {
                     this._fireEvent("error", msg);
@@ -2414,7 +2484,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 },
                 _listeners: []
             };
-        }, {}], 32: [function (require, module, exports) {
+        }, {}], 34: [function (require, module, exports) {
             var LessError = require('./less-error'),
                 transformTree = require("./transform-tree"),
                 logger = require("./logger");
@@ -2477,7 +2547,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 };
                 return ParseTree;
             };
-        }, { "./less-error": 30, "./logger": 31, "./transform-tree": 42 }], 33: [function (require, module, exports) {
+        }, { "./less-error": 32, "./logger": 33, "./transform-tree": 44 }], 35: [function (require, module, exports) {
             var PromiseConstructor,
                 contexts = require("./contexts"),
                 Parser = require('./parser/parser'),
@@ -2547,7 +2617,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 };
                 return parse;
             };
-        }, { "./contexts": 10, "./parser/parser": 36, "./plugin-manager": 37, "promise": undefined }], 34: [function (require, module, exports) {
+        }, { "./contexts": 11, "./parser/parser": 38, "./plugin-manager": 39, "promise": undefined }], 36: [function (require, module, exports) {
             // Split the input into chunks.
             module.exports = function (input, fail) {
                 var len = input.length,
@@ -2702,7 +2772,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 emitChunk(true);
                 return chunks;
             };
-        }, {}], 35: [function (require, module, exports) {
+        }, {}], 37: [function (require, module, exports) {
             var chunker = require('./chunker');
 
             module.exports = function () {
@@ -2723,6 +2793,77 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 currentPos,
                     // index of current chunk, in `input`
                 parserInput = {};
+
+                var CHARCODE_SPACE = 32,
+                    CHARCODE_TAB = 9,
+                    CHARCODE_LF = 10,
+                    CHARCODE_CR = 13,
+                    CHARCODE_PLUS = 43,
+                    CHARCODE_COMMA = 44,
+                    CHARCODE_FORWARD_SLASH = 47,
+                    CHARCODE_9 = 57;
+
+                function skipWhitespace(length) {
+                    var oldi = parserInput.i,
+                        oldj = j,
+                        curr = parserInput.i - currentPos,
+                        endIndex = parserInput.i + current.length - curr,
+                        mem = parserInput.i += length,
+                        inp = input,
+                        c,
+                        nextChar,
+                        comment;
+
+                    for (; parserInput.i < endIndex; parserInput.i++) {
+                        c = inp.charCodeAt(parserInput.i);
+
+                        if (parserInput.autoCommentAbsorb && c === CHARCODE_FORWARD_SLASH) {
+                            nextChar = inp.charAt(parserInput.i + 1);
+                            if (nextChar === '/') {
+                                comment = { index: parserInput.i, isLineComment: true };
+                                var nextNewLine = inp.indexOf("\n", parserInput.i + 2);
+                                if (nextNewLine < 0) {
+                                    nextNewLine = endIndex;
+                                }
+                                parserInput.i = nextNewLine;
+                                comment.text = inp.substr(comment.i, parserInput.i - comment.i);
+                                parserInput.commentStore.push(comment);
+                                continue;
+                            } else if (nextChar === '*') {
+                                var nextStarSlash = inp.indexOf("*/", parserInput.i + 2);
+                                if (nextStarSlash >= 0) {
+                                    comment = {
+                                        index: parserInput.i,
+                                        text: inp.substr(parserInput.i, nextStarSlash + 2 - parserInput.i),
+                                        isLineComment: false
+                                    };
+                                    parserInput.i += comment.text.length - 1;
+                                    parserInput.commentStore.push(comment);
+                                    continue;
+                                }
+                            }
+                            break;
+                        }
+
+                        if (c !== CHARCODE_SPACE && c !== CHARCODE_LF && c !== CHARCODE_TAB && c !== CHARCODE_CR) {
+                            break;
+                        }
+                    }
+
+                    current = current.slice(length + parserInput.i - mem + curr);
+                    currentPos = parserInput.i;
+
+                    if (!current.length) {
+                        if (j < chunks.length - 1) {
+                            current = chunks[++j];
+                            skipWhitespace(0); // skip space at the beginning of a chunk
+                            return true; // things changed
+                        }
+                        parserInput.finished = true;
+                    }
+
+                    return oldi !== parserInput.i || oldj !== j;
+                }
 
                 parserInput.save = function () {
                     currentPos = parserInput.i;
@@ -2818,80 +2959,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return null;
                 };
 
-                var CHARCODE_SPACE = 32,
-                    CHARCODE_TAB = 9,
-                    CHARCODE_LF = 10,
-                    CHARCODE_CR = 13,
-                    CHARCODE_PLUS = 43,
-                    CHARCODE_COMMA = 44,
-                    CHARCODE_FORWARD_SLASH = 47,
-                    CHARCODE_9 = 57;
-
                 parserInput.autoCommentAbsorb = true;
                 parserInput.commentStore = [];
                 parserInput.finished = false;
-
-                var skipWhitespace = function skipWhitespace(length) {
-                    var oldi = parserInput.i,
-                        oldj = j,
-                        curr = parserInput.i - currentPos,
-                        endIndex = parserInput.i + current.length - curr,
-                        mem = parserInput.i += length,
-                        inp = input,
-                        c,
-                        nextChar,
-                        comment;
-
-                    for (; parserInput.i < endIndex; parserInput.i++) {
-                        c = inp.charCodeAt(parserInput.i);
-
-                        if (parserInput.autoCommentAbsorb && c === CHARCODE_FORWARD_SLASH) {
-                            nextChar = inp.charAt(parserInput.i + 1);
-                            if (nextChar === '/') {
-                                comment = { index: parserInput.i, isLineComment: true };
-                                var nextNewLine = inp.indexOf("\n", parserInput.i + 2);
-                                if (nextNewLine < 0) {
-                                    nextNewLine = endIndex;
-                                }
-                                parserInput.i = nextNewLine;
-                                comment.text = inp.substr(comment.i, parserInput.i - comment.i);
-                                parserInput.commentStore.push(comment);
-                                continue;
-                            } else if (nextChar === '*') {
-                                var nextStarSlash = inp.indexOf("*/", parserInput.i + 2);
-                                if (nextStarSlash >= 0) {
-                                    comment = {
-                                        index: parserInput.i,
-                                        text: inp.substr(parserInput.i, nextStarSlash + 2 - parserInput.i),
-                                        isLineComment: false
-                                    };
-                                    parserInput.i += comment.text.length - 1;
-                                    parserInput.commentStore.push(comment);
-                                    continue;
-                                }
-                            }
-                            break;
-                        }
-
-                        if (c !== CHARCODE_SPACE && c !== CHARCODE_LF && c !== CHARCODE_TAB && c !== CHARCODE_CR) {
-                            break;
-                        }
-                    }
-
-                    current = current.slice(length + parserInput.i - mem + curr);
-                    currentPos = parserInput.i;
-
-                    if (!current.length) {
-                        if (j < chunks.length - 1) {
-                            current = chunks[++j];
-                            skipWhitespace(0); // skip space at the beginning of a chunk
-                            return true; // things changed
-                        }
-                        parserInput.finished = true;
-                    }
-
-                    return oldi !== parserInput.i || oldj !== j;
-                };
 
                 // Same as $(), but don't change the state of the parser,
                 // just return the match.
@@ -2973,7 +3043,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return parserInput;
             };
-        }, { "./chunker": 34 }], 36: [function (require, module, exports) {
+        }, { "./chunker": 36 }], 38: [function (require, module, exports) {
             var LessError = require('../less-error'),
                 tree = require("../tree"),
                 visitors = require("../visitors"),
@@ -3011,15 +3081,24 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             //    Token matching is done with the `$` function, which either takes
             //    a terminal string or regexp, or a non-terminal function to call.
             //    It also takes care of moving all the indices forwards.
-            //
+            //`
             //
             var Parser = function Parser(context, imports, fileInfo) {
                 var parsers,
                     parserInput = getParserInput();
 
+                function error(msg, type) {
+                    throw new LessError({
+                        index: parserInput.i,
+                        filename: fileInfo.filename,
+                        type: type || 'Syntax',
+                        message: msg
+                    }, imports);
+                }
+
                 function expect(arg, msg, index) {
                     // some older browsers return typeof 'function' for RegExp
-                    var result = Object.prototype.toString.call(arg) === '[object Function]' ? arg.call(parsers) : parserInput.$re(arg);
+                    var result = arg instanceof Function ? arg.call(parsers) : parserInput.$re(arg);
                     if (result) {
                         return result;
                     }
@@ -3032,15 +3111,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         return arg;
                     }
                     error(msg || "expected '" + arg + "' got '" + parserInput.currentChar() + "'");
-                }
-
-                function error(msg, type) {
-                    throw new LessError({
-                        index: parserInput.i,
-                        filename: fileInfo.filename,
-                        type: type || 'Syntax',
-                        message: msg
-                    }, imports);
                 }
 
                 function getDebugInfo(index) {
@@ -3475,7 +3545,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                         // verify if candidate consists only of allowed HEX characters
                                         error("Invalid HEX color code");
                                     }
-                                    return new tree.Color(rgb[1]);
+                                    return new tree.Color(rgb[1], undefined, '#' + colorCandidateString);
+                                }
+                            },
+
+                            colorKeyword: function colorKeyword() {
+                                parserInput.save();
+                                var autoCommentAbsorb = parserInput.autoCommentAbsorb;
+                                parserInput.autoCommentAbsorb = false;
+                                var k = parserInput.$re(/^[A-Za-z]+/);
+                                parserInput.autoCommentAbsorb = autoCommentAbsorb;
+                                if (!k) {
+                                    parserInput.forget();
+                                    return;
+                                }
+                                parserInput.restore();
+                                var color = tree.Color.fromKeyword(k);
+                                if (color) {
+                                    parserInput.$str(k);
+                                    return color;
                                 }
                             },
 
@@ -3489,7 +3577,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                     return;
                                 }
 
-                                var value = parserInput.$re(/^([+-]?\d*\.?\d+)(%|[a-z]+)?/i);
+                                var value = parserInput.$re(/^([+-]?\d*\.?\d+)(%|[a-z_]+)?/i);
                                 if (value) {
                                     return new tree.Dimension(value[1], value[2]);
                                 }
@@ -3558,7 +3646,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         rulesetCall: function rulesetCall() {
                             var name;
 
-                            if (parserInput.currentChar() === '@' && (name = parserInput.$re(/^(@[\w-]+)\s*\(\s*\)\s*;/))) {
+                            if (parserInput.currentChar() === '@' && (name = parserInput.$re(/^(@[\w-]+)\(\s*\)\s*;/))) {
                                 return new tree.RulesetCall(name[1]);
                             }
                         },
@@ -3597,7 +3685,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 if (!elements) {
                                     error("Missing target selector for :extend().");
                                 }
-                                extend = new tree.Extend(new tree.Selector(elements), option, index);
+                                extend = new tree.Extend(new tree.Selector(elements), option, index, fileInfo);
                                 if (extendList) {
                                     extendList.push(extend);
                                 } else {
@@ -3697,7 +3785,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                     name,
                                     nameLoop,
                                     value,
-                                    arg;
+                                    arg,
+                                    expand;
 
                                 parserInput.save();
 
@@ -3758,13 +3847,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                                 }
                                             }
                                             nameLoop = name = val.name;
-                                        } else if (!isCall && parserInput.$str("...")) {
-                                            returner.variadic = true;
-                                            if (parserInput.$char(";") && !isSemiColonSeparated) {
-                                                isSemiColonSeparated = true;
+                                        } else if (parserInput.$str("...")) {
+                                            if (!isCall) {
+                                                returner.variadic = true;
+                                                if (parserInput.$char(";") && !isSemiColonSeparated) {
+                                                    isSemiColonSeparated = true;
+                                                }
+                                                (isSemiColonSeparated ? argsSemiColon : argsComma).push({ name: arg.name, variadic: true });
+                                                break;
+                                            } else {
+                                                expand = true;
                                             }
-                                            (isSemiColonSeparated ? argsSemiColon : argsComma).push({ name: arg.name, variadic: true });
-                                            break;
                                         } else if (!isCall) {
                                             name = nameLoop = val.name;
                                             value = null;
@@ -3775,7 +3868,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                         expressions.push(value);
                                     }
 
-                                    argsComma.push({ name: nameLoop, value: value });
+                                    argsComma.push({ name: nameLoop, value: value, expand: expand });
 
                                     if (parserInput.$char(',')) {
                                         continue;
@@ -3792,7 +3885,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                         if (expressions.length > 1) {
                                             value = new tree.Value(expressions);
                                         }
-                                        argsSemiColon.push({ name: name, value: value });
+                                        argsSemiColon.push({ name: name, value: value, expand: expand });
 
                                         name = null;
                                         expressions = [];
@@ -4319,12 +4412,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                         } else if (e) {
                                             nodes.push(new tree.Paren(e));
                                         } else {
-                                            parserInput.restore("badly formed media feature definition");
-                                            return null;
+                                            error("badly formed media feature definition");
                                         }
                                     } else {
-                                        parserInput.restore("Missing closing ')'");
-                                        return null;
+                                        error("Missing closing ')'", "Parse");
                                     }
                                 }
                             } while (e);
@@ -4375,8 +4466,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 rules = this.block();
 
                                 if (!rules) {
-                                    parserInput.restore("media definitions require block statements after any features");
-                                    return;
+                                    error("media definitions require block statements after any features");
                                 }
 
                                 parserInput.forget();
@@ -4465,33 +4555,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                             }
 
                             switch (nonVendorSpecificName) {
-                                /*
-                                case "@font-face":
-                                case "@viewport":
-                                case "@top-left":
-                                case "@top-left-corner":
-                                case "@top-center":
-                                case "@top-right":
-                                case "@top-right-corner":
-                                case "@bottom-left":
-                                case "@bottom-left-corner":
-                                case "@bottom-center":
-                                case "@bottom-right":
-                                case "@bottom-right-corner":
-                                case "@left-top":
-                                case "@left-middle":
-                                case "@left-bottom":
-                                case "@right-top":
-                                case "@right-middle":
-                                case "@right-bottom":
-                                    hasBlock = true;
-                                    isRooted = true;
-                                    break;
-                                */
-                                case "@counter-style":
-                                    hasIdentifier = true;
-                                    hasBlock = true;
-                                    break;
                                 case "@charset":
                                     hasIdentifier = true;
                                     hasBlock = false;
@@ -4501,16 +4564,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                     hasBlock = false;
                                     break;
                                 case "@keyframes":
+                                case "@counter-style":
                                     hasIdentifier = true;
-                                    break;
-                                case "@host":
-                                case "@page":
-                                    hasUnknown = true;
                                     break;
                                 case "@document":
                                 case "@supports":
                                     hasUnknown = true;
                                     isRooted = false;
+                                    break;
+                                default:
+                                    hasUnknown = true;
                                     break;
                             }
 
@@ -4528,6 +4591,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 }
                             } else if (hasUnknown) {
                                 value = (parserInput.$re(/^[^{;]+/) || '').trim();
+                                hasBlock = parserInput.currentChar() == '{';
                                 if (value) {
                                     value = new tree.Anonymous(value);
                                 }
@@ -4539,7 +4603,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                             if (rules || !hasBlock && value && parserInput.$char(';')) {
                                 parserInput.forget();
-                                return new tree.Directive(name, value, rules, index, fileInfo, context.dumpLineNumbers ? getDebugInfo(index) : null, false, isRooted);
+                                return new tree.Directive(name, value, rules, index, fileInfo, context.dumpLineNumbers ? getDebugInfo(index) : null, isRooted);
                             }
 
                             parserInput.restore("directive options not recognised");
@@ -4671,18 +4735,108 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                             }
                         },
                         condition: function condition() {
+                            var result, logical, next;
+                            function or() {
+                                return parserInput.$str("or");
+                            }
+
+                            result = this.conditionAnd(this);
+                            if (!result) {
+                                return;
+                            }
+                            logical = or();
+                            if (logical) {
+                                next = this.condition();
+                                if (next) {
+                                    result = new tree.Condition(logical, result, next);
+                                } else {
+                                    return;
+                                }
+                            }
+                            return result;
+                        },
+                        conditionAnd: function conditionAnd() {
+                            var result, logical, next;
+                            function insideCondition(me) {
+                                return me.negatedCondition() || me.parenthesisCondition();
+                            }
+                            function and() {
+                                return parserInput.$str("and");
+                            }
+
+                            result = insideCondition(this);
+                            if (!result) {
+                                return;
+                            }
+                            logical = and();
+                            if (logical) {
+                                next = this.conditionAnd();
+                                if (next) {
+                                    result = new tree.Condition(logical, result, next);
+                                } else {
+                                    return;
+                                }
+                            }
+                            return result;
+                        },
+                        negatedCondition: function negatedCondition() {
+                            if (parserInput.$str("not")) {
+                                var result = this.parenthesisCondition();
+                                if (result) {
+                                    result.negate = !result.negate;
+                                }
+                                return result;
+                            }
+                        },
+                        parenthesisCondition: function parenthesisCondition() {
+                            function tryConditionFollowedByParenthesis(me) {
+                                var body;
+                                parserInput.save();
+                                body = me.condition();
+                                if (!body) {
+                                    parserInput.restore();
+                                    return;
+                                }
+                                if (!parserInput.$char(')')) {
+                                    parserInput.restore();
+                                    return;
+                                }
+                                parserInput.forget();
+                                return body;
+                            }
+
+                            var body;
+                            parserInput.save();
+                            if (!parserInput.$str("(")) {
+                                parserInput.restore();
+                                return;
+                            }
+                            body = tryConditionFollowedByParenthesis(this);
+                            if (body) {
+                                parserInput.forget();
+                                return body;
+                            }
+
+                            body = this.atomicCondition();
+                            if (!body) {
+                                parserInput.restore();
+                                return;
+                            }
+                            if (!parserInput.$char(')')) {
+                                parserInput.restore("expected ')' got '" + parserInput.currentChar() + "'");
+                                return;
+                            }
+                            parserInput.forget();
+                            return body;
+                        },
+                        atomicCondition: function atomicCondition() {
                             var entities = this.entities,
                                 index = parserInput.i,
-                                negate = false,
                                 a,
                                 b,
                                 c,
                                 op;
 
-                            if (parserInput.$str("not")) {
-                                negate = true;
-                            }
-                            expectChar('(');
                             a = this.addition() || entities.keyword() || entities.quoted();
                             if (a) {
                                 if (parserInput.$char('>')) {
@@ -4709,15 +4863,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 if (op) {
                                     b = this.addition() || entities.keyword() || entities.quoted();
                                     if (b) {
-                                        c = new tree.Condition(op, a, b, index, negate);
+                                        c = new tree.Condition(op, a, b, index, false);
                                     } else {
                                         error('expected expression');
                                     }
                                 } else {
-                                    c = new tree.Condition('=', a, new tree.Keyword('true'), index, negate);
+                                    c = new tree.Condition('=', a, new tree.Keyword('true'), index, false);
                                 }
-                                expectChar(')');
-                                return parserInput.$str("and") ? new tree.Condition('and', c, this.condition()) : c;
+                                return c;
                             }
                         },
 
@@ -4733,7 +4886,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 negate = parserInput.$char('-');
                             }
 
-                            var o = this.sub() || entities.dimension() || entities.color() || entities.variable() || entities.call();
+                            var o = this.sub() || entities.dimension() || entities.color() || entities.variable() || entities.call() || entities.colorKeyword();
 
                             if (negate) {
                                 o.parensInOp = true;
@@ -4848,7 +5001,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = Parser;
-        }, { "../less-error": 30, "../tree": 60, "../utils": 81, "../visitors": 85, "./parser-input": 35 }], 37: [function (require, module, exports) {
+        }, { "../less-error": 32, "../tree": 62, "../utils": 83, "../visitors": 87, "./parser-input": 37 }], 39: [function (require, module, exports) {
             /**
              * Plugin Manager
              */
@@ -4963,7 +5116,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return this.fileManagers;
             };
             module.exports = PluginManager;
-        }, {}], 38: [function (require, module, exports) {
+        }, {}], 40: [function (require, module, exports) {
             var LessError = require('../less-error'),
                 tree = require("../tree");
 
@@ -4999,7 +5152,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 callback(null, { functions: loaded });
             };
-        }, { "../less-error": 30, "../tree": 60 }], 39: [function (require, module, exports) {
+        }, { "../less-error": 32, "../tree": 62 }], 41: [function (require, module, exports) {
             var PromiseConstructor;
 
             module.exports = function (environment, ParseTree, ImportManager) {
@@ -5044,7 +5197,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return render;
             };
-        }, { "promise": undefined }], 40: [function (require, module, exports) {
+        }, { "promise": undefined }], 42: [function (require, module, exports) {
             module.exports = function (SourceMapOutput, environment) {
 
                 var SourceMapBuilder = function SourceMapBuilder(options) {
@@ -5113,7 +5266,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return SourceMapBuilder;
             };
-        }, {}], 41: [function (require, module, exports) {
+        }, {}], 43: [function (require, module, exports) {
             module.exports = function (environment) {
 
                 var SourceMapOutput = function SourceMapOutput(options) {
@@ -5250,7 +5403,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return SourceMapOutput;
             };
-        }, {}], 42: [function (require, module, exports) {
+        }, {}], 44: [function (require, module, exports) {
             var contexts = require("./contexts"),
                 visitor = require("./visitors"),
                 tree = require("./tree");
@@ -5290,7 +5443,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
 
                 var preEvalVisitors = [],
-                    visitors = [new visitor.JoinSelectorVisitor(), new visitor.ExtendVisitor(), new visitor.ToCSSVisitor({ compress: Boolean(options.compress) })],
+                    visitors = [new visitor.JoinSelectorVisitor(), new visitor.MarkVisibleSelectorsVisitor(true), new visitor.ExtendVisitor(), new visitor.ToCSSVisitor({ compress: Boolean(options.compress) })],
                     i;
 
                 if (options.pluginManager) {
@@ -5321,7 +5474,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 return evaldRoot;
             };
-        }, { "./contexts": 10, "./tree": 60, "./visitors": 85 }], 43: [function (require, module, exports) {
+        }, { "./contexts": 11, "./tree": 62, "./visitors": 87 }], 45: [function (require, module, exports) {
             var Node = require("./node");
 
             var Alpha = function Alpha(val) {
@@ -5352,20 +5505,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = Alpha;
-        }, { "./node": 68 }], 44: [function (require, module, exports) {
+        }, { "./node": 70 }], 46: [function (require, module, exports) {
             var Node = require("./node");
 
-            var Anonymous = function Anonymous(value, index, currentFileInfo, mapLines, rulesetLike) {
+            var Anonymous = function Anonymous(value, index, currentFileInfo, mapLines, rulesetLike, visibilityInfo) {
                 this.value = value;
                 this.index = index;
                 this.mapLines = mapLines;
                 this.currentFileInfo = currentFileInfo;
                 this.rulesetLike = typeof rulesetLike === 'undefined' ? false : rulesetLike;
+
+                this.copyVisibilityInfo(visibilityInfo);
             };
             Anonymous.prototype = new Node();
             Anonymous.prototype.type = "Anonymous";
             Anonymous.prototype.eval = function () {
-                return new Anonymous(this.value, this.index, this.currentFileInfo, this.mapLines, this.rulesetLike);
+                return new Anonymous(this.value, this.index, this.currentFileInfo, this.mapLines, this.rulesetLike, this.visibilityInfo());
             };
             Anonymous.prototype.compare = function (other) {
                 return other.toCSS && this.toCSS() === other.toCSS() ? 0 : undefined;
@@ -5377,7 +5532,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 output.add(this.value, this.currentFileInfo, this.index, this.mapLines);
             };
             module.exports = Anonymous;
-        }, { "./node": 68 }], 45: [function (require, module, exports) {
+        }, { "./node": 70 }], 47: [function (require, module, exports) {
             var Node = require("./node");
 
             var Assignment = function Assignment(key, val) {
@@ -5405,7 +5560,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = Assignment;
-        }, { "./node": 68 }], 46: [function (require, module, exports) {
+        }, { "./node": 70 }], 48: [function (require, module, exports) {
             var Node = require("./node");
 
             var Attribute = function Attribute(key, op, value) {
@@ -5432,7 +5587,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return '[' + value + ']';
             };
             module.exports = Attribute;
-        }, { "./node": 68 }], 47: [function (require, module, exports) {
+        }, { "./node": 70 }], 49: [function (require, module, exports) {
             var Node = require("./node"),
                 FunctionCaller = require("../functions/function-caller");
             //
@@ -5498,14 +5653,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 output.add(")");
             };
             module.exports = Call;
-        }, { "../functions/function-caller": 20, "./node": 68 }], 48: [function (require, module, exports) {
+        }, { "../functions/function-caller": 21, "./node": 70 }], 50: [function (require, module, exports) {
             var Node = require("./node"),
                 colors = require("../data/colors");
 
             //
             // RGB Colors - #ff0014, #eee
             //
-            var Color = function Color(rgb, a) {
+            var Color = function Color(rgb, a, originalForm) {
                 //
                 // The end goal here, is to parse the arguments
                 // into an integer triplet, such as `128, 255, 0`
@@ -5524,6 +5679,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     });
                 }
                 this.alpha = typeof a === 'number' ? a : 1;
+                if (typeof originalForm !== 'undefined') {
+                    this.value = originalForm;
+                }
             };
 
             Color.prototype = new Node();
@@ -5695,7 +5853,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = Color;
-        }, { "../data/colors": 11, "./node": 68 }], 49: [function (require, module, exports) {
+        }, { "../data/colors": 12, "./node": 70 }], 51: [function (require, module, exports) {
             var Node = require("./node");
 
             var Combinator = function Combinator(value) {
@@ -5719,7 +5877,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 output.add(spaceOrEmpty + this.value + spaceOrEmpty);
             };
             module.exports = Combinator;
-        }, { "./node": 68 }], 50: [function (require, module, exports) {
+        }, { "./node": 70 }], 52: [function (require, module, exports) {
             var Node = require("./node"),
                 getDebugInfo = require("./debug-info");
 
@@ -5737,15 +5895,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 output.add(this.value);
             };
             Comment.prototype.isSilent = function (context) {
-                var isReference = this.currentFileInfo && this.currentFileInfo.reference && !this.isReferenced,
-                    isCompressed = context.compress && this.value[2] !== "!";
-                return this.isLineComment || isReference || isCompressed;
-            };
-            Comment.prototype.markReferenced = function () {
-                this.isReferenced = true;
+                var isCompressed = context.compress && this.value[2] !== "!";
+                return this.isLineComment || isCompressed;
             };
             module.exports = Comment;
-        }, { "./debug-info": 52, "./node": 68 }], 51: [function (require, module, exports) {
+        }, { "./debug-info": 54, "./node": 70 }], 53: [function (require, module, exports) {
             var Node = require("./node");
 
             var Condition = function Condition(op, l, r, i, negate) {
@@ -5785,7 +5939,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return this.negate ? !result : result;
             };
             module.exports = Condition;
-        }, { "./node": 68 }], 52: [function (require, module, exports) {
+        }, { "./node": 70 }], 54: [function (require, module, exports) {
             var debugInfo = function debugInfo(context, ctx, lineSeparator) {
                 var result = "";
                 if (context.dumpLineNumbers && !context.compress) {
@@ -5822,7 +5976,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = debugInfo;
-        }, {}], 53: [function (require, module, exports) {
+        }, {}], 55: [function (require, module, exports) {
             var Node = require("./node"),
                 contexts = require("../contexts");
 
@@ -5844,7 +5998,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return this.ruleset.eval(this.frames ? new contexts.Eval(context, this.frames.concat(context.frames)) : context);
             };
             module.exports = DetachedRuleset;
-        }, { "../contexts": 10, "./node": 68 }], 54: [function (require, module, exports) {
+        }, { "../contexts": 11, "./node": 70 }], 56: [function (require, module, exports) {
             var Node = require("./node"),
                 unitConversions = require("../data/unit-conversions"),
                 Unit = require("./unit"),
@@ -6006,12 +6160,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return new Dimension(value, unit);
             };
             module.exports = Dimension;
-        }, { "../data/unit-conversions": 13, "./color": 48, "./node": 68, "./unit": 77 }], 55: [function (require, module, exports) {
+        }, { "../data/unit-conversions": 14, "./color": 50, "./node": 70, "./unit": 79 }], 57: [function (require, module, exports) {
             var Node = require("./node"),
                 Selector = require("./selector"),
                 Ruleset = require("./ruleset");
 
-            var Directive = function Directive(name, value, rules, index, currentFileInfo, debugInfo, isReferenced, isRooted) {
+            var Directive = function Directive(name, value, rules, index, currentFileInfo, debugInfo, isRooted, visibilityInfo) {
                 var i;
 
                 this.name = name;
@@ -6030,8 +6184,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 this.index = index;
                 this.currentFileInfo = currentFileInfo;
                 this.debugInfo = debugInfo;
-                this.isReferenced = isReferenced;
                 this.isRooted = isRooted || false;
+                this.copyVisibilityInfo(visibilityInfo);
             };
 
             Directive.prototype = new Node();
@@ -6092,7 +6246,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 context.mediaPath = mediaPathBackup;
                 context.mediaBlocks = mediaBlocksBackup;
 
-                return new Directive(this.name, value, rules, this.index, this.currentFileInfo, this.debugInfo, this.isReferenced, this.isRooted);
+                return new Directive(this.name, value, rules, this.index, this.currentFileInfo, this.debugInfo, this.isRooted, this.visibilityInfo());
             };
             Directive.prototype.variable = function (name) {
                 if (this.rules) {
@@ -6111,21 +6265,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     // assuming that there is only one rule at this point - that is how parser constructs the rule
                     return Ruleset.prototype.rulesets.apply(this.rules[0]);
                 }
-            };
-            Directive.prototype.markReferenced = function () {
-                var i, rules;
-                this.isReferenced = true;
-                if (this.rules) {
-                    rules = this.rules;
-                    for (i = 0; i < rules.length; i++) {
-                        if (rules[i].markReferenced) {
-                            rules[i].markReferenced();
-                        }
-                    }
-                }
-            };
-            Directive.prototype.getIsReferenced = function () {
-                return !this.currentFileInfo || !this.currentFileInfo.reference || this.isReferenced;
             };
             Directive.prototype.outputRuleset = function (context, output, rules) {
                 var ruleCnt = rules.length,
@@ -6161,12 +6300,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 context.tabLevel--;
             };
             module.exports = Directive;
-        }, { "./node": 68, "./ruleset": 74, "./selector": 75 }], 56: [function (require, module, exports) {
+        }, { "./node": 70, "./ruleset": 76, "./selector": 77 }], 58: [function (require, module, exports) {
             var Node = require("./node"),
                 Paren = require("./paren"),
                 Combinator = require("./combinator");
 
-            var Element = function Element(combinator, value, index, currentFileInfo) {
+            var Element = function Element(combinator, value, index, currentFileInfo, info) {
                 this.combinator = combinator instanceof Combinator ? combinator : new Combinator(combinator);
 
                 if (typeof value === 'string') {
@@ -6178,6 +6317,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
                 this.index = index;
                 this.currentFileInfo = currentFileInfo;
+                this.copyVisibilityInfo(info);
             };
             Element.prototype = new Node();
             Element.prototype.type = "Element";
@@ -6189,7 +6329,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             Element.prototype.eval = function (context) {
-                return new Element(this.combinator, this.value.eval ? this.value.eval(context) : this.value, this.index, this.currentFileInfo);
+                return new Element(this.combinator, this.value.eval ? this.value.eval(context) : this.value, this.index, this.currentFileInfo, this.visibilityInfo());
+            };
+            Element.prototype.clone = function () {
+                return new Element(this.combinator, this.value, this.index, this.currentFileInfo, this.visibilityInfo());
             };
             Element.prototype.genCSS = function (context, output) {
                 output.add(this.toCSS(context), this.currentFileInfo, this.index);
@@ -6212,7 +6355,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = Element;
-        }, { "./combinator": 49, "./node": 68, "./paren": 70 }], 57: [function (require, module, exports) {
+        }, { "./combinator": 51, "./node": 70, "./paren": 72 }], 59: [function (require, module, exports) {
             var Node = require("./node"),
                 Paren = require("./paren"),
                 Comment = require("./comment");
@@ -6269,15 +6412,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 });
             };
             module.exports = Expression;
-        }, { "./comment": 50, "./node": 68, "./paren": 70 }], 58: [function (require, module, exports) {
-            var Node = require("./node");
+        }, { "./comment": 52, "./node": 70, "./paren": 72 }], 60: [function (require, module, exports) {
+            var Node = require("./node"),
+                Selector = require("./selector");
 
-            var Extend = function Extend(selector, option, index) {
+            var Extend = function Extend(selector, option, index, currentFileInfo, visibilityInfo) {
                 this.selector = selector;
                 this.option = option;
                 this.index = index;
                 this.object_id = Extend.next_id++;
                 this.parent_ids = [this.object_id];
+                this.currentFileInfo = currentFileInfo || {};
+                this.copyVisibilityInfo(visibilityInfo);
 
                 switch (option) {
                     case "all":
@@ -6298,11 +6444,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 this.selector = visitor.visit(this.selector);
             };
             Extend.prototype.eval = function (context) {
-                return new Extend(this.selector.eval(context), this.option, this.index);
+                return new Extend(this.selector.eval(context), this.option, this.index, this.currentFileInfo, this.visibilityInfo());
             };
             Extend.prototype.clone = function (context) {
-                return new Extend(this.selector, this.option, this.index);
+                return new Extend(this.selector, this.option, this.index, this.currentFileInfo, this.visibilityInfo());
             };
+            //it concatenates (joins) all selectors in selector array
             Extend.prototype.findSelfSelectors = function (selectors) {
                 var selfElements = [],
                     i,
@@ -6318,10 +6465,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     selfElements = selfElements.concat(selectors[i].elements);
                 }
 
-                this.selfSelectors = [{ elements: selfElements }];
+                this.selfSelectors = [new Selector(selfElements)];
+                this.selfSelectors[0].copyVisibilityInfo(this.visibilityInfo());
             };
             module.exports = Extend;
-        }, { "./node": 68 }], 59: [function (require, module, exports) {
+        }, { "./node": 70, "./selector": 77 }], 61: [function (require, module, exports) {
             var Node = require("./node"),
                 Media = require("./media"),
                 URL = require("./url"),
@@ -6341,7 +6489,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             // `import,push`, we also pass it a callback, which it'll call once
             // the file has been fetched, and parsed.
             //
-            var Import = function Import(path, features, options, index, currentFileInfo) {
+            var Import = function Import(path, features, options, index, currentFileInfo, visibilityInfo) {
                 this.options = options;
                 this.index = index;
                 this.path = path;
@@ -6356,6 +6504,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         this.css = true;
                     }
                 }
+                this.copyVisibilityInfo(visibilityInfo);
             };
 
             //
@@ -6410,7 +6559,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     path = path.value;
                 }
 
-                return new Import(path.eval(context), this.features, this.options, this.index, this.currentFileInfo);
+                return new Import(path.eval(context), this.features, this.options, this.index, this.currentFileInfo, this.visibilityInfo());
             };
             Import.prototype.evalPath = function (context) {
                 var path = this.path.eval(context);
@@ -6430,6 +6579,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return path;
             };
             Import.prototype.eval = function (context) {
+                var result = this.doEval(context);
+                if (this.options.reference || this.blocksVisibility()) {
+                    if (result.length || result.length === 0) {
+                        result.forEach(function (node) {
+                            node.addVisibilityBlock();
+                        });
+                    } else {
+                        result.addVisibilityBlock();
+                    }
+                }
+                return result;
+            };
+            Import.prototype.doEval = function (context) {
                 var ruleset,
                     registry,
                     features = this.features && this.features.eval(context);
@@ -6450,9 +6612,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         return [];
                     }
                 }
-
                 if (this.options.inline) {
-                    var contents = new Anonymous(this.root, 0, { filename: this.importedFilename }, true, true);
+                    var contents = new Anonymous(this.root, 0, {
+                        filename: this.importedFilename,
+                        reference: this.path.currentFileInfo && this.path.currentFileInfo.reference
+                    }, true, true);
+
                     return this.features ? new Media([contents], this.features.value) : [contents];
                 } else if (this.css) {
                     var newImport = new Import(this.evalPath(context), features, this.options, this.index);
@@ -6462,14 +6627,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return newImport;
                 } else {
                     ruleset = new Ruleset(null, this.root.rules.slice(0));
-
                     ruleset.evalImports(context);
 
                     return this.features ? new Media(ruleset.rules, this.features.value) : ruleset.rules;
                 }
             };
             module.exports = Import;
-        }, { "./anonymous": 44, "./media": 64, "./node": 68, "./quoted": 71, "./ruleset": 74, "./url": 78 }], 60: [function (require, module, exports) {
+        }, { "./anonymous": 46, "./media": 66, "./node": 70, "./quoted": 73, "./ruleset": 76, "./url": 80 }], 62: [function (require, module, exports) {
             var tree = {};
 
             tree.Node = require('./node');
@@ -6511,7 +6675,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             tree.RulesetCall = require('./ruleset-call');
 
             module.exports = tree;
-        }, { "./alpha": 43, "./anonymous": 44, "./assignment": 45, "./attribute": 46, "./call": 47, "./color": 48, "./combinator": 49, "./comment": 50, "./condition": 51, "./detached-ruleset": 53, "./dimension": 54, "./directive": 55, "./element": 56, "./expression": 57, "./extend": 58, "./import": 59, "./javascript": 61, "./keyword": 63, "./media": 64, "./mixin-call": 65, "./mixin-definition": 66, "./negative": 67, "./node": 68, "./operation": 69, "./paren": 70, "./quoted": 71, "./rule": 72, "./ruleset": 74, "./ruleset-call": 73, "./selector": 75, "./unicode-descriptor": 76, "./unit": 77, "./url": 78, "./value": 79, "./variable": 80 }], 61: [function (require, module, exports) {
+        }, { "./alpha": 45, "./anonymous": 46, "./assignment": 47, "./attribute": 48, "./call": 49, "./color": 50, "./combinator": 51, "./comment": 52, "./condition": 53, "./detached-ruleset": 55, "./dimension": 56, "./directive": 57, "./element": 58, "./expression": 59, "./extend": 60, "./import": 61, "./javascript": 63, "./keyword": 65, "./media": 66, "./mixin-call": 67, "./mixin-definition": 68, "./negative": 69, "./node": 70, "./operation": 71, "./paren": 72, "./quoted": 73, "./rule": 74, "./ruleset": 76, "./ruleset-call": 75, "./selector": 77, "./unicode-descriptor": 78, "./unit": 79, "./url": 80, "./value": 81, "./variable": 82 }], 63: [function (require, module, exports) {
             var JsEvalNode = require("./js-eval-node"),
                 Dimension = require("./dimension"),
                 Quoted = require("./quoted"),
@@ -6540,7 +6704,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = JavaScript;
-        }, { "./anonymous": 44, "./dimension": 54, "./js-eval-node": 62, "./quoted": 71 }], 62: [function (require, module, exports) {
+        }, { "./anonymous": 46, "./dimension": 56, "./js-eval-node": 64, "./quoted": 73 }], 64: [function (require, module, exports) {
             var Node = require("./node"),
                 Variable = require("./variable");
 
@@ -6603,7 +6767,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = JsEvalNode;
-        }, { "./node": 68, "./variable": 80 }], 63: [function (require, module, exports) {
+        }, { "./node": 70, "./variable": 82 }], 65: [function (require, module, exports) {
             var Node = require("./node");
 
             var Keyword = function Keyword(value) {
@@ -6622,7 +6786,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             Keyword.False = new Keyword('false');
 
             module.exports = Keyword;
-        }, { "./node": 68 }], 64: [function (require, module, exports) {
+        }, { "./node": 70 }], 66: [function (require, module, exports) {
             var Ruleset = require("./ruleset"),
                 Value = require("./value"),
                 Selector = require("./selector"),
@@ -6630,7 +6794,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 Expression = require("./expression"),
                 Directive = require("./directive");
 
-            var Media = function Media(value, features, index, currentFileInfo) {
+            var Media = function Media(value, features, index, currentFileInfo, visibilityInfo) {
                 this.index = index;
                 this.currentFileInfo = currentFileInfo;
 
@@ -6639,6 +6803,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 this.features = new Value(features);
                 this.rules = [new Ruleset(selectors, value)];
                 this.rules[0].allowImports = true;
+                this.copyVisibilityInfo(visibilityInfo);
             };
             Media.prototype = new Directive();
             Media.prototype.type = "Media";
@@ -6662,7 +6827,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     context.mediaPath = [];
                 }
 
-                var media = new Media(null, [], this.index, this.currentFileInfo);
+                var media = new Media(null, [], this.index, this.currentFileInfo, this.visibilityInfo());
                 if (this.debugInfo) {
                     this.rules[0].debugInfo = this.debugInfo;
                     media.debugInfo = this.debugInfo;
@@ -6700,6 +6865,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     var selectors = new Selector([], null, null, this.index, this.currentFileInfo).createEmptySelectors();
                     result = new Ruleset(selectors, context.mediaBlocks);
                     result.multiMedia = true;
+                    result.copyVisibilityInfo(this.visibilityInfo());
                 }
 
                 delete context.mediaBlocks;
@@ -6763,7 +6929,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 this.rules = [new Ruleset(selectors.slice(0), [this.rules[0]])];
             };
             module.exports = Media;
-        }, { "./anonymous": 44, "./directive": 55, "./expression": 57, "./ruleset": 74, "./selector": 75, "./value": 79 }], 65: [function (require, module, exports) {
+        }, { "./anonymous": 46, "./directive": 57, "./expression": 59, "./ruleset": 76, "./selector": 77, "./value": 81 }], 67: [function (require, module, exports) {
             var Node = require("./node"),
                 Selector = require("./selector"),
                 MixinDefinition = require("./mixin-definition"),
@@ -6771,7 +6937,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
             var MixinCall = function MixinCall(elements, args, index, currentFileInfo, important) {
                 this.selector = new Selector(elements);
-                this.arguments = args && args.length ? args : null;
+                this.arguments = args || [];
                 this.index = index;
                 this.currentFileInfo = currentFileInfo;
                 this.important = important;
@@ -6782,7 +6948,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 if (this.selector) {
                     this.selector = visitor.visit(this.selector);
                 }
-                if (this.arguments) {
+                if (this.arguments.length) {
                     this.arguments = visitor.visitArray(this.arguments);
                 }
             };
@@ -6790,7 +6956,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 var mixins,
                     mixin,
                     mixinPath,
-                    args,
+                    args = [],
+                    arg,
+                    argValue,
                     rules = [],
                     match = false,
                     i,
@@ -6798,7 +6966,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     f,
                     isRecursive,
                     isOneFound,
-                    rule,
                     candidates = [],
                     candidate,
                     conditionResult = [],
@@ -6812,7 +6979,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     noArgumentsFilter;
 
                 function calcDefGroup(mixin, mixinPath) {
-                    var p, namespace;
+                    var f, p, namespace;
 
                     for (f = 0; f < 2; f++) {
                         conditionResult[f] = true;
@@ -6837,9 +7004,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return defFalseEitherCase;
                 }
 
-                args = this.arguments && this.arguments.map(function (a) {
-                    return { name: a.name, value: a.value.eval(context) };
-                });
+                for (i = 0; i < this.arguments.length; i++) {
+                    arg = this.arguments[i];
+                    argValue = arg.value.eval(context);
+                    if (arg.expand && Array.isArray(argValue.value)) {
+                        argValue = argValue.value;
+                        for (m = 0; m < argValue.length; m++) {
+                            args.push({ value: argValue[m] });
+                        }
+                    } else {
+                        args.push({ name: arg.name, value: argValue });
+                    }
+                }
 
                 noArgumentsFilter = function noArgumentsFilter(rule) {
                     return rule.matchArgs(null, context);
@@ -6904,10 +7080,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                     mixin = candidates[m].mixin;
                                     if (!(mixin instanceof MixinDefinition)) {
                                         originalRuleset = mixin.originalRuleset || mixin;
-                                        mixin = new MixinDefinition("", [], mixin.rules, null, false);
+                                        mixin = new MixinDefinition("", [], mixin.rules, null, false, null, originalRuleset.visibilityInfo());
                                         mixin.originalRuleset = originalRuleset;
                                     }
-                                    Array.prototype.push.apply(rules, mixin.evalCall(context, args, this.important).rules);
+                                    var newRules = mixin.evalCall(context, args, this.important).rules;
+                                    this._setVisibilityToReplacement(newRules);
+                                    Array.prototype.push.apply(rules, newRules);
                                 } catch (e) {
                                     throw { message: e.message, index: this.index, filename: this.currentFileInfo.filename, stack: e.stack };
                                 }
@@ -6915,14 +7093,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         }
 
                         if (match) {
-                            if (!this.currentFileInfo || !this.currentFileInfo.reference) {
-                                for (i = 0; i < rules.length; i++) {
-                                    rule = rules[i];
-                                    if (rule.markReferenced) {
-                                        rule.markReferenced();
-                                    }
-                                }
-                            }
                             return rules;
                         }
                     }
@@ -6935,6 +7105,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     throw { type: 'Name',
                         message: this.selector.toCSS().trim() + " is undefined",
                         index: this.index, filename: this.currentFileInfo.filename };
+                }
+            };
+
+            MixinCall.prototype._setVisibilityToReplacement = function (replacement) {
+                var i, rule;
+                if (this.blocksVisibility()) {
+                    for (i = 0; i < replacement.length; i++) {
+                        rule = replacement[i];
+                        rule.addVisibilityBlock();
+                    }
                 }
             };
             MixinCall.prototype.format = function (args) {
@@ -6952,7 +7132,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }).join(', ') : "") + ")";
             };
             module.exports = MixinCall;
-        }, { "../functions/default": 19, "./mixin-definition": 66, "./node": 68, "./selector": 75 }], 66: [function (require, module, exports) {
+        }, { "../functions/default": 20, "./mixin-definition": 68, "./node": 70, "./selector": 77 }], 68: [function (require, module, exports) {
             var Selector = require("./selector"),
                 Element = require("./element"),
                 Ruleset = require("./ruleset"),
@@ -6960,7 +7140,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 Expression = require("./expression"),
                 contexts = require("../contexts");
 
-            var Definition = function Definition(name, params, rules, condition, variadic, frames) {
+            var Definition = function Definition(name, params, rules, condition, variadic, frames, visibilityInfo) {
                 this.name = name;
                 this.selectors = [new Selector([new Element(null, name, this.index, this.currentFileInfo)])];
                 this.params = params;
@@ -6969,14 +7149,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 this.arity = params.length;
                 this.rules = rules;
                 this._lookups = {};
+                var optionalParameters = [];
                 this.required = params.reduce(function (count, p) {
                     if (!p.name || p.name && !p.value) {
                         return count + 1;
                     } else {
+                        optionalParameters.push(p.name);
                         return count;
                     }
                 }, 0);
+                this.optionalParameters = optionalParameters;
                 this.frames = frames;
+                this.copyVisibilityInfo(visibilityInfo);
             };
             Definition.prototype = new Ruleset();
             Definition.prototype.type = "MixinDefinition";
@@ -7119,23 +7303,32 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return true;
             };
             Definition.prototype.matchArgs = function (args, context) {
-                var argsLength = args && args.length || 0,
-                    len;
+                var allArgsCnt = args && args.length || 0,
+                    len,
+                    optionalParameters = this.optionalParameters;
+                var requiredArgsCnt = !args ? 0 : args.reduce(function (count, p) {
+                    if (optionalParameters.indexOf(p.name) < 0) {
+                        return count + 1;
+                    } else {
+                        return count;
+                    }
+                }, 0);
 
                 if (!this.variadic) {
-                    if (argsLength < this.required) {
+                    if (requiredArgsCnt < this.required) {
                         return false;
                     }
-                    if (argsLength > this.params.length) {
+                    if (allArgsCnt > this.params.length) {
                         return false;
                     }
                 } else {
-                    if (argsLength < this.required - 1) {
+                    if (requiredArgsCnt < this.required - 1) {
                         return false;
                     }
                 }
 
-                len = Math.min(argsLength, this.arity);
+                // check patterns
+                len = Math.min(requiredArgsCnt, this.arity);
 
                 for (var i = 0; i < len; i++) {
                     if (!this.params[i].name && !this.params[i].variadic) {
@@ -7147,7 +7340,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return true;
             };
             module.exports = Definition;
-        }, { "../contexts": 10, "./element": 56, "./expression": 57, "./rule": 72, "./ruleset": 74, "./selector": 75 }], 67: [function (require, module, exports) {
+        }, { "../contexts": 11, "./element": 58, "./expression": 59, "./rule": 74, "./ruleset": 76, "./selector": 77 }], 69: [function (require, module, exports) {
             var Node = require("./node"),
                 Operation = require("./operation"),
                 Dimension = require("./dimension");
@@ -7168,7 +7361,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return new Negative(this.value.eval(context));
             };
             module.exports = Negative;
-        }, { "./dimension": 54, "./node": 68, "./operation": 69 }], 68: [function (require, module, exports) {
+        }, { "./dimension": 56, "./node": 70, "./operation": 71 }], 70: [function (require, module, exports) {
             var Node = function Node() {};
             Node.prototype.toCSS = function (context) {
                 var strs = [];
@@ -7245,8 +7438,57 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             Node.numericCompare = function (a, b) {
                 return a < b ? -1 : a === b ? 0 : a > b ? 1 : undefined;
             };
+            // Returns true if this node represents root of ast imported by reference
+            Node.prototype.blocksVisibility = function () {
+                if (this.visibilityBlocks == null) {
+                    this.visibilityBlocks = 0;
+                }
+                return this.visibilityBlocks !== 0;
+            };
+            Node.prototype.addVisibilityBlock = function () {
+                if (this.visibilityBlocks == null) {
+                    this.visibilityBlocks = 0;
+                }
+                this.visibilityBlocks = this.visibilityBlocks + 1;
+            };
+            Node.prototype.removeVisibilityBlock = function () {
+                if (this.visibilityBlocks == null) {
+                    this.visibilityBlocks = 0;
+                }
+                this.visibilityBlocks = this.visibilityBlocks - 1;
+            };
+            //Turns on node visibility - if called node will be shown in output regardless
+            //of whether it comes from import by reference or not
+            Node.prototype.ensureVisibility = function () {
+                this.nodeVisible = true;
+            };
+            //Turns off node visibility - if called node will NOT be shown in output regardless
+            //of whether it comes from import by reference or not
+            Node.prototype.ensureInvisibility = function () {
+                this.nodeVisible = false;
+            };
+            // return values:
+            // false - the node must not be visible
+            // true - the node must be visible
+            // undefined or null - the node has the same visibility as its parent
+            Node.prototype.isVisible = function () {
+                return this.nodeVisible;
+            };
+            Node.prototype.visibilityInfo = function () {
+                return {
+                    visibilityBlocks: this.visibilityBlocks,
+                    nodeVisible: this.nodeVisible
+                };
+            };
+            Node.prototype.copyVisibilityInfo = function (info) {
+                if (!info) {
+                    return;
+                }
+                this.visibilityBlocks = info.visibilityBlocks;
+                this.nodeVisible = info.nodeVisible;
+            };
             module.exports = Node;
-        }, {}], 69: [function (require, module, exports) {
+        }, {}], 71: [function (require, module, exports) {
             var Node = require("./node"),
                 Color = require("./color"),
                 Dimension = require("./dimension");
@@ -7295,7 +7537,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = Operation;
-        }, { "./color": 48, "./dimension": 54, "./node": 68 }], 70: [function (require, module, exports) {
+        }, { "./color": 50, "./dimension": 56, "./node": 70 }], 72: [function (require, module, exports) {
             var Node = require("./node");
 
             var Paren = function Paren(node) {
@@ -7312,7 +7554,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return new Paren(this.value.eval(context));
             };
             module.exports = Paren;
-        }, { "./node": 68 }], 71: [function (require, module, exports) {
+        }, { "./node": 70 }], 73: [function (require, module, exports) {
             var Node = require("./node"),
                 JsEvalNode = require("./js-eval-node"),
                 Variable = require("./variable");
@@ -7369,7 +7611,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = Quoted;
-        }, { "./js-eval-node": 62, "./node": 68, "./variable": 80 }], 72: [function (require, module, exports) {
+        }, { "./js-eval-node": 64, "./node": 70, "./variable": 82 }], 74: [function (require, module, exports) {
             var Node = require("./node"),
                 Value = require("./value"),
                 Keyword = require("./keyword");
@@ -7458,7 +7700,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = Rule;
-        }, { "./keyword": 63, "./node": 68, "./value": 79 }], 73: [function (require, module, exports) {
+        }, { "./keyword": 65, "./node": 70, "./value": 81 }], 75: [function (require, module, exports) {
             var Node = require("./node"),
                 Variable = require("./variable");
 
@@ -7472,7 +7714,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return detachedRuleset.callEval(context);
             };
             module.exports = RulesetCall;
-        }, { "./node": 68, "./variable": 80 }], 74: [function (require, module, exports) {
+        }, { "./node": 70, "./variable": 82 }], 76: [function (require, module, exports) {
             var Node = require("./node"),
                 Rule = require("./rule"),
                 Selector = require("./selector"),
@@ -7483,11 +7725,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 defaultFunc = require("../functions/default"),
                 getDebugInfo = require("./debug-info");
 
-            var Ruleset = function Ruleset(selectors, rules, strictImports) {
+            var Ruleset = function Ruleset(selectors, rules, strictImports, visibilityInfo) {
                 this.selectors = selectors;
                 this.rules = rules;
                 this._lookups = {};
                 this.strictImports = strictImports;
+                this.copyVisibilityInfo(visibilityInfo);
             };
             Ruleset.prototype = new Node();
             Ruleset.prototype.type = "Ruleset";
@@ -7495,7 +7738,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             Ruleset.prototype.isRulesetLike = true;
             Ruleset.prototype.accept = function (visitor) {
                 if (this.paths) {
-                    visitor.visitArray(this.paths, true);
+                    this.paths = visitor.visitArray(this.paths, true);
                 } else if (this.selectors) {
                     this.selectors = visitor.visitArray(this.selectors);
                 }
@@ -7530,7 +7773,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
 
                 var rules = this.rules ? this.rules.slice(0) : null,
-                    ruleset = new Ruleset(selectors, rules, this.strictImports),
+                    ruleset = new Ruleset(selectors, rules, this.strictImports, this.visibilityInfo()),
                     rule,
                     subRule;
 
@@ -7642,6 +7885,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                             for (var j = 0; j < rule.rules.length; j++) {
                                 subRule = rule.rules[j];
+                                subRule.copyVisibilityInfo(rule.visibilityInfo());
                                 if (!(subRule instanceof Rule) || !subRule.variable) {
                                     rsRules.splice(++i, 0, subRule);
                                 }
@@ -7673,7 +7917,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 for (i = 0; i < rules.length; i++) {
                     if (rules[i].type === "Import") {
                         importRules = rules[i].eval(context);
-                        if (importRules && importRules.length) {
+                        if (importRules && (importRules.length || importRules.length === 0)) {
                             rules.splice.apply(rules, [i, 1].concat(importRules));
                             i += importRules.length - 1;
                         } else {
@@ -7690,7 +7934,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     } else {
                         return r;
                     }
-                }), this.strictImports);
+                }), this.strictImports, this.visibilityInfo());
 
                 return result;
             };
@@ -7931,46 +8175,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     output.add('\n');
                 }
             };
-            Ruleset.prototype.markReferenced = function () {
-                var s;
-                if (this.selectors) {
-                    for (s = 0; s < this.selectors.length; s++) {
-                        this.selectors[s].markReferenced();
-                    }
-                }
-
-                if (this.rules) {
-                    for (s = 0; s < this.rules.length; s++) {
-                        if (this.rules[s].markReferenced) {
-                            this.rules[s].markReferenced();
-                        }
-                    }
-                }
-            };
-            Ruleset.prototype.getIsReferenced = function () {
-                var i, j, path, selector;
-
-                if (this.paths) {
-                    for (i = 0; i < this.paths.length; i++) {
-                        path = this.paths[i];
-                        for (j = 0; j < path.length; j++) {
-                            if (path[j].getIsReferenced && path[j].getIsReferenced()) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                if (this.selectors) {
-                    for (i = 0; i < this.selectors.length; i++) {
-                        selector = this.selectors[i];
-                        if (selector.getIsReferenced && selector.getIsReferenced()) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            };
 
             Ruleset.prototype.joinSelectors = function (paths, context, selectors) {
                 for (var s = 0; s < selectors.length; s++) {
@@ -7999,6 +8203,90 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     element = new Element(null, containedElement, originalElement.index, originalElement.currentFileInfo);
                     selector = new Selector([element]);
                     return selector;
+                }
+
+                // joins selector path from `beginningPath` with selector path in `addPath`
+                // `replacedElement` contains element that is being replaced by `addPath`
+                // returns concatenated path
+                function addReplacementIntoPath(beginningPath, addPath, replacedElement, originalSelector) {
+                    var newSelectorPath, lastSelector, newJoinedSelector;
+                    // our new selector path
+                    newSelectorPath = [];
+
+                    //construct the joined selector - if & is the first thing this will be empty,
+                    // if not newJoinedSelector will be the last set of elements in the selector
+                    if (beginningPath.length > 0) {
+                        newSelectorPath = beginningPath.slice(0);
+                        lastSelector = newSelectorPath.pop();
+                        newJoinedSelector = originalSelector.createDerived(lastSelector.elements.slice(0));
+                    } else {
+                        newJoinedSelector = originalSelector.createDerived([]);
+                    }
+
+                    if (addPath.length > 0) {
+                        // /deep/ is a combinator that is valid without anything in front of it
+                        // so if the & does not have a combinator that is "" or " " then
+                        // and there is a combinator on the parent, then grab that.
+                        // this also allows + a { & .b { .a & { ... though not sure why you would want to do that
+                        var combinator = replacedElement.combinator,
+                            parentEl = addPath[0].elements[0];
+                        if (combinator.emptyOrWhitespace && !parentEl.combinator.emptyOrWhitespace) {
+                            combinator = parentEl.combinator;
+                        }
+                        // join the elements so far with the first part of the parent
+                        newJoinedSelector.elements.push(new Element(combinator, parentEl.value, replacedElement.index, replacedElement.currentFileInfo));
+                        newJoinedSelector.elements = newJoinedSelector.elements.concat(addPath[0].elements.slice(1));
+                    }
+
+                    // now add the joined selector - but only if it is not empty
+                    if (newJoinedSelector.elements.length !== 0) {
+                        newSelectorPath.push(newJoinedSelector);
+                    }
+
+                    //put together the parent selectors after the join (e.g. the rest of the parent)
+                    if (addPath.length > 1) {
+                        var restOfPath = addPath.slice(1);
+                        restOfPath = restOfPath.map(function (selector) {
+                            return selector.createDerived(selector.elements, []);
+                        });
+                        newSelectorPath = newSelectorPath.concat(restOfPath);
+                    }
+                    return newSelectorPath;
+                }
+
+                // joins selector path from `beginningPath` with every selector path in `addPaths` array
+                // `replacedElement` contains element that is being replaced by `addPath`
+                // returns array with all concatenated paths
+                function addAllReplacementsIntoPath(beginningPath, addPaths, replacedElement, originalSelector, result) {
+                    var j;
+                    for (j = 0; j < beginningPath.length; j++) {
+                        var newSelectorPath = addReplacementIntoPath(beginningPath[j], addPaths, replacedElement, originalSelector);
+                        result.push(newSelectorPath);
+                    }
+                    return result;
+                }
+
+                function mergeElementsOnToSelectors(elements, selectors) {
+                    var i, sel;
+
+                    if (elements.length === 0) {
+                        return;
+                    }
+                    if (selectors.length === 0) {
+                        selectors.push([new Selector(elements)]);
+                        return;
+                    }
+
+                    for (i = 0; i < selectors.length; i++) {
+                        sel = selectors[i];
+
+                        // if the previous thing in sel is a parent this needs to join on to it
+                        if (sel.length > 0) {
+                            sel[sel.length - 1] = sel[sel.length - 1].createDerived(sel[sel.length - 1].elements.concat(elements));
+                        } else {
+                            sel.push(new Selector(elements));
+                        }
+                    }
                 }
 
                 // replace all parent selectors inside `inSelector` by content of `context` array
@@ -8121,90 +8409,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                             paths.push(newSelectors[i]);
                             lastSelector = newSelectors[i][length - 1];
                             newSelectors[i][length - 1] = lastSelector.createDerived(lastSelector.elements, inSelector.extendList);
+                            //newSelectors[i][length - 1].copyVisibilityInfo(inSelector.visibilityInfo());
                         }
                     }
 
                     return hadParentSelector;
                 }
 
-                // joins selector path from `beginningPath` with selector path in `addPath`
-                // `replacedElement` contains element that is being replaced by `addPath`
-                // returns concatenated path
-                function addReplacementIntoPath(beginningPath, addPath, replacedElement, originalSelector) {
-                    var newSelectorPath, lastSelector, newJoinedSelector;
-                    // our new selector path
-                    newSelectorPath = [];
-
-                    //construct the joined selector - if & is the first thing this will be empty,
-                    // if not newJoinedSelector will be the last set of elements in the selector
-                    if (beginningPath.length > 0) {
-                        newSelectorPath = beginningPath.slice(0);
-                        lastSelector = newSelectorPath.pop();
-                        newJoinedSelector = originalSelector.createDerived(lastSelector.elements.slice(0));
-                    } else {
-                        newJoinedSelector = originalSelector.createDerived([]);
-                    }
-
-                    if (addPath.length > 0) {
-                        // /deep/ is a combinator that is valid without anything in front of it
-                        // so if the & does not have a combinator that is "" or " " then
-                        // and there is a combinator on the parent, then grab that.
-                        // this also allows + a { & .b { .a & { ... though not sure why you would want to do that
-                        var combinator = replacedElement.combinator,
-                            parentEl = addPath[0].elements[0];
-                        if (combinator.emptyOrWhitespace && !parentEl.combinator.emptyOrWhitespace) {
-                            combinator = parentEl.combinator;
-                        }
-                        // join the elements so far with the first part of the parent
-                        newJoinedSelector.elements.push(new Element(combinator, parentEl.value, replacedElement.index, replacedElement.currentFileInfo));
-                        newJoinedSelector.elements = newJoinedSelector.elements.concat(addPath[0].elements.slice(1));
-                    }
-
-                    // now add the joined selector - but only if it is not empty
-                    if (newJoinedSelector.elements.length !== 0) {
-                        newSelectorPath.push(newJoinedSelector);
-                    }
-
-                    //put together the parent selectors after the join (e.g. the rest of the parent)
-                    if (addPath.length > 1) {
-                        newSelectorPath = newSelectorPath.concat(addPath.slice(1));
-                    }
-                    return newSelectorPath;
-                }
-
-                // joins selector path from `beginningPath` with every selector path in `addPaths` array
-                // `replacedElement` contains element that is being replaced by `addPath`
-                // returns array with all concatenated paths
-                function addAllReplacementsIntoPath(beginningPath, addPaths, replacedElement, originalSelector, result) {
-                    var j;
-                    for (j = 0; j < beginningPath.length; j++) {
-                        var newSelectorPath = addReplacementIntoPath(beginningPath[j], addPaths, replacedElement, originalSelector);
-                        result.push(newSelectorPath);
-                    }
-                    return result;
-                }
-
-                function mergeElementsOnToSelectors(elements, selectors) {
-                    var i, sel;
-
-                    if (elements.length === 0) {
-                        return;
-                    }
-                    if (selectors.length === 0) {
-                        selectors.push([new Selector(elements)]);
-                        return;
-                    }
-
-                    for (i = 0; i < selectors.length; i++) {
-                        sel = selectors[i];
-
-                        // if the previous thing in sel is a parent this needs to join on to it
-                        if (sel.length > 0) {
-                            sel[sel.length - 1] = sel[sel.length - 1].createDerived(sel[sel.length - 1].elements.concat(elements));
-                        } else {
-                            sel.push(new Selector(elements));
-                        }
-                    }
+                function deriveSelector(visibilityInfo, deriveFrom) {
+                    var newSelector = deriveFrom.createDerived(deriveFrom.elements, deriveFrom.extendList, deriveFrom.evaldCondition);
+                    newSelector.copyVisibilityInfo(visibilityInfo);
+                    return newSelector;
                 }
 
                 // joinSelector code follows
@@ -8217,7 +8432,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     if (context.length > 0) {
                         newPaths = [];
                         for (i = 0; i < context.length; i++) {
-                            newPaths.push(context[i].concat(selector));
+                            //var concatenated = [];
+                            //context[i].forEach(function(entry) {
+                            //    var newEntry = entry.createDerived(entry.elements, entry.extendList, entry.evaldCondition);
+                            //    newEntry.copyVisibilityInfo(selector.visibilityInfo());
+                            //    concatenated.push(newEntry);
+                            //}, this);
+                            var concatenated = context[i].map(deriveSelector.bind(this, selector.visibilityInfo()));
+
+                            concatenated.push(selector);
+                            newPaths.push(concatenated);
                         }
                     } else {
                         newPaths = [[selector]];
@@ -8229,19 +8453,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = Ruleset;
-        }, { "../contexts": 10, "../functions/default": 19, "../functions/function-registry": 21, "./debug-info": 52, "./element": 56, "./node": 68, "./paren": 70, "./rule": 72, "./selector": 75 }], 75: [function (require, module, exports) {
+        }, { "../contexts": 11, "../functions/default": 20, "../functions/function-registry": 22, "./debug-info": 54, "./element": 58, "./node": 70, "./paren": 72, "./rule": 74, "./selector": 77 }], 77: [function (require, module, exports) {
             var Node = require("./node"),
                 Element = require("./element");
 
-            var Selector = function Selector(elements, extendList, condition, index, currentFileInfo, isReferenced) {
+            var Selector = function Selector(elements, extendList, condition, index, currentFileInfo, visibilityInfo) {
                 this.elements = elements;
                 this.extendList = extendList;
                 this.condition = condition;
                 this.currentFileInfo = currentFileInfo || {};
-                this.isReferenced = isReferenced;
                 if (!condition) {
                     this.evaldCondition = true;
                 }
+                this.copyVisibilityInfo(visibilityInfo);
             };
             Selector.prototype = new Node();
             Selector.prototype.type = "Selector";
@@ -8257,8 +8481,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             Selector.prototype.createDerived = function (elements, extendList, evaldCondition) {
+                var info = this.visibilityInfo();
                 evaldCondition = evaldCondition != null ? evaldCondition : this.evaldCondition;
-                var newSelector = new Selector(elements, extendList || this.extendList, null, this.index, this.currentFileInfo, this.isReferenced);
+                var newSelector = new Selector(elements, extendList || this.extendList, null, this.index, this.currentFileInfo, info);
                 newSelector.evaldCondition = evaldCondition;
                 newSelector.mediaEmpty = this.mediaEmpty;
                 return newSelector;
@@ -8339,17 +8564,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }
                 }
             };
-            Selector.prototype.markReferenced = function () {
-                this.isReferenced = true;
-            };
-            Selector.prototype.getIsReferenced = function () {
-                return !this.currentFileInfo.reference || this.isReferenced;
-            };
             Selector.prototype.getIsOutput = function () {
                 return this.evaldCondition;
             };
             module.exports = Selector;
-        }, { "./element": 56, "./node": 68 }], 76: [function (require, module, exports) {
+        }, { "./element": 58, "./node": 70 }], 78: [function (require, module, exports) {
             var Node = require("./node");
 
             var UnicodeDescriptor = function UnicodeDescriptor(value) {
@@ -8359,7 +8578,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             UnicodeDescriptor.prototype.type = "UnicodeDescriptor";
 
             module.exports = UnicodeDescriptor;
-        }, { "./node": 68 }], 77: [function (require, module, exports) {
+        }, { "./node": 70 }], 79: [function (require, module, exports) {
             var Node = require("./node"),
                 unitConversions = require("../data/unit-conversions");
 
@@ -8426,7 +8645,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             Unit.prototype.usedUnits = function () {
                 var group,
                     result = {},
-                    mapUnit;
+                    mapUnit,
+                    groupName;
 
                 mapUnit = function mapUnit(atomicUnit) {
                     /*jshint loopfunc:true */
@@ -8437,7 +8657,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     return atomicUnit;
                 };
 
-                for (var groupName in unitConversions) {
+                for (groupName in unitConversions) {
                     if (unitConversions.hasOwnProperty(groupName)) {
                         group = unitConversions[groupName];
 
@@ -8485,7 +8705,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 this.denominator.sort();
             };
             module.exports = Unit;
-        }, { "../data/unit-conversions": 13, "./node": 68 }], 78: [function (require, module, exports) {
+        }, { "../data/unit-conversions": 14, "./node": 70 }], 80: [function (require, module, exports) {
             var Node = require("./node");
 
             var URL = function URL(val, index, currentFileInfo, isEvald) {
@@ -8540,7 +8760,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return new URL(val, this.index, this.currentFileInfo, true);
             };
             module.exports = URL;
-        }, { "./node": 68 }], 79: [function (require, module, exports) {
+        }, { "./node": 70 }], 81: [function (require, module, exports) {
             var Node = require("./node");
 
             var Value = function Value(value) {
@@ -8575,7 +8795,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = Value;
-        }, { "./node": 68 }], 80: [function (require, module, exports) {
+        }, { "./node": 70 }], 82: [function (require, module, exports) {
             var Node = require("./node");
 
             var Variable = function Variable(name, index, currentFileInfo) {
@@ -8632,7 +8852,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return null;
             };
             module.exports = Variable;
-        }, { "./node": 68 }], 81: [function (require, module, exports) {
+        }, { "./node": 70 }], 83: [function (require, module, exports) {
             module.exports = {
                 getLocation: function getLocation(index, inputStream) {
                     var n = index + 1,
@@ -8653,7 +8873,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     };
                 }
             };
-        }, {}], 82: [function (require, module, exports) {
+        }, {}], 84: [function (require, module, exports) {
             var tree = require("../tree"),
                 Visitor = require("./visitor"),
                 logger = require("../logger");
@@ -8829,17 +9049,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                             matches = extendVisitor.findMatch(extend, selectorPath);
 
                             if (matches.length) {
-
                                 extend.hasFoundMatches = true;
 
                                 // we found a match, so for each self selector..
                                 extend.selfSelectors.forEach(function (selfSelector) {
+                                    var info = targetExtend.visibilityInfo();
 
                                     // process the extend as usual
-                                    newSelector = extendVisitor.extendSelector(matches, selectorPath, selfSelector);
+                                    newSelector = extendVisitor.extendSelector(matches, selectorPath, selfSelector, extend.isVisible());
 
                                     // but now we create a new extend from it
-                                    newExtend = new tree.Extend(targetExtend.selector, targetExtend.option, 0);
+                                    newExtend = new tree.Extend(targetExtend.selector, targetExtend.option, 0, targetExtend.currentFileInfo, info);
                                     newExtend.selfSelectors = newSelector;
 
                                     // add the extend onto the list of extends for that selector
@@ -8927,7 +9147,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 allExtends[extendIndex].hasFoundMatches = true;
 
                                 allExtends[extendIndex].selfSelectors.forEach(function (selfSelector) {
-                                    selectorsToAdd.push(extendVisitor.extendSelector(matches, selectorPath, selfSelector));
+                                    var extendedSelectors;
+                                    extendedSelectors = extendVisitor.extendSelector(matches, selectorPath, selfSelector, allExtends[extendIndex].isVisible());
+                                    selectorsToAdd.push(extendedSelectors);
                                 });
                             }
                         }
@@ -9046,7 +9268,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }
                     return false;
                 },
-                extendSelector: function extendSelector(matches, selectorPath, replacementSelector) {
+                extendSelector: function extendSelector(matches, selectorPath, replacementSelector, isVisible) {
 
                     //for a set of matches, replace each match with the replacement selector
 
@@ -9093,10 +9315,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     }
 
                     path = path.concat(selectorPath.slice(currentSelectorPathIndex, selectorPath.length));
-
+                    path = path.map(function (currentValue) {
+                        // we can re-use elements here, because the visibility property matters only for selectors
+                        var derived = currentValue.createDerived(currentValue.elements);
+                        if (isVisible) {
+                            derived.ensureVisibility();
+                        } else {
+                            derived.ensureInvisibility();
+                        }
+                        return derived;
+                    });
                     return path;
                 },
-                visitRulesetOut: function visitRulesetOut(rulesetNode) {},
                 visitMedia: function visitMedia(mediaNode, visitArgs) {
                     var newAllExtends = mediaNode.allExtends.concat(this.allExtendsStack[this.allExtendsStack.length - 1]);
                     newAllExtends = newAllExtends.concat(this.doExtendChaining(newAllExtends, mediaNode.allExtends));
@@ -9118,7 +9348,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = ProcessExtendsVisitor;
-        }, { "../logger": 31, "../tree": 60, "./visitor": 88 }], 83: [function (require, module, exports) {
+        }, { "../logger": 33, "../tree": 62, "./visitor": 91 }], 85: [function (require, module, exports) {
             function ImportSequencer(onSequencerEmpty) {
                 this.imports = [];
                 this.variableImports = [];
@@ -9173,7 +9403,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = ImportSequencer;
-        }, {}], 84: [function (require, module, exports) {
+        }, {}], 86: [function (require, module, exports) {
             var contexts = require("../contexts"),
                 Visitor = require("./visitor"),
                 ImportSequencer = require("./import-sequencer");
@@ -9280,6 +9510,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     var importVisitor = this,
                         inlineCSS = importNode.options.inline,
                         isPlugin = importNode.options.plugin,
+                        isOptional = importNode.options.optional,
                         duplicateImport = importedAtRoot || fullPath in importVisitor.recursionDetector;
 
                     if (!context.importMultiple) {
@@ -9294,6 +9525,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                                 return false;
                             };
                         }
+                    }
+
+                    if (!fullPath && isOptional) {
+                        importNode.skip = true;
                     }
 
                     if (root) {
@@ -9358,17 +9593,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = ImportVisitor;
-        }, { "../contexts": 10, "./import-sequencer": 83, "./visitor": 88 }], 85: [function (require, module, exports) {
+        }, { "../contexts": 11, "./import-sequencer": 85, "./visitor": 91 }], 87: [function (require, module, exports) {
             var visitors = {
                 Visitor: require("./visitor"),
                 ImportVisitor: require('./import-visitor'),
+                MarkVisibleSelectorsVisitor: require("./set-tree-visibility-visitor"),
                 ExtendVisitor: require('./extend-visitor'),
                 JoinSelectorVisitor: require('./join-selector-visitor'),
                 ToCSSVisitor: require('./to-css-visitor')
             };
 
             module.exports = visitors;
-        }, { "./extend-visitor": 82, "./import-visitor": 84, "./join-selector-visitor": 86, "./to-css-visitor": 87, "./visitor": 88 }], 86: [function (require, module, exports) {
+        }, { "./extend-visitor": 84, "./import-visitor": 86, "./join-selector-visitor": 88, "./set-tree-visibility-visitor": 89, "./to-css-visitor": 90, "./visitor": 91 }], 88: [function (require, module, exports) {
             var Visitor = require("./visitor");
 
             var JoinSelectorVisitor = function JoinSelectorVisitor() {
@@ -9427,13 +9663,140 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             };
 
             module.exports = JoinSelectorVisitor;
-        }, { "./visitor": 88 }], 87: [function (require, module, exports) {
+        }, { "./visitor": 91 }], 89: [function (require, module, exports) {
+            var SetTreeVisibilityVisitor = function SetTreeVisibilityVisitor(visible) {
+                this.visible = visible;
+            };
+            SetTreeVisibilityVisitor.prototype.run = function (root) {
+                this.visit(root);
+            };
+            SetTreeVisibilityVisitor.prototype.visitArray = function (nodes) {
+                if (!nodes) {
+                    return nodes;
+                }
+
+                var cnt = nodes.length,
+                    i;
+                for (i = 0; i < cnt; i++) {
+                    this.visit(nodes[i]);
+                }
+                return nodes;
+            };
+            SetTreeVisibilityVisitor.prototype.visit = function (node) {
+                if (!node) {
+                    return node;
+                }
+                if (node.constructor === Array) {
+                    return this.visitArray(node);
+                }
+
+                if (!node.blocksVisibility || node.blocksVisibility()) {
+                    return node;
+                }
+                if (this.visible) {
+                    node.ensureVisibility();
+                } else {
+                    node.ensureInvisibility();
+                }
+
+                node.accept(this);
+                return node;
+            };
+            module.exports = SetTreeVisibilityVisitor;
+        }, {}], 90: [function (require, module, exports) {
             var tree = require("../tree"),
                 Visitor = require("./visitor");
+
+            var CSSVisitorUtils = function CSSVisitorUtils(context) {
+                this._visitor = new Visitor(this);
+                this._context = context;
+            };
+
+            CSSVisitorUtils.prototype = {
+                containsSilentNonBlockedChild: function containsSilentNonBlockedChild(bodyRules) {
+                    var rule;
+                    if (bodyRules == null) {
+                        return false;
+                    }
+                    for (var r = 0; r < bodyRules.length; r++) {
+                        rule = bodyRules[r];
+                        if (rule.isSilent && rule.isSilent(this._context) && !rule.blocksVisibility()) {
+                            //the directive contains something that was referenced (likely by extend)
+                            //therefore it needs to be shown in output too
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+
+                keepOnlyVisibleChilds: function keepOnlyVisibleChilds(owner) {
+                    if (owner == null || owner.rules == null) {
+                        return;
+                    }
+
+                    owner.rules = owner.rules.filter(function (thing) {
+                        return thing.isVisible();
+                    });
+                },
+
+                isEmpty: function isEmpty(owner) {
+                    if (owner == null || owner.rules == null) {
+                        return true;
+                    }
+                    return owner.rules.length === 0;
+                },
+
+                hasVisibleSelector: function hasVisibleSelector(rulesetNode) {
+                    if (rulesetNode == null || rulesetNode.paths == null) {
+                        return false;
+                    }
+                    return rulesetNode.paths.length > 0;
+                },
+
+                resolveVisibility: function resolveVisibility(node, originalRules) {
+                    if (!node.blocksVisibility()) {
+                        if (this.isEmpty(node) && !this.containsSilentNonBlockedChild(originalRules)) {
+                            return;
+                        }
+
+                        return node;
+                    }
+
+                    var compiledRulesBody = node.rules[0];
+                    this.keepOnlyVisibleChilds(compiledRulesBody);
+
+                    if (this.isEmpty(compiledRulesBody)) {
+                        return;
+                    }
+
+                    node.ensureVisibility();
+                    node.removeVisibilityBlock();
+
+                    return node;
+                },
+
+                isVisibleRuleset: function isVisibleRuleset(rulesetNode) {
+                    if (rulesetNode.firstRoot) {
+                        return true;
+                    }
+
+                    if (this.isEmpty(rulesetNode)) {
+                        return false;
+                    }
+
+                    if (!rulesetNode.root && !this.hasVisibleSelector(rulesetNode)) {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+            };
 
             var ToCSSVisitor = function ToCSSVisitor(context) {
                 this._visitor = new Visitor(this);
                 this._context = context;
+                this.utils = new CSSVisitorUtils(context);
             };
 
             ToCSSVisitor.prototype = {
@@ -9443,7 +9806,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 },
 
                 visitRule: function visitRule(ruleNode, visitArgs) {
-                    if (ruleNode.variable) {
+                    if (ruleNode.blocksVisibility() || ruleNode.variable) {
                         return;
                     }
                     return ruleNode;
@@ -9458,34 +9821,71 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 visitExtend: function visitExtend(extendNode, visitArgs) {},
 
                 visitComment: function visitComment(commentNode, visitArgs) {
-                    if (commentNode.isSilent(this._context)) {
+                    if (commentNode.blocksVisibility() || commentNode.isSilent(this._context)) {
                         return;
                     }
                     return commentNode;
                 },
 
                 visitMedia: function visitMedia(mediaNode, visitArgs) {
+                    var originalRules = mediaNode.rules[0].rules;
                     mediaNode.accept(this._visitor);
                     visitArgs.visitDeeper = false;
 
-                    if (!mediaNode.rules.length) {
-                        return;
-                    }
-                    return mediaNode;
+                    return this.utils.resolveVisibility(mediaNode, originalRules);
                 },
 
                 visitImport: function visitImport(importNode, visitArgs) {
-                    if (importNode.path.currentFileInfo.reference !== undefined && importNode.css) {
+                    if (importNode.blocksVisibility()) {
                         return;
                     }
                     return importNode;
                 },
 
                 visitDirective: function visitDirective(directiveNode, visitArgs) {
-                    if (directiveNode.name === "@charset") {
-                        if (!directiveNode.getIsReferenced()) {
-                            return;
+                    if (directiveNode.rules && directiveNode.rules.length) {
+                        return this.visitDirectiveWithBody(directiveNode, visitArgs);
+                    } else {
+                        return this.visitDirectiveWithoutBody(directiveNode, visitArgs);
+                    }
+                    return directiveNode;
+                },
+
+                visitDirectiveWithBody: function visitDirectiveWithBody(directiveNode, visitArgs) {
+                    //if there is only one nested ruleset and that one has no path, then it is
+                    //just fake ruleset
+                    function hasFakeRuleset(directiveNode) {
+                        var bodyRules = directiveNode.rules;
+                        return bodyRules.length === 1 && (!bodyRules[0].paths || bodyRules[0].paths.length === 0);
+                    }
+                    function getBodyRules(directiveNode) {
+                        var nodeRules = directiveNode.rules;
+                        if (hasFakeRuleset(directiveNode)) {
+                            return nodeRules[0].rules;
                         }
+
+                        return nodeRules;
+                    }
+                    //it is still true that it is only one ruleset in array
+                    //this is last such moment
+                    //process childs
+                    var originalRules = getBodyRules(directiveNode);
+                    directiveNode.accept(this._visitor);
+                    visitArgs.visitDeeper = false;
+
+                    if (!this.utils.isEmpty(directiveNode)) {
+                        this._mergeRules(directiveNode.rules[0].rules);
+                    }
+
+                    return this.utils.resolveVisibility(directiveNode, originalRules);
+                },
+
+                visitDirectiveWithoutBody: function visitDirectiveWithoutBody(directiveNode, visitArgs) {
+                    if (directiveNode.blocksVisibility()) {
+                        return;
+                    }
+
+                    if (directiveNode.name === "@charset") {
                         // Only output the debug info together with subsequent @charset definitions
                         // a comment (or @media statement) before the actual @charset directive would
                         // be considered illegal css as it has to be on the first line
@@ -9499,60 +9899,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                         }
                         this.charset = true;
                     }
-                    function hasVisibleChild(directiveNode) {
-                        //prepare list of childs
-                        var rule,
-                            bodyRules = directiveNode.rules;
-                        //if there is only one nested ruleset and that one has no path, then it is
-                        //just fake ruleset that got not replaced and we need to look inside it to
-                        //get real childs
-                        if (bodyRules.length === 1 && (!bodyRules[0].paths || bodyRules[0].paths.length === 0)) {
-                            bodyRules = bodyRules[0].rules;
-                        }
-                        for (var r = 0; r < bodyRules.length; r++) {
-                            rule = bodyRules[r];
-                            if (rule.getIsReferenced && rule.getIsReferenced()) {
-                                //the directive contains something that was referenced (likely by extend)
-                                //therefore it needs to be shown in output too
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
 
-                    if (directiveNode.rules && directiveNode.rules.length) {
-                        //it is still true that it is only one ruleset in array
-                        //this is last such moment
-                        this._mergeRules(directiveNode.rules[0].rules);
-                        //process childs
-                        directiveNode.accept(this._visitor);
-                        visitArgs.visitDeeper = false;
-
-                        // the directive was directly referenced and therefore needs to be shown in the output
-                        if (directiveNode.getIsReferenced()) {
-                            return directiveNode;
-                        }
-
-                        if (!directiveNode.rules || !directiveNode.rules.length) {
-                            return;
-                        }
-
-                        //the directive was not directly referenced - we need to check whether some of its childs
-                        //was referenced
-                        if (hasVisibleChild(directiveNode)) {
-                            //marking as referenced in case the directive is stored inside another directive
-                            directiveNode.markReferenced();
-                            return directiveNode;
-                        }
-
-                        //The directive was not directly referenced and does not contain anything that
-                        //was referenced. Therefore it must not be shown in output.
-                        return;
-                    } else {
-                        if (!directiveNode.getIsReferenced()) {
-                            return;
-                        }
-                    }
                     return directiveNode;
                 },
 
@@ -9568,28 +9915,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 },
 
                 visitRuleset: function visitRuleset(rulesetNode, visitArgs) {
+                    //at this point rulesets are nested into each other
                     var rule,
                         rulesets = [];
                     if (rulesetNode.firstRoot) {
                         this.checkPropertiesInRoot(rulesetNode.rules);
                     }
                     if (!rulesetNode.root) {
-                        if (rulesetNode.paths) {
-                            rulesetNode.paths = rulesetNode.paths.filter(function (p) {
-                                var i;
-                                if (p[0].elements[0].combinator.value === ' ') {
-                                    p[0].elements[0].combinator = new tree.Combinator('');
-                                }
-                                for (i = 0; i < p.length; i++) {
-                                    if (p[i].getIsReferenced() && p[i].getIsOutput()) {
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            });
-                        }
+                        //remove invisible paths
+                        this._compileRulesetPaths(rulesetNode);
 
-                        // Compile rules and rulesets
+                        // remove rulesets from this ruleset body and compile them separately
                         var nodeRules = rulesetNode.rules,
                             nodeRuleCnt = nodeRules ? nodeRules.length : 0;
                         for (var i = 0; i < nodeRuleCnt;) {
@@ -9604,39 +9940,52 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                             i++;
                         }
                         // accept the visitor to remove rules and refactor itself
-                        // then we can decide now whether we want it or not
+                        // then we can decide nogw whether we want it or not
+                        // compile body
                         if (nodeRuleCnt > 0) {
                             rulesetNode.accept(this._visitor);
                         } else {
                             rulesetNode.rules = null;
                         }
                         visitArgs.visitDeeper = false;
-
-                        nodeRules = rulesetNode.rules;
-                        if (nodeRules) {
-                            this._mergeRules(nodeRules);
-                            nodeRules = rulesetNode.rules;
-                        }
-                        if (nodeRules) {
-                            this._removeDuplicateRules(nodeRules);
-                            nodeRules = rulesetNode.rules;
-                        }
-
-                        // now decide whether we keep the ruleset
-                        if (nodeRules && nodeRules.length > 0 && rulesetNode.paths.length > 0) {
-                            rulesets.splice(0, 0, rulesetNode);
-                        }
                     } else {
+                        //if (! rulesetNode.root) {
                         rulesetNode.accept(this._visitor);
                         visitArgs.visitDeeper = false;
-                        if (rulesetNode.firstRoot || rulesetNode.rules && rulesetNode.rules.length > 0) {
-                            rulesets.splice(0, 0, rulesetNode);
-                        }
                     }
+
+                    if (rulesetNode.rules) {
+                        this._mergeRules(rulesetNode.rules);
+                        this._removeDuplicateRules(rulesetNode.rules);
+                    }
+
+                    //now decide whether we keep the ruleset
+                    if (this.utils.isVisibleRuleset(rulesetNode)) {
+                        rulesetNode.ensureVisibility();
+                        rulesets.splice(0, 0, rulesetNode);
+                    }
+
                     if (rulesets.length === 1) {
                         return rulesets[0];
                     }
                     return rulesets;
+                },
+
+                _compileRulesetPaths: function _compileRulesetPaths(rulesetNode) {
+                    if (rulesetNode.paths) {
+                        rulesetNode.paths = rulesetNode.paths.filter(function (p) {
+                            var i;
+                            if (p[0].elements[0].combinator.value === ' ') {
+                                p[0].elements[0].combinator = new tree.Combinator('');
+                            }
+                            for (i = 0; i < p.length; i++) {
+                                if (p[i].isVisible() && p[i].getIsOutput()) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+                    }
                 },
 
                 _removeDuplicateRules: function _removeDuplicateRules(rules) {
@@ -9730,11 +10079,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                             rule.value = toValue(spacedGroups);
                         }
                     });
+                },
+
+                visitAnonymous: function visitAnonymous(anonymousNode, visitArgs) {
+                    if (anonymousNode.blocksVisibility()) {
+                        return;
+                    }
+                    anonymousNode.accept(this._visitor);
+                    return anonymousNode;
                 }
             };
 
             module.exports = ToCSSVisitor;
-        }, { "../tree": 60, "./visitor": 88 }], 88: [function (require, module, exports) {
+        }, { "../tree": 62, "./visitor": 91 }], 91: [function (require, module, exports) {
             var tree = require("../tree");
 
             var _visitArgs = { visitDeeper: true },
@@ -9889,7 +10246,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 }
             };
             module.exports = Visitor;
-        }, { "../tree": 60 }], 89: [function (require, module, exports) {
+        }, { "../tree": 62 }], 92: [function (require, module, exports) {
             // shim for using process in browser
 
             var process = module.exports = {};
@@ -9952,7 +10309,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             process.umask = function () {
                 return 0;
             };
-        }, {}], 90: [function (require, module, exports) {
+        }, {}], 93: [function (require, module, exports) {
             'use strict';
 
             var asap = require('asap');
@@ -10059,7 +10416,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     onRejected(ex);
                 }
             }
-        }, { "asap": 92 }], 91: [function (require, module, exports) {
+        }, { "asap": 95 }], 94: [function (require, module, exports) {
             'use strict';
 
             //This file contains the ES6 extensions to the core Promises/A+ API
@@ -10170,7 +10527,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             Promise.prototype['catch'] = function (onRejected) {
                 return this.then(null, onRejected);
             };
-        }, { "./core.js": 90, "asap": 92 }], 92: [function (require, module, exports) {
+        }, { "./core.js": 93, "asap": 95 }], 95: [function (require, module, exports) {
             (function (process) {
 
                 // Use the fastest possible means to execute a task in a future turn
@@ -10280,7 +10637,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
                 module.exports = asap;
             }).call(this, require('_process'));
-        }, { "_process": 89 }], 93: [function (require, module, exports) {
+        }, { "_process": 92 }], 96: [function (require, module, exports) {
             // should work in any browser without browserify
 
             if (typeof Promise.prototype.done !== 'function') {
@@ -10293,7 +10650,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                     });
                 };
             }
-        }, {}], 94: [function (require, module, exports) {
+        }, {}], 97: [function (require, module, exports) {
             // not "use strict" so we can declare global "Promise"
 
             var asap = require('asap');
@@ -10304,6 +10661,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             }
 
             require('./polyfill-done.js');
-        }, { "./lib/core.js": 90, "./lib/es6-extensions.js": 91, "./polyfill-done.js": 93, "asap": 92 }] }, {}, [2])(2);
+        }, { "./lib/core.js": 93, "./lib/es6-extensions.js": 94, "./polyfill-done.js": 96, "asap": 95 }] }, {}, [2])(2);
 });
 //# sourceMappingURL=less.js.map

@@ -26,7 +26,8 @@ define([
 
 //        console.log(cmp)
     var b = context.children.test.run(true);
-    b.children.testthing.run();//.el.innerHTML = 'Test 1';
+    let testthing = b.children.testthing;
+    testthing.run();//.el.innerHTML = 'Test 1';
     var c = context.children.test.run(true, 1);
     c.children.testthing.run();//.el.innerHTML = 'Test 1';
 //        console.log(c);

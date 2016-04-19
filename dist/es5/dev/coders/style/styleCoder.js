@@ -4,6 +4,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
+        window.less = {
+            async: true
+        };
         define('coders/style/styleCoder', ['templating/Coder', 'templating/less'], factory);
     } else if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
         module.exports = factory(require('../../templating/Coder'), require('less'));
@@ -154,8 +157,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             var content = nodeContext.getInnerHTML(),
                 templateId = nodeContext.templateId,
                 currentUrl = undefined,
-                importUrl = '@import-url: "' + nodeContext.url + '";',
-                style = data.style || '';
+                importUrl = '@import-url: "' + nodeContext.url + '";';
             nodeContext.removeChildren();
 
             if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
@@ -174,22 +176,35 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             } else {
                 currentUrl = '@current-url: "' + nodeContext.url + '";';
             }
+            ;
+            if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) !== 'object') {
 
-            less.render(importUrl + currentUrl + content, {
-                syncImport: true,
-                relativeUrls: true
-            }, function (e, output) {
-                //console.log('css', output.css);
+                var render = less.render(importUrl + currentUrl + content, {
+                    syncImport: true,
+                    relativeUrls: true
+                }).then(function (output) {
+                    var innerStyle = parseCSS(output.css, templateId);
+                    return innerStyle;
+                });
+                return { style: render };
+            } else {
+                var _ret3 = function () {
+                    var innerStyle = undefined;
+                    less.render(importUrl + currentUrl + content, {
+                        syncImport: true,
+                        relativeUrls: true
+                    }, function (e, output) {
+                        innerStyle = parseCSS(output.css, templateId);
+                        var CleanCSS = require('clean-css');
+                        innerStyle = new CleanCSS().minify(innerStyle).styles;
+                    });
+                    return {
+                        v: { style: innerStyle }
+                    };
+                }();
 
-                var innerStyle = parseCSS(output.css, templateId);
-                if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
-                    var CleanCSS = require('clean-css');
-                    style += new CleanCSS().minify(innerStyle).styles;
-                } else {
-                    style += innerStyle;
-                }
-            });
-            return { style: style };
+                if ((typeof _ret3 === 'undefined' ? 'undefined' : _typeof(_ret3)) === "object") return _ret3.v;
+            }
         }
     };
 

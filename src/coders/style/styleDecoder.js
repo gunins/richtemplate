@@ -1,4 +1,4 @@
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         // AMD. Register as an anonymous module.
@@ -12,16 +12,24 @@
         // like Node.
         module.exports = factory(require('./Decoder'));
     }
-}(this, function (Decoder) {
+}(this, function(Decoder) {
     'use strict';
     var styleDecoder = {
         tagName: 'style',
-        decode:  function (node) {
+        decode:  function(node) {
             if (node.data.styleAttached === undefined) {
                 node.data.styleAttached = true;
-                var style = document.createElement('style');
-                style.innerHTML = node.data.style;
-                document.head.appendChild(style);
+                let style = node.data.style,
+                    addStyle = (style)=> {
+                        let tag = document.createElement('style');
+                        tag.innerHTML = style;
+                        document.head.appendChild(tag);
+                    }
+                if (typeof style === 'string') {
+                    addStyle(style);
+                } else {
+                    style.then(addStyle)
+                }
             }
 
         }

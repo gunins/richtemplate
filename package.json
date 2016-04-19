@@ -29,7 +29,7 @@
     "browserify": "^10.2.3",
     "clean-css": "3.4.10",
     "htmlparser2": "^3.9.0",
-    "less": "2.5.1",
+    "less": "2.6.1",
     "node-static": "^0.7.6",
     "requirejs": "2.1.22"
   },
