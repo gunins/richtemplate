@@ -210,7 +210,7 @@ module.exports = function(grunt) {
             },
             es5:       {
                 files: [
-                    {expand: true, cwd: 'target/es5', src: ['**/*.js'], dest: 'dist/es5'}
+                    {expand: true, cwd: 'target/es5', src: ['**/*.js','**/*.js.map'], dest: 'dist/es5'}
                 ]
             },
             basicProd: {

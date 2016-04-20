@@ -42,7 +42,7 @@
         applyFragment(el) {
             let node = this._node;
             let plFragment = node.template();
-            if (plFragment !== undefined) {
+            if (plFragment) {
                 while (plFragment.childNodes.length > 0) {
                     el.appendChild(plFragment.childNodes[0]);
                 }
