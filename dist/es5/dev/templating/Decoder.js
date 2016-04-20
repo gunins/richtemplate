@@ -57,8 +57,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         _createClass(Decoder, [{
             key: 'renderFragment',
-            value: function renderFragment(template) {
+            value: function renderFragment(template, tag) {
                 var el = document.createElement('template');
+                if (el.content === undefined) {
+                    if (tag === 'td') {
+                        el = document.createElement('tr');
+                    } else if (tag === 'tr') {
+                        el = document.createElement('tbody');
+                    }
+                }
                 el.innerHTML = template;
                 return el.content !== undefined ? el.content.firstChild : el.firstChild;
             }

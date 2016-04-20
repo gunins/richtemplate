@@ -41,8 +41,15 @@
             }
         }
 
-        renderFragment(template) {
-            var el = document.createElement('template');
+        renderFragment(template, tag) {
+            let el = document.createElement('template');
+            if (el.content === undefined) {
+                if (tag === 'td') {
+                    el = document.createElement('tr');
+                } else if (tag === 'tr') {
+                    el = document.createElement('tbody');
+                }
+            }
             el.innerHTML = template;
             return (el.content !== undefined) ? el.content.firstChild : el.firstChild;
         };
