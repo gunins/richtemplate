@@ -56,7 +56,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             value: function applyFragment(el) {
                 var node = this._node;
                 var plFragment = node.template();
-                if (plFragment !== undefined) {
+                if (plFragment) {
                     while (plFragment.childNodes.length > 0) {
                         el.appendChild(plFragment.childNodes[0]);
                     }
