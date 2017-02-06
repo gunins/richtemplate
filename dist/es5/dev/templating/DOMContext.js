@@ -20,8 +20,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 })(undefined, function () {
     'use strict';
 
+    function isValidJSON(string) {
+        try {
+            return new Function("", "var json = " + string + "; return JSON.parse(JSON.stringify(json));")();
+        } catch (e) {
+            return string;
+        }
+    }
+
     function applyAttr(dataset, subKeys, attrib) {
-        var attr = subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib;
+        var attr = isValidJSON(subKeys.length > 2 ? _defineProperty({}, subKeys[2], attrib) : attrib);
         if (subKeys.length > 2) {
             dataset[subKeys[1]] = dataset[subKeys[1]] || {};
             Object.assign(dataset[subKeys[1]], attr);
@@ -31,7 +39,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     }
 
     function setDataFromAttributes(attributes) {
-        //TODO: rename dataset tu camel case
         var dataset = {},
             tplSet = {},
             attribs = {};

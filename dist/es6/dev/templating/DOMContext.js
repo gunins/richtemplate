@@ -13,8 +13,17 @@
     }
 }(this, function () {
     'use strict';
+
+    function isValidJSON(string) {
+        try {
+            return (new Function("", "var json = " + string + "; return JSON.parse(JSON.stringify(json));"))();
+        } catch (e) {
+            return string;
+        }
+    }
+
     function applyAttr(dataset, subKeys, attrib) {
-        let attr = (subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib;
+        let attr = isValidJSON((subKeys.length > 2) ? {[subKeys[2]]: attrib} : attrib);
         if (subKeys.length > 2) {
             dataset[subKeys[1]] = dataset[subKeys[1]] || {};
             Object.assign(dataset[subKeys[1]], attr);
@@ -24,7 +33,6 @@
     }
 
     function setDataFromAttributes(attributes) {
-        //TODO: rename dataset tu camel case
         var dataset = {},
             tplSet = {},
             attribs = {};
@@ -65,7 +73,7 @@
                     holder = domParser.createElement(data.tag);
 
                 if (children && children.length > 0) {
-                    children.forEach((child)=> {
+                    children.forEach((child) => {
                         domParser.appendChild(holder, child);
                     });
                 }
