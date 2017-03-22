@@ -4,7 +4,7 @@ require.config({
         'coders/component/cpCoder',
         'coders/placeholders/plCoder',
         'coders/databind/bdCoder',
-        'coders/router/RouterCoder',
+        'coders/router/routerCoder',
         'coders/style/styleCoder'
 
     ],
