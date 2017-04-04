@@ -63,7 +63,7 @@ var check = function () {
     return true;
 }();
 
-var target = check ? 'es6' : 'es5'
+var target = check ? 'es6' : 'es5';
 require.config({
     baseUrl:          '../../dist/' + target + '/dev/',
     templateCoders:   [

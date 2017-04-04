@@ -18,21 +18,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         var classNames = getClassNames(content);
         classNames.forEach(function (item) {
             if (item.trim().length > 0) {
-                (function () {
-                    var names = item.split(',');
-                    names.forEach(function (name, index) {
-                        var bracket = false;
-                        if (name.indexOf('{') !== -1) {
-                            name = name.replace('{', '');
-                            bracket = true;
-                        }
-                        var replace = name.trim().split(' ').map(function (chunk) {
-                            return setName(chunk.trim(), id);
-                        }).join(' ');
-                        names[index] = '\n' + replace + (bracket ? ' {' : '');
-                    });
-                    content = content.replace(item, names.join(',')).trim() + '\n';
-                })();
+                var names = item.split(',');
+                names.forEach(function (name, index) {
+                    var bracket = false;
+                    if (name.indexOf('{') !== -1) {
+                        name = name.replace('{', '');
+                        bracket = true;
+                    }
+                    var replace = name.trim().split(' ').map(function (chunk) {
+                        return setName(chunk.trim(), id);
+                    }).join(' ');
+                    names[index] = '\n' + replace + (bracket ? ' {' : '');
+                });
+                content = content.replace(item, names.join(',')).trim() + '\n';
             }
         });
         return content;
@@ -161,18 +159,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             nodeContext.removeChildren();
 
             if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
-                (function () {
-                    var dirName = __dirname.split('/'),
-                        curUrl = nodeContext.url.split('/'),
-                        root = [];
-                    curUrl.forEach(function (url, index) {
-                        if (url !== dirName[index]) {
-                            root.push(url);
-                        }
-                    });
+                var dirName = __dirname.split('/'),
+                    curUrl = nodeContext.url.split('/'),
+                    root = [];
+                curUrl.forEach(function (url, index) {
+                    if (url !== dirName[index]) {
+                        root.push(url);
+                    }
+                });
 
-                    currentUrl = '@current-url: "' + root.join('/') + '";';
-                })();
+                currentUrl = '@current-url: "' + root.join('/') + '";';
             } else {
                 currentUrl = '@current-url: "' + nodeContext.url + '";';
             }
@@ -188,22 +184,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 });
                 return { style: render };
             } else {
-                var _ret3 = function () {
-                    var innerStyle = undefined;
-                    less.render(importUrl + currentUrl + content, {
-                        syncImport: true,
-                        relativeUrls: true
-                    }, function (e, output) {
-                        innerStyle = parseCSS(output.css, templateId);
-                        var CleanCSS = require('clean-css');
-                        innerStyle = new CleanCSS().minify(innerStyle).styles;
-                    });
-                    return {
-                        v: { style: innerStyle }
-                    };
-                }();
-
-                if ((typeof _ret3 === 'undefined' ? 'undefined' : _typeof(_ret3)) === "object") return _ret3.v;
+                var innerStyle = undefined;
+                less.render(importUrl + currentUrl + content, {
+                    syncImport: true,
+                    relativeUrls: true
+                }, function (e, output) {
+                    innerStyle = parseCSS(output.css, templateId);
+                    var CleanCSS = require('clean-css');
+                    innerStyle = new CleanCSS().minify(innerStyle).styles;
+                });
+                return { style: innerStyle };
             }
         }
     };

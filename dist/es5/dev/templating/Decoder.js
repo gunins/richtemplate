@@ -111,11 +111,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'renderTemplate',
             value: function renderTemplate() {
-                var childNodes = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+                var childNodes = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
                 var _this2 = this;
 
-                var obj = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+                var obj = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
                 var fragment = arguments[2];
 
                 var resp = {},
@@ -137,47 +137,45 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         }
                     });
                     if (child.template) {
-                        (function () {
-                            var run = function run(force, index) {
-                                var template = childFragment();
-                                if (force instanceof HTMLElement === true) {
-                                    template = force;
+                        var run = function run(force, index) {
+                            var template = childFragment();
+                            if (force instanceof HTMLElement === true) {
+                                template = force;
+                            }
+
+                            var childNodes = undefined,
+                                data = template !== force && (isObject(force) || isArray(force)) ? force : obj;
+                            if (!child.noAttach || force) {
+                                var _placeholder = template.querySelector('#' + child.id) || template;
+
+                                if (children) {
+                                    childNodes = _this2.renderTemplate(children, data, function () {
+                                        return template;
+                                    });
+                                }
+                                var element = new DomFragment(child, _placeholder, childNodes, elGroup, index, data);
+
+                                template = element.el;
+
+                                if (childNodes && childNodes.runAll && child.parse) {
+                                    childNodes.runAll();
                                 }
 
-                                var childNodes = undefined,
-                                    data = template !== force && (isObject(force) || isArray(force)) ? force : obj;
-                                if (!child.noAttach || force) {
-                                    var _placeholder = template.querySelector('#' + child.id) || template;
-
-                                    if (children) {
-                                        childNodes = _this2.renderTemplate(children, data, function () {
-                                            return template;
-                                        });
-                                    }
-                                    var element = new DomFragment(child, _placeholder, childNodes, elGroup, index, data);
-
-                                    template = element.el;
-
-                                    if (childNodes && childNodes.runAll && child.parse) {
-                                        childNodes.runAll();
-                                    }
-
-                                    if (childNodes && !element.children) {
-                                        element.children = childNodes;
-                                    }
-                                    element.elGroup = elGroup;
-                                    element.run = run;
-                                    elGroup.set(element.el, element, index);
-                                    return element;
+                                if (childNodes && !element.children) {
+                                    element.children = childNodes;
                                 }
-                            };
-                            _runAll.push(run);
-                            resp[name] = {
-                                data: child.data,
-                                run: run,
-                                elGroup: elGroup
-                            };
-                        })();
+                                element.elGroup = elGroup;
+                                element.run = run;
+                                elGroup.set(element.el, element, index);
+                                return element;
+                            }
+                        };
+                        _runAll.push(run);
+                        resp[name] = {
+                            data: child.data,
+                            run: run,
+                            elGroup: elGroup
+                        };
                     } else {
                         var element = new dom.Element(childFragment().querySelector('#' + child.id), child);
                         element.removeAttribute('id');

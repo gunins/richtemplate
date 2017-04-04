@@ -104,25 +104,23 @@ define('templating/parser', ['module'], function (module) {
     }
 
     if (masterConfig.env === 'node' || !masterConfig.env && typeof process !== 'undefined' && process.versions && !!process.versions.node && !process.versions['node-webkit']) {
-        (function () {
-            //Using special require.nodeRequire, something added by r.js.
-            var fs = require.nodeRequire('fs');
+        //Using special require.nodeRequire, something added by r.js.
+        var fs = require.nodeRequire('fs');
 
-            loadDependencies = function loadDependencies(url, callback, errback) {
-                try {
-                    var file = fs.readFileSync(url, 'utf8');
-                    //Remove BOM (Byte Mark Order) from utf8 files if it is there.
-                    if (file.indexOf('﻿') === 0) {
-                        file = file.substring(1);
-                    }
-                    callback(file);
-                } catch (e) {
-                    if (errback) {
-                        errback(e);
-                    }
+        loadDependencies = function loadDependencies(url, callback, errback) {
+            try {
+                var file = fs.readFileSync(url, 'utf8');
+                //Remove BOM (Byte Mark Order) from utf8 files if it is there.
+                if (file.indexOf('﻿') === 0) {
+                    file = file.substring(1);
                 }
-            };
-        })();
+                callback(file);
+            } catch (e) {
+                if (errback) {
+                    errback(e);
+                }
+            }
+        };
     } else if (masterConfig.env === 'xhr' || !masterConfig.env) {
         loadDependencies = function loadDependencies(url, callback, errback, headers) {
             var xhr = new XMLHttpRequest(),
@@ -194,13 +192,11 @@ define('templating/parser', ['module'], function (module) {
 
             loadDependencies(url, function (content) {
                 if (masterConfig.isBuild) {
-                    (function () {
-                        var Coder = require.nodeRequire(require.toUrl(paths.Coder));
-                        masterConfig.templateCoders.forEach(function (coder) {
-                            Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
-                        });
-                        finishLoad(Coder, content, name, onLoad, req);
-                    })();
+                    var Coder = require.nodeRequire(require.toUrl(paths.Coder));
+                    masterConfig.templateCoders.forEach(function (coder) {
+                        Coder.addCoder(require.nodeRequire(require.toUrl(coder)));
+                    });
+                    finishLoad(Coder, content, name, onLoad, req);
                 } else {
                     req([paths.Coder].concat(_toConsumableArray(masterConfig.templateCoders), _toConsumableArray(masterConfig.templateDecoders)), function (Coder) {
                         finishLoad(Coder, content, name, onLoad, req);
@@ -215,21 +211,19 @@ define('templating/parser', ['module'], function (module) {
         write: function write(pluginName, moduleName, _write) {
 
             if (buildMap.hasOwnProperty(moduleName)) {
-                (function () {
-                    var content = JSON.stringify(buildMap[moduleName]),
-                        map = idToSrc[moduleName],
-                        ids = Object.keys(map),
-                        sources = [];
-                    ids.forEach(function (id, i) {
-                        var re = new RegExp(id, 'g');
-                        content = content.replace(re, 'arguments[' + i + ']');
-                        sources.push(map[id]);
-                    });
+                var content = JSON.stringify(buildMap[moduleName]),
+                    map = idToSrc[moduleName],
+                    ids = Object.keys(map),
+                    sources = [];
+                ids.forEach(function (id, i) {
+                    var re = new RegExp(id, 'g');
+                    content = content.replace(re, 'arguments[' + i + ']');
+                    sources.push(map[id]);
+                });
 
-                    var dependencies = sources.concat(masterConfig.templateDecoders);
+                var dependencies = sources.concat(masterConfig.templateDecoders);
 
-                    _write.asModule(pluginName + '!' + moduleName, "define(" + JSON.stringify(dependencies) + ", function () { return " + content + ";});\n");
-                })();
+                _write.asModule(pluginName + '!' + moduleName, "define(" + JSON.stringify(dependencies) + ", function () { return " + content + ";});\n");
             }
         }
     };

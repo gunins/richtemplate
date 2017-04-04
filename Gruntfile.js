@@ -54,7 +54,7 @@ module.exports = function(grunt) {
                     dir:      'target/es6/dev',
                     modules:  [
                         {
-                            name:    'templating/parser'
+                            name: 'templating/parser'
                         },
                         {
                             name:    'coders/style/styleCoder',
@@ -210,7 +210,7 @@ module.exports = function(grunt) {
             },
             es5:       {
                 files: [
-                    {expand: true, cwd: 'target/es5', src: ['**/*.js','**/*.js.map'], dest: 'dist/es5'}
+                    {expand: true, cwd: 'target/es5', src: ['**/*.js', '**/*.js.map'], dest: 'dist/es5'}
                 ]
             },
             basicProd: {
@@ -227,6 +227,9 @@ module.exports = function(grunt) {
         babel:           {
             options: {
                 presets: ['es2015'],
+                ignore:  [
+                    "babel/polyfill.js"
+                ],
                 compact: false
             },
             dev:     {
@@ -267,8 +270,8 @@ module.exports = function(grunt) {
         },
         uglify:          {
             options:  {
-                banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
-                mangle: false,
+                banner:   '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
+                mangle:   false,
                 compress: {
                     drop_console: true
                 }

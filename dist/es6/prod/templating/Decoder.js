@@ -760,7 +760,7 @@ define('templating/dom',[],function() {
                             parse:    decodedData.parse,
                             replace:  decodedData.replace,
                             id:       node.id,
-                            template: ()=> {
+                            template: () => {
                                 return this.renderFragment(node.template, node.data.tag)
                             },
                             noAttach: _decoders[tagName].noAttach || node.data.tplSet.noattach
@@ -775,7 +775,7 @@ define('templating/dom',[],function() {
                     context[name] = {
                         id:   node.id,
                         data: node.data,
-                              name
+                        name
                     };
                 }
             });
@@ -793,14 +793,14 @@ define('templating/dom',[],function() {
                     placeholder = document.createElement(child.data.tplSet.tag || 'div');
                 placeholder.setAttribute('style', 'display:none;');
                 placeholder.id = child.id;
-                elGroup.onDelete((key, size)=> {
+                elGroup.onDelete((key, size) => {
                     if (size === 0 && key.parentNode) {
                         key.parentNode.replaceChild(placeholder, key);
-                        childFragment = ()=>placeholder;
+                        childFragment = () => placeholder;
                     }
-                })
+                });
                 if (child.template) {
-                    let run = (force, index)=> {
+                    let run = (force, index) => {
                         let template = childFragment();
                         if (force instanceof HTMLElement === true) {
                             template = force;
@@ -812,7 +812,7 @@ define('templating/dom',[],function() {
                             let placeholder = template.querySelector('#' + child.id) || template;
 
                             if (children) {
-                                childNodes = this.renderTemplate(children, data, ()=> {
+                                childNodes = this.renderTemplate(children, data, () => {
                                     return template;
                                 });
                             }
@@ -838,8 +838,8 @@ define('templating/dom',[],function() {
                     _runAll.push(run);
                     resp[name] = {
                         data: child.data,
-                              run,
-                              elGroup
+                        run,
+                        elGroup
                     };
 
                 } else {
@@ -857,8 +857,8 @@ define('templating/dom',[],function() {
                 });
             };
 
-            let runAll = (el)=> {
-                _runAll.forEach(run=> run(el));
+            let runAll = (el) => {
+                _runAll.forEach(run => run(el));
                 return resp;
             };
 
@@ -871,7 +871,7 @@ define('templating/dom',[],function() {
             var fragment = this.renderFragment(this._root.template);
             return {
                 fragment:   fragment,
-                children:   this.renderTemplate(this.children, obj, ()=> fragment).runAll(),
+                children:   this.renderTemplate(this.children, obj, () => fragment).runAll(),
                 templateId: this._root.templateId
             };
         };

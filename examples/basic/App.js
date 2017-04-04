@@ -1,7 +1,7 @@
 define([
     'templating/parser!./template.html',
     'templating/Decoder'
-], function (template, Decoder) {
+], function(template, Decoder) {
     'use strict';
     var decoder = new Decoder(template);
     var context = decoder.render({
@@ -23,7 +23,6 @@ define([
     aChild.clone(true, 0).text('item 4');
 
     console.log(aChild);
-
 //        console.log(cmp)
     var b = context.children.test.run(true);
     let testthing = b.children.testthing;
@@ -41,9 +40,9 @@ define([
 
     var el = document.getElementById('el1');
     el.appendChild(contextA.fragment);
-    var a = contextA.children.test.run(true);
-    var cmp = a.children.testthing.run();//.el.innerHTML = 'Test 1';
-    var aChild = a.children.extra.run(true).text('Completely different');
+    var newEl = contextA.children.test.run(true);
+    var cmp = newEl.children.testthing.run();//.el.innerHTML = 'Test 1';
+    var aChild = newEl.children.extra.run(true).text('Completely different');
 
 
 });
